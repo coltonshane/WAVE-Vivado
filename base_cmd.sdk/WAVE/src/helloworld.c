@@ -98,9 +98,11 @@ u16 cmv_Exp_kp2 = 0;
 u16 cmv_Vtfl = 64 * 128 + 64;
 u16 cmv_Number_slopes = 1;
 
-u32 * debug_core_addr  = (u32 *)(0xA0001004);
-u32 * debug_core_dataL = (u32 *)(0xA0001008);
-u32 * debug_core_dataH = (u32 *)(0xA000100C);
+u32 * debug_core_addr  = (u32 *)(0xA0001000);
+u32 * debug_core_HH1_data = (u32 *)(0xA0001010);
+u32 * debug_core_HL1_data = (u32 *)(0xA0001014);
+u32 * debug_core_LH1_data = (u32 *)(0xA0001018);
+u32 * debug_core_LL1_data = (u32 *)(0xA000101C);
 
 int main()
 {

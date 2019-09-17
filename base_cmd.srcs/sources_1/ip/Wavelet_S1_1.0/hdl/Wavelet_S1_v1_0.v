@@ -24,14 +24,13 @@ module Wavelet_S1_v1_0 #
 
 	// Parameters of Axi Slave Bus Interface S00_AXI
 	parameter integer C_S00_AXI_DATA_WIDTH	= 32,
-	parameter integer C_S00_AXI_ADDR_WIDTH	= 4
+	parameter integer C_S00_AXI_ADDR_WIDTH	= 5
 )
 (
 	// Users to add ports here
-
-	// User ports ends
 		
 	input wire px_clk,
+	input wire px_clk_2x,
 	input wire signed [23:0] px_count,
 	input wire [9:0] px_ctr,
 	input wire [639:0] px_chXX_concat,
@@ -40,6 +39,8 @@ module Wavelet_S1_v1_0 #
 	output wire signed [511:0] HL1_concat,
 	output wire signed [511:0] LH1_concat,
 	output wire signed [511:0] LL1_concat,
+	
+	// User ports ends
 		
 	// Do not modify the ports beyond this line
 
@@ -69,7 +70,10 @@ module Wavelet_S1_v1_0 #
 
 // Debug port for peeking at wavelet core data through AXI.
 wire [31:0] debug_core_addr;
-reg [63:0] debug_core_data;
+reg [31:0] debug_core_HH1_data;
+reg [31:0] debug_core_HL1_data;
+reg [31:0] debug_core_LH1_data;
+reg [31:0] debug_core_LL1_data;
 
 // Instantiation of Axi Bus Interface S00_AXI
 Wavelet_S1_v1_0_S00_AXI 
@@ -80,7 +84,10 @@ Wavelet_S1_v1_0_S00_AXI
 Wavelet_S1_v1_0_S00_AXI_inst 
 (
     .debug_core_addr(debug_core_addr),
-    .debug_core_data(debug_core_data),
+    .debug_core_HH1_data(debug_core_HH1_data),
+    .debug_core_HL1_data(debug_core_HL1_data),
+    .debug_core_LH1_data(debug_core_LH1_data),
+    .debug_core_LL1_data(debug_core_LL1_data),
 	.S_AXI_ACLK(s00_axi_aclk),
 	.S_AXI_ARESETN(s00_axi_aresetn),
 	.S_AXI_AWADDR(s00_axi_awaddr),
@@ -283,11 +290,23 @@ assign px_count_v1_R1G2 = px_count - 24'sh00000F;
 wire signed [23:0] px_count_v1_G1B1;
 assign px_count_v1_G1B1 = px_count - 24'sh000010;
 
-// Arrays for accessing vertical core BRAM read data.
-wire [63:0] rd_data_R1 [7:0];
-wire [63:0] rd_data_G1 [7:0];
-wire [63:0] rd_data_G2 [7:0];
-wire [63:0] rd_data_B1 [7:0];
+// Arrays for accessing vertical core output data.
+wire [31:0] HH1_R1 [7:0];
+wire [31:0] HL1_R1 [7:0];
+wire [31:0] LH1_R1 [7:0];
+wire [31:0] LL1_R1 [7:0];
+wire [31:0] HH1_G1 [7:0];
+wire [31:0] HL1_G1 [7:0];
+wire [31:0] LH1_G1 [7:0];
+wire [31:0] LL1_G1 [7:0];
+wire [31:0] HH1_G2 [7:0];
+wire [31:0] HL1_G2 [7:0];
+wire [31:0] LH1_G2 [7:0];
+wire [31:0] LL1_G2 [7:0];
+wire [31:0] HH1_B1 [7:0];
+wire [31:0] HL1_B1 [7:0];
+wire [31:0] LH1_B1 [7:0];
+wire [31:0] LL1_B1 [7:0];
 
 // Instantiate 32 vertical wavelet cores (8 each for R1, G1, G2, and B1 color fields).
 // Each vertical core input is fed by the outputs of four adjacent horizontal cores.
@@ -298,6 +317,7 @@ begin : dwt26_v1_array
     dwt26_v1 R1
     (
         .px_clk(px_clk),
+        .px_clk_2x(px_clk_2x),
         .px_count_v1(px_count_v1_R1G2),
         .S_in_0(S_out_R1[4*i+0]),
         .D_in_0(D_out_R1[4*i+0]),
@@ -308,13 +328,16 @@ begin : dwt26_v1_array
         .S_in_3(S_out_R1[4*i+3]),
         .D_in_3(D_out_R1[4*i+3]),
 
-        .rd_addr(debug_core_addr[8:0]),
-        .rd_data(rd_data_R1[i])
+        .HH1_out(HH1_R1[i]),
+        .HL1_out(HL1_R1[i]),
+        .LH1_out(LH1_R1[i]),
+        .LL1_out(LL1_R1[i])
     );
     
     dwt26_v1 G1
     (
         .px_clk(px_clk),
+        .px_clk_2x(px_clk_2x),
         .px_count_v1(px_count_v1_G1B1),
         .S_in_0(S_out_G1[4*i+0]),
         .D_in_0(D_out_G1[4*i+0]),
@@ -325,13 +348,16 @@ begin : dwt26_v1_array
         .S_in_3(S_out_G1[4*i+3]),
         .D_in_3(D_out_G1[4*i+3]),
 
-        .rd_addr(debug_core_addr[8:0]),
-        .rd_data(rd_data_G1[i])
+        .HH1_out(HH1_G1[i]),
+        .HL1_out(HL1_G1[i]),
+        .LH1_out(LH1_G1[i]),
+        .LL1_out(LL1_G1[i])
     );
     
     dwt26_v1 G2
     (
         .px_clk(px_clk),
+        .px_clk_2x(px_clk_2x),
         .px_count_v1(px_count_v1_R1G2),
         .S_in_0(S_out_G2[4*i+0]),
         .D_in_0(D_out_G2[4*i+0]),
@@ -342,13 +368,16 @@ begin : dwt26_v1_array
         .S_in_3(S_out_G2[4*i+3]),
         .D_in_3(D_out_G2[4*i+3]),
 
-        .rd_addr(debug_core_addr[8:0]),
-        .rd_data(rd_data_G2[i])
+        .HH1_out(HH1_G2[i]),
+        .HL1_out(HL1_G2[i]),
+        .LH1_out(LH1_G2[i]),
+        .LL1_out(LL1_G2[i])
     );
     
     dwt26_v1 B1
     (
         .px_clk(px_clk),
+        .px_clk_2x(px_clk_2x),
         .px_count_v1(px_count_v1_G1B1),
         .S_in_0(S_out_B1[4*i+0]),
         .D_in_0(D_out_B1[4*i+0]),
@@ -359,8 +388,10 @@ begin : dwt26_v1_array
         .S_in_3(S_out_B1[4*i+3]),
         .D_in_3(D_out_B1[4*i+3]),
 
-        .rd_addr(debug_core_addr[8:0]),
-        .rd_data(rd_data_B1[i])
+        .HH1_out(HH1_B1[i]),
+        .HL1_out(HL1_B1[i]),
+        .LH1_out(LH1_B1[i]),
+        .LL1_out(LL1_B1[i])
     );
     
 end : dwt26_v1_array
@@ -369,15 +400,35 @@ endgenerate
 // Debug access to core output data.
 always @(posedge px_clk)
 begin
-    case (debug_core_addr[13:12])
-        `COLOR_R1: 
-            debug_core_data <= rd_data_R1[debug_core_addr[11:9]];
+    case (debug_core_addr[4:3])
+        `COLOR_R1:
+        begin 
+            debug_core_HH1_data <= HH1_R1[debug_core_addr[2:0]];
+            debug_core_HL1_data <= HL1_R1[debug_core_addr[2:0]];
+            debug_core_LH1_data <= LH1_R1[debug_core_addr[2:0]];
+            debug_core_LL1_data <= LL1_R1[debug_core_addr[2:0]];
+        end
         `COLOR_G1:
-            debug_core_data <= rd_data_G1[debug_core_addr[11:9]];
+        begin 
+            debug_core_HH1_data <= HH1_G1[debug_core_addr[2:0]];
+            debug_core_HL1_data <= HL1_G1[debug_core_addr[2:0]];
+            debug_core_LH1_data <= LH1_G1[debug_core_addr[2:0]];
+            debug_core_LL1_data <= LL1_G1[debug_core_addr[2:0]];
+        end
         `COLOR_G2:
-            debug_core_data <= rd_data_G2[debug_core_addr[11:9]];
+        begin 
+            debug_core_HH1_data <= HH1_G2[debug_core_addr[2:0]];
+            debug_core_HL1_data <= HL1_G2[debug_core_addr[2:0]];
+            debug_core_LH1_data <= LH1_G2[debug_core_addr[2:0]];
+            debug_core_LL1_data <= LL1_G2[debug_core_addr[2:0]];
+        end
         `COLOR_B1:
-            debug_core_data <= rd_data_B1[debug_core_addr[11:9]];
+        begin 
+            debug_core_HH1_data <= HH1_B1[debug_core_addr[2:0]];
+            debug_core_HL1_data <= HL1_B1[debug_core_addr[2:0]];
+            debug_core_LH1_data <= LH1_B1[debug_core_addr[2:0]];
+            debug_core_LL1_data <= LL1_B1[debug_core_addr[2:0]];
+        end
     endcase
 end
 

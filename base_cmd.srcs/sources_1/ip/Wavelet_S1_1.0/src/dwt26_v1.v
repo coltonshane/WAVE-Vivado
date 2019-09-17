@@ -30,6 +30,7 @@ All operations and operands are signed 16-bit unless otherwise noted.
 module dwt26_v1
 (
     input wire px_clk,
+    input wire px_clk_2x,
     input wire signed [23:0] px_count_v1,
     input wire signed [15:0] S_in_0,
     input wire signed [15:0] D_in_0,
@@ -39,9 +40,11 @@ module dwt26_v1
     input wire signed [15:0] D_in_2,
     input wire signed [15:0] S_in_3,
     input wire signed [15:0] D_in_3,
-
-    input wire [8:0] rd_addr,
-    output reg [63:0] rd_data
+    
+    output reg [31:0] HH1_out,
+    output reg [31:0] HL1_out,
+    output reg [31:0] LH1_out,
+    output reg [31:0] LL1_out
 );
 
 // Memory to be inferred as a single BRAM (32K = 8 x 256 x 16b).
@@ -93,12 +96,139 @@ begin
 end
 // -------------------------------------------------------------------------------------------------
 
-// Read operation (test).
+// Vertical 2/6 DWT Registers and Operations
 // -------------------------------------------------------------------------------------------------
-always @(posedge px_clk)
+// Storage for operands and intermdiate results.
+reg [63:0] X_even_concat;
+reg [63:0] X_odd_concat;
+reg [63:0] S_above_concat;
+reg [63:0] S_below_concat;
+
+// Combinational logic for 2/6 DWT Steps.
+wire signed [15:0] X_even [3:0];
+wire signed [15:0] X_odd [3:0];
+wire signed [15:0] S_above [3:0];
+wire signed [15:0] S_below [3:0];
+wire signed [15:0] S_local [3:0];
+wire signed [15:0] D_local [3:0];
+wire signed [15:0] S_out [3:0];
+wire signed [15:0] D_out [3:0];
+wire [63:0] S_local_concat;
+wire [63:0] D_local_concat;
+genvar i;
+for (i = 0; i < 4; i = i + 1)
+begin
+    assign X_even[i] = X_even_concat[16*i+:16];
+    assign X_odd[i] = X_odd_concat[16*i+:16];
+    assign S_above[i] = S_above_concat[16*i+:16];
+    assign S_below[i] = S_below_concat[16*i+:16];
+    
+    assign D_local[i] = X_odd[i] - X_even[i];
+    assign S_local[i] = X_even[i] + (S_local[i] >>> 1);
+    assign S_out[i] = X_even[i];
+    assign D_out[i] = X_odd[i] + ((S_above[i] - S_below[i] + 16'sh0002) >>> 2);
+    
+    assign S_local_concat[16*i+:16] = S_local[i];
+    assign D_local_concat[16*i+:16] = D_local[i];
+end
+// -------------------------------------------------------------------------------------------------
+
+// Read state. Cycles through 8 states on px_clk_2x. 
+// rd_state[2:0] transitions from 7 to 0 when px_count_v1[1:0] increments from 3 to 0.
+// -------------------------------------------------------------------------------------------------
+wire [2:0] rd_state ;
+
+reg px_count_v1_prev_LSB_2x;
+always @(posedge px_clk_2x)
+begin
+    px_count_v1_prev_LSB_2x <= px_count_v1[0];
+end
+
+assign rd_state = {px_count_v1[1:0], (px_count_v1[0] == px_count_v1_prev_LSB_2x)};
+// -------------------------------------------------------------------------------------------------
+
+// Read address generation (combinational).
+// -------------------------------------------------------------------------------------------------
+wire [8:0] rd_addr;
+wire [3:0] row_offset[7:0];
+assign row_offset[0] = 2;   // State 0: Request Row N-6 = Row N+2
+assign row_offset[1] = 3;   // State 1: Request Row N-5 = Row N+3
+assign row_offset[2] = 6;   // State 2: Request Row N-2 = Row N+6
+assign row_offset[3] = 7;   // State 3: Request Row N-1 = Row N+7
+assign row_offset[4] = 4;   // State 4: Request Row N-4 = Row N+4
+assign row_offset[5] = 5;   // State 5: Request Row N-3 = Row N+5
+assign row_offset[6] = 5;   // Don't care, leave unchanged.
+assign row_offset[7] = 5;   // Don't care, leave unchanged.
+
+assign rd_addr[8:6] = {px_count_v1[9:8], 1'b0} + row_offset[rd_state];
+assign rd_addr[5:0] = px_count_v1[7:2];
+// -------------------------------------------------------------------------------------------------
+
+// Read operation. (One clock cycle latency between updating rd_addr and latching rd_data.)
+//  ------------------------------------------------------------------------------------------------
+reg [63:0] rd_data ;
+
+always @(posedge px_clk_2x)
 begin
     rd_data <= {mem[{rd_addr, 1'b1}], mem[{rd_addr, 1'b0}]};
 end
+//  ------------------------------------------------------------------------------------------------
+
+// Vertical 2/6 DWT state machine on read data.
+// -------------------------------------------------------------------------------------------------
+always @(posedge px_clk_2x)
+begin
+    case (rd_state)
+    
+    3'b000:
+    begin
+        LL1_out <= {S_out[2], S_out[0]};
+        HL1_out <= {S_out[3], S_out[1]};
+        LH1_out <= {D_out[2], D_out[0]};
+        HH1_out <= {D_out[3], D_out[1]};
+    end
+    
+    3'b001: // Receive Row N-6.
+    begin
+        X_even_concat <= rd_data;
+    end
+    
+    3'b010: // Receive Row N-5.
+    begin
+        X_odd_concat <= rd_data;
+    end
+    
+    3'b011: // Receive Row N-2.
+    begin
+        S_above_concat <= S_local_concat;
+        X_even_concat <= rd_data;
+    end
+    
+    3'b100: // Receive Row N-1.
+    begin
+        X_odd_concat <= rd_data;
+    end
+    
+    3'b101: // Receive Row N-4.
+    begin
+        S_below_concat <= S_local_concat;
+        X_even_concat <= rd_data;
+    end
+    
+    3'b110: // Receive Row N-3.
+    begin
+        X_odd_concat <= rd_data;
+    end
+    
+    3'b111:
+    begin
+        X_even_concat <= S_local_concat;
+        X_odd_concat <= D_local_concat;
+    end
+    
+    endcase
+end
+
 // -------------------------------------------------------------------------------------------------
 
 endmodule
