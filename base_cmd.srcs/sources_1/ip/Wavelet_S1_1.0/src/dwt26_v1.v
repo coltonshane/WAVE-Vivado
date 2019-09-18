@@ -124,7 +124,7 @@ begin
     assign S_below[i] = S_below_concat[16*i+:16];
     
     assign D_local[i] = X_odd[i] - X_even[i];
-    assign S_local[i] = X_even[i] + (S_local[i] >>> 1);
+    assign S_local[i] = X_even[i] + (D_local[i] >>> 1);
     assign S_out[i] = X_even[i];
     assign D_out[i] = X_odd[i] + ((S_above[i] - S_below[i] + 16'sh0002) >>> 2);
     
@@ -150,7 +150,7 @@ assign rd_state = {px_count_v1[1:0], (px_count_v1[0] == px_count_v1_prev_LSB_2x)
 // Read address generation (combinational).
 // -------------------------------------------------------------------------------------------------
 wire [8:0] rd_addr;
-wire [3:0] row_offset[7:0];
+wire [2:0] row_offset[7:0];
 assign row_offset[0] = 2;   // State 0: Request Row N-6 = Row N+2
 assign row_offset[1] = 3;   // State 1: Request Row N-5 = Row N+3
 assign row_offset[2] = 6;   // State 2: Request Row N-2 = Row N+6
@@ -172,6 +172,7 @@ always @(posedge px_clk_2x)
 begin
     rd_data <= {mem[{rd_addr, 1'b1}], mem[{rd_addr, 1'b0}]};
 end
+
 //  ------------------------------------------------------------------------------------------------
 
 // Vertical 2/6 DWT state machine on read data.
@@ -180,16 +181,16 @@ always @(posedge px_clk_2x)
 begin
     case (rd_state)
     
-    3'b000:
+    3'b000: // Nothing to do here. Just waiting for first rd_data.
+    begin       
+    end
+    
+    3'b001: // Receive Row N-6. Latch outputs.
     begin
         LL1_out <= {S_out[2], S_out[0]};
         HL1_out <= {S_out[3], S_out[1]};
         LH1_out <= {D_out[2], D_out[0]};
         HH1_out <= {D_out[3], D_out[1]};
-    end
-    
-    3'b001: // Receive Row N-6.
-    begin
         X_even_concat <= rd_data;
     end
     
@@ -198,7 +199,7 @@ begin
         X_odd_concat <= rd_data;
     end
     
-    3'b011: // Receive Row N-2.
+    3'b011: // Receive Row N-2. Do local sum on Row N-6 and N-5.
     begin
         S_above_concat <= S_local_concat;
         X_even_concat <= rd_data;
@@ -209,7 +210,7 @@ begin
         X_odd_concat <= rd_data;
     end
     
-    3'b101: // Receive Row N-4.
+    3'b101: // Receive Row N-4. Do local sum on Row N-2 and N-1.
     begin
         S_below_concat <= S_local_concat;
         X_even_concat <= rd_data;
@@ -220,7 +221,7 @@ begin
         X_odd_concat <= rd_data;
     end
     
-    3'b111:
+    3'b111: // Do local sum and difference on Row N-4 and N-3.
     begin
         X_even_concat <= S_local_concat;
         X_odd_concat <= D_local_concat;

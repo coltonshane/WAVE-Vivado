@@ -69,6 +69,7 @@ module Wavelet_S1_v1_0 #
 );
 
 // Debug port for peeking at wavelet core data through AXI.
+wire signed [23:0] debug_px_count_trig;
 wire [31:0] debug_core_addr;
 reg [31:0] debug_core_HH1_data;
 reg [31:0] debug_core_HL1_data;
@@ -83,6 +84,7 @@ Wavelet_S1_v1_0_S00_AXI
 ) 
 Wavelet_S1_v1_0_S00_AXI_inst 
 (
+    .debug_px_count_trig(debug_px_count_trig),
     .debug_core_addr(debug_core_addr),
     .debug_core_HH1_data(debug_core_HH1_data),
     .debug_core_HL1_data(debug_core_HL1_data),
@@ -400,6 +402,8 @@ endgenerate
 // Debug access to core output data.
 always @(posedge px_clk)
 begin
+if (px_count == debug_px_count_trig)
+begin
     case (debug_core_addr[4:3])
         `COLOR_R1:
         begin 
@@ -430,6 +434,7 @@ begin
             debug_core_LL1_data <= LL1_B1[debug_core_addr[2:0]];
         end
     endcase
+end
 end
 
 // User logic ends

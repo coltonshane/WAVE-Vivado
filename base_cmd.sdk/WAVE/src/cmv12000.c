@@ -273,6 +273,9 @@ void cmvLinkTrain(void)
     	while((px_data != CMV_TP1) && (chXX_bitslip[ch] < (ctr_bitslip + 4)));
     }
     // -----------------------------------------------------------------------------------------
+
+    // Disable px_count_limit by setting it to max.
+    CMV_Input->px_count_limit = 0x7FFFFF;
 }
 
 void cmvRegInit(XSpiPs * spiDevice)

@@ -24,6 +24,7 @@ module Wavelet_S1_v1_0_S00_AXI
 	// Users to add ports here
 	
 	// Debug port for peeking at wavelet core data through AXI.
+	output wire signed [23:0] debug_px_count_trig,
 	output wire [31:0] debug_core_addr,
 	input wire [31:0] debug_core_HH1_data,
 	input wire [31:0] debug_core_HL1_data,
@@ -379,7 +380,8 @@ begin
 end    
 
 // Add user logic here
-assign debug_core_addr = slv_reg[0];
+assign debug_px_count_trig = slv_reg[0][23:0];
+assign debug_core_addr = slv_reg[1];
 
 // User logic ends
 
