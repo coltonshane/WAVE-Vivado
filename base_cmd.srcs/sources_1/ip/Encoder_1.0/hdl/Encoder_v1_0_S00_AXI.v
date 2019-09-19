@@ -1,7 +1,7 @@
 `timescale 1 ns / 1 ps
 /*
 =================================================================================
-Encoder_v1_0_S00_AXI .v
+Encoder_v1_0_S00_AXI.v
 AXI slave controller for controlling and configuring the quantizer/encoder.
 The slave registers are mapped to PS memory, so the ARM cores have access to the 
 encoder block as a peripheral.
