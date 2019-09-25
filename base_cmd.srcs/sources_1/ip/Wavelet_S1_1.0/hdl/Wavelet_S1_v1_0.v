@@ -35,10 +35,10 @@ module Wavelet_S1_v1_0 #
 	input wire [9:0] px_ctr,
 	input wire [639:0] px_chXX_concat,
 		
-    output wire signed [511:0] HH1_concat,
-	output wire signed [511:0] HL1_concat,
-	output wire signed [511:0] LH1_concat,
-	output wire signed [511:0] LL1_concat,
+    output wire signed [1023:0] HH1_concat,
+	output wire signed [1023:0] HL1_concat,
+	output wire signed [1023:0] LH1_concat,
+	output wire signed [1023:0] LL1_concat,
 	
 	// User ports ends
 		
@@ -292,7 +292,7 @@ assign px_count_v1_R1G2 = px_count - 24'sh00000F;
 wire signed [23:0] px_count_v1_G1B1;
 assign px_count_v1_G1B1 = px_count - 24'sh000010;
 
-// Arrays for accessing vertical core output data.
+// Arrays for first-stage vertical core output data.
 wire [31:0] HH1_R1 [7:0];
 wire [31:0] HL1_R1 [7:0];
 wire [31:0] LH1_R1 [7:0];
@@ -309,6 +309,28 @@ wire [31:0] HH1_B1 [7:0];
 wire [31:0] HL1_B1 [7:0];
 wire [31:0] LH1_B1 [7:0];
 wire [31:0] LL1_B1 [7:0];
+
+// These arrays are concatenated into 1024-bit interfaces to the encoder (HH1, HL1, LH1)
+// or to the second-stage wavelet cores (LL1).
+for(i = 0; i < 8; i = i + 1)
+begin
+    assign HH1_concat[32*i+:32] = HH1_R1[i];
+    assign HH1_concat[(32*i+256)+:32] = HH1_G1[i];
+    assign HH1_concat[(32*i+512)+:32] = HH1_G2[i];
+    assign HH1_concat[(32*i+768)+:32] = HH1_B1[i];
+    assign HL1_concat[32*i+:32] = HL1_R1[i];
+    assign HL1_concat[(32*i+256)+:32] = HL1_G1[i];
+    assign HL1_concat[(32*i+512)+:32] = HL1_G2[i];
+    assign HL1_concat[(32*i+768)+:32] = HL1_B1[i];
+    assign LH1_concat[32*i+:32] = LH1_R1[i];
+    assign LH1_concat[(32*i+256)+:32] = LH1_G1[i];
+    assign LH1_concat[(32*i+512)+:32] = LH1_G2[i];
+    assign LH1_concat[(32*i+768)+:32] = LH1_B1[i];
+    assign LL1_concat[32*i+:32] = LL1_R1[i];
+    assign LL1_concat[(32*i+256)+:32] = LL1_G1[i];
+    assign LL1_concat[(32*i+512)+:32] = LL1_G2[i];
+    assign LL1_concat[(32*i+768)+:32] = LL1_B1[i];
+end
 
 // Instantiate 32 vertical wavelet cores (8 each for R1, G1, G2, and B1 color fields).
 // Each vertical core input is fed by the outputs of four adjacent horizontal cores.

@@ -30,11 +30,12 @@ module Encoder_v1_0
 	// Users to add ports here
 	
 	input wire px_clk,
+	input wire px_clk_2x,
 	input wire signed [23:0] px_count,
-	input wire [511:0] HH1_concat,
-	input wire [511:0] HL1_concat,
-	input wire [511:0] LH1_concat,
-	input wire [511:0] LL1_concat,
+	input wire [1023:0] HH1_concat,
+	input wire [1023:0] HL1_concat,
+	input wire [1023:0] LH1_concat,
+	input wire [1023:0] LL1_concat,
 	
 	// User ports ends
 	// Do not modify the ports beyond this line
@@ -110,6 +111,7 @@ module Encoder_v1_0
 );
 
 // Debug signals.
+wire [31:0] debug_rd_addr;
 wire debug_arm_axi;
 
 // AXI Master 00 signals.
@@ -220,6 +222,216 @@ Encoder_v1_0_M00_AXI_inst
 );
 
 // Add user logic here
+
+genvar i;
+
+// Input views of individual color fields.
+wire [255:0] HH1_R1_concat;
+wire [255:0] HH1_G1_concat;
+wire [255:0] HH1_G2_concat;
+wire [255:0] HH1_B1_concat;
+wire [255:0] HL1_R1_concat;
+wire [255:0] HL1_G1_concat;
+wire [255:0] HL1_G2_concat;
+wire [255:0] HL1_B1_concat;
+wire [255:0] LH1_R1_concat;
+wire [255:0] LH1_G1_concat;
+wire [255:0] LH1_G2_concat;
+wire [255:0] LH1_B1_concat;
+
+assign HH1_R1_concat = HH1_concat[255:0] ;
+assign HH1_G1_concat = HH1_concat[511:256];
+assign HH1_G2_concat = HH1_concat[767:512];
+assign HH1_B1_concat = HH1_concat[1023:768];
+assign HL1_R1_concat = HL1_concat[255:0];
+assign HL1_G1_concat = HL1_concat[511:256];
+assign HL1_G2_concat = HL1_concat[767:512];
+assign HL1_B1_concat = HL1_concat[1023:768];
+assign LH1_R1_concat = LH1_concat[255:0];
+assign LH1_G1_concat = LH1_concat[511:256];
+assign LH1_G2_concat = LH1_concat[767:512];
+assign LH1_B1_concat = LH1_concat[1023:768];
+
+// Pixel counters at the interface between the first-stage wavelet core outputs
+// and the first-stage quantizer input. These are offset by the known latency
+// of the first-stage wavelet cores:
+// R1 and G2 color field first-stage wavelet cores: 532 px_clk.
+// G2 and B1 color field first-stage wavelet cores: 533 px_clk.
+wire signed [23:0] px_count_q1_R1G2;
+assign px_count_q1_R1G2 = px_count - 24'sh000214;
+wire signed [23:0] px_count_q1_G1B1;
+assign px_count_q1_G1B1 = px_count - 24'sh000215;
+
+// Output views for debugging.
+wire [63:0] debug_out_4px_HH1_R1;
+wire [63:0] debug_out_4px_HH1_G1;
+wire [63:0] debug_out_4px_HH1_G2;
+wire [63:0] debug_out_4px_HH1_B1;
+wire [63:0] debug_out_4px_HL1_R1;
+wire [63:0] debug_out_4px_HL1_G1;
+wire [63:0] debug_out_4px_HL1_G2;
+wire [63:0] debug_out_4px_HL1_B1;
+wire [63:0] debug_out_4px_LH1_R1;
+wire [63:0] debug_out_4px_LH1_G1;
+wire [63:0] debug_out_4px_LH1_G2;
+wire [63:0] debug_out_4px_LH1_B1;
+
+// Instantiate quantizer / row buffer for each subband color field.
+quantizer1 q1_HH1_R1
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_count_q1(px_count_q1_R1G2),
+    
+    .q_level(3'b0),
+    
+    .in_2px_concat(HH1_R1_concat),
+    .rd_addr(debug_rd_addr[8:0]),
+    .out_4px(debug_out_4px_HH1_R1)
+);
+
+quantizer1 q1_HH1_G1
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_count_q1(px_count_q1_G1B1),
+    
+    .q_level(3'b0),
+    
+    .in_2px_concat(HH1_G1_concat),
+    .rd_addr(debug_rd_addr[8:0]),
+    .out_4px(debug_out_4px_HH1_G1)
+);
+
+quantizer1 q1_HH1_G2
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_count_q1(px_count_q1_R1G2),
+    
+    .q_level(3'b0),
+    
+    .in_2px_concat(HH1_G2_concat),
+    .rd_addr(debug_rd_addr[8:0]),
+    .out_4px(debug_out_4px_HH1_G1)
+);
+
+quantizer1 q1_HH1_B1
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_count_q1(px_count_q1_G1B1),
+    
+    .q_level(3'b0),
+    
+    .in_2px_concat(HH1_B1_concat),
+    .rd_addr(debug_rd_addr[8:0]),
+    .out_4px(debug_out_4px_HH1_B1)
+);
+
+quantizer1 q1_HL1_R1
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_count_q1(px_count_q1_R1G2),
+    
+    .q_level(3'b0),
+    
+    .in_2px_concat(HL1_R1_concat),
+    .rd_addr(debug_rd_addr[8:0]),
+    .out_4px(debug_out_4px_HL1_R1)
+);
+
+quantizer1 q1_HL1_G1
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_count_q1(px_count_q1_G1B1),
+    
+    .q_level(3'b0),
+    
+    .in_2px_concat(HL1_G1_concat),
+    .rd_addr(debug_rd_addr[8:0]),
+    .out_4px(debug_out_4px_HL1_G1)
+);
+
+quantizer1 q1_HL1_G2
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_count_q1(px_count_q1_R1G2),
+    
+    .q_level(3'b0),
+    
+    .in_2px_concat(HL1_G2_concat),
+    .rd_addr(debug_rd_addr[8:0]),
+    .out_4px(debug_out_4px_HL1_G1)
+);
+
+quantizer1 q1_HL1_B1
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_count_q1(px_count_q1_G1B1),
+    
+    .q_level(3'b0),
+    
+    .in_2px_concat(HL1_B1_concat),
+    .rd_addr(debug_rd_addr[8:0]),
+    .out_4px(debug_out_4px_HL1_B1)
+);
+
+quantizer1 q1_LH1_R1
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_count_q1(px_count_q1_R1G2),
+    
+    .q_level(3'b0),
+    
+    .in_2px_concat(LH1_R1_concat),
+    .rd_addr(debug_rd_addr[8:0]),
+    .out_4px(debug_out_4px_LH1_R1)
+);
+
+quantizer1 q1_LH1_G1
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_count_q1(px_count_q1_G1B1),
+    
+    .q_level(3'b0),
+    
+    .in_2px_concat(LH1_G1_concat),
+    .rd_addr(debug_rd_addr[8:0]),
+    .out_4px(debug_out_4px_LH1_G1)
+);
+
+quantizer1 q1_LH1_G2
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_count_q1(px_count_q1_R1G2),
+    
+    .q_level(3'b0),
+    
+    .in_2px_concat(LH1_G2_concat),
+    .rd_addr(debug_rd_addr[8:0]),
+    .out_4px(debug_out_4px_LH1_G1)
+);
+
+quantizer1 q1_LH1_B1
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_count_q1(px_count_q1_G1B1),
+    
+    .q_level(3'b0),
+    
+    .in_2px_concat(LH1_B1_concat),
+    .rd_addr(debug_rd_addr[8:0]),
+    .out_4px(debug_out_4px_LH1_B1)
+);
 
 // User logic ends
 

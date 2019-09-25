@@ -4,6 +4,7 @@
 *.cproject
 *.project
 *.hdf
+*.dcp
 
 base_cmd.cache
 base_cmd.hw
