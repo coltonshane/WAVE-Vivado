@@ -17,17 +17,16 @@ This module should infer as 4 DSP48E2s only, with no FF or LUT.
 module quantizer_4x16
 (
     input wire px_clk,
-    input wire q_en,
     input wire signed [9:0] q_mult,
     input wire [63:0] in_4px_concat,
-    output reg[63:0] out_4px_concat
+    output reg[63:0] q_4px_concat
 );
 
 genvar i;
 
 // Signed views of each pixel of the concatenated input / output.
 wire signed [15:0] in_px[3:0];
-wire signed [15:0] out_px[3:0];
+wire signed [15:0] q_px[3:0];
 
 // Signed views of intermediate values for DSP48E2 operation.
 wire signed [8:0] offset[3:0];
@@ -40,16 +39,13 @@ begin
     assign in_px[i] = in_4px_concat[16*i+:16];
     assign offset[i] = {1'b0, {8{in_px[i][15]}}};
     assign product[i] = (in_px[i] * q_mult + offset[i]);
-    assign out_px[i] = product[i][23:8];
+    assign q_px[i] = product[i][23:8];
 end
 
 // Sequential logic to register the results.
 always @(posedge px_clk)
 begin
-    if (q_en)
-    begin
-        out_4px_concat <= {out_px[3], out_px[2], out_px[1], out_px[0]};
-    end
+    q_4px_concat <= {q_px[3], q_px[2], q_px[1], q_px[0]};
 end
 
 endmodule
