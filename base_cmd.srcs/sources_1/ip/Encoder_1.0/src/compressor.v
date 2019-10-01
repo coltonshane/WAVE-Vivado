@@ -97,33 +97,33 @@ wire [6:0] e_len_L;
 encoder_4x16 e4x16_H (px_clk, q_4px_concat_H, e_4px_H, e_len_H);
 encoder_4x16 e4x16_L (px_clk, q_4px_concat_L, e_4px_L, e_len_L);
 
-// Encoder buffer for staging 128-bit writes to the FIFO.
-// This is a logic-heavy section! Tread carefully!
+// Encoder buffer for staging 128-bit writes to the FIFO. This is a logic-heavy section!!!
 // -------------------------------------------------------------------------------------------------
-
 // Memory (FF) for the encoder buffer and bit index for writes to it.
 reg [191:0] e_buffer;
 reg [7:0] e_buffer_idx;
 
-// Create a pixel counter at the interface between the encoders and the FIFO, accounting for the
+// Create a pixel counter at the interface between the encoders and the buffer accounting for the
 // latency of previous value storage (4), the quantizers (1), and the encoders (1).
 wire signed [23:0] px_count_e;
 assign px_count_e = px_count_c - 24'sh000006;
 
-// Keep track of the LSB of this pixel counnter to know if new data is being presented.
+// Keep track of the LSB of this pixel counter to know if new data is being presented.
 reg px_count_e_prev_LSB;
+reg px_count_e_updated;
 always @(posedge px_clk)
 begin
     px_count_e_prev_LSB <= px_count_e[0];
+    px_count_e_updated <= (px_count_e[0] ^ px_count_e_prev_LSB);
 end
 
 // Three conditions must be met for e_buffer writing:
 // 1. New data is being presented, i.e. px_count_e[0] has toggled.
-// 2. The data front has reached the encoder/FIFO interface, i.e. px_count_e >= 0.
+// 2. The data front has reached the encoder/buffer interface, i.e. px_count_e >= 0.
 // 3. The data is from a valid input pair. This happens on px_count_e = {0,1,2,3,8,9,10,11,...},
 //    i.e. px_count_e[2] == 0. This masks out encoder data from the previous value storage phase.
 wire e_buffer_wr_en;
-assign e_buffer_wr_en = (px_count_e[0] ^ px_count_e_prev_LSB) 
+assign e_buffer_wr_en = (px_count_e_updated) 
                       & (px_count_e >= 24'sh000000)
                       & (~px_count_e[2]);
 
@@ -146,6 +146,7 @@ assign e_buffer_wr_len = e_buffer_wr_phase ? e_len_H : e_len_L;
 wire [7:0] e_buffer_idx_shift;
 assign e_buffer_idx_shift = {e_buffer_idx[7], 7'b0000000};
 
+// Write operation.
 always @(posedge px_clk_2x)
 begin
     if (e_buffer_wr_en)
