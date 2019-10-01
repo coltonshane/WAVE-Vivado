@@ -14,6 +14,7 @@ reads from this FIFO as needed based on the fill level.
 module compressor
 (
     input wire px_clk,
+    input wire px_clk_2x,
     input wire signed [23:0] px_count_c,
     input wire signed [9:0] q_mult,
     
@@ -72,7 +73,7 @@ begin
 end
 
 // Quantizer data 4:1 muxes. Only c_state 4-7 are needed, but it's easier to
-// round-robin based on c_state[1:0] and gate at the FIFO.
+// always round-robin based on c_state[1:0] and gate at the FIFO.
 wire [63:0] in_4px_concat_H;
 wire [63:0] in_4px_concat_L;
 assign in_4px_concat_H = {in_2px_H[c_state[1:0]], in_2px_H_prev[c_state[1:0]]}; 
@@ -97,52 +98,71 @@ encoder_4x16 e4x16_H (px_clk, q_4px_concat_H, e_4px_H, e_len_H);
 encoder_4x16 e4x16_L (px_clk, q_4px_concat_L, e_4px_L, e_len_L);
 
 // Encoder buffer for staging 128-bit writes to the FIFO.
+// This is a logic-heavy section! Tread carefully!
 // -------------------------------------------------------------------------------------------------
-reg [255:0] e_buffer;
+
+// Memory (FF) for the encoder buffer and bit index for writes to it.
+reg [191:0] e_buffer;
 reg [7:0] e_buffer_idx;
 
-// Create a pixel counter at the interface between the encoder and the FIFO, accounting for the
-// latency of previous value storing (4), the quantizer (1), and the encoder (1).
+// Create a pixel counter at the interface between the encoders and the FIFO, accounting for the
+// latency of previous value storage (4), the quantizers (1), and the encoders (1).
 wire signed [23:0] px_count_e;
-reg px_count_e_prev_LSB;
 assign px_count_e = px_count_c - 24'sh000006;
+
+// Keep track of the LSB of this pixel counnter to know if new data is being presented.
+reg px_count_e_prev_LSB;
 always @(posedge px_clk)
 begin
     px_count_e_prev_LSB <= px_count_e[0];
 end
 
-// Writes are enabled whenever px_count_e changes to a value greater than or equal to zero.
+// Three conditions must be met for e_buffer writing:
+// 1. New data is being presented, i.e. px_count_e[0] has toggled.
+// 2. The data front has reached the encoder/FIFO interface, i.e. px_count_e >= 0.
+// 3. The data is from a valid input pair. This happens on px_count_e = {0,1,2,3,8,9,10,11,...},
+//    i.e. px_count_e[2] == 0. This masks out encoder data from the previous value storage phase.
 wire e_buffer_wr_en;
-assign e_buffer_wr_en = (px_count_e[0] ^ px_count_e_prev_LSB) & (px_count_e >= 24'sh000000);
+assign e_buffer_wr_en = (px_count_e[0] ^ px_count_e_prev_LSB) 
+                      & (px_count_e >= 24'sh000000)
+                      & (~px_count_e[2]);
 
-// Merge write operation occur at px_count_e = {0, 1, 2, 3, 8, 9, 10, 11, 16, 17, 18, 19, ...}
-// i.e. when px_count_e[2] = 1'b0. Write four / skip four while storing previous values.
-// At most 128 (8'h80) bits are written into the encoder buffer per clock.
-always @(posedge px_clk)
+// Split each px_clk period into two write phases.
+wire e_buffer_wr_phase;
+reg px_count_e_prev_LSB_2x;
+always @(posedge px_clk_2x)
 begin
-    if (e_buffer_wr_en & ~px_count_e[2])
+    px_count_e_prev_LSB_2x <= px_count_e[0];
+end
+assign e_buffer_wr_phase = (px_count_e[0] == px_count_e_prev_LSB_2x);
+
+// Select data from either the high or low encoder based on the write phase.
+wire [63:0] e_buffer_wr_data;
+wire [6:0] e_buffer_wr_len;
+assign e_buffer_wr_data = e_buffer_wr_phase ? e_4px_H : e_4px_L;
+assign e_buffer_wr_len = e_buffer_wr_phase ? e_len_H : e_len_L;
+
+// If there's enough data in the e_buffer to trigger a FIFO write, shift the index.
+wire [7:0] e_buffer_idx_shift;
+assign e_buffer_idx_shift = {e_buffer_idx[7], 7'b0000000};
+
+always @(posedge px_clk_2x)
+begin
+    if (e_buffer_wr_en)
     begin
     
         if (e_buffer_idx >= 8'h80)
         begin
             // There's enough data to trigger a FIFO write. Shift existing data down.
             // Further non-blocking assigns will override individual bits as-needed.
-            e_buffer[127:0] <= e_buffer[255:128];
-            
-            // Add new data.
-            e_buffer[(e_buffer_idx - 8'h80)+:128] <= (e_4px_H << e_len_L) | e_4px_L;
-            
-            // Update the index.
-            e_buffer_idx <= e_buffer_idx - 8'h80 + e_len_L + e_len_H;
+            e_buffer[63:0] <= e_buffer[191:128];
         end
-        else
-        begin
-            // Add new data.
-            e_buffer[(e_buffer_idx)+:128] <= (e_4px_H << e_len_L) | e_4px_L;
             
-            // Update the index.
-            e_buffer_idx <= e_buffer_idx + e_len_L + e_len_H;
-        end
+        // Add new data.
+        e_buffer[(e_buffer_idx - e_buffer_idx_shift)+:64] <= e_buffer_wr_data;
+            
+        // Update the index.
+        e_buffer_idx <= e_buffer_idx - e_buffer_idx_shift + e_buffer_wr_len;    
     end
 end
 // -------------------------------------------------------------------------------------------------
