@@ -27,10 +27,11 @@ module compressor
     input wire [31:0] in_2px_6,
     input wire [31:0] in_2px_7,
     
-    output wire [255:0] debug_e_buffer
-    
-    // input [8:0] rd_addr,
-    // output [127:0] rd_data
+    input wire m00_axi_aclk,
+    input wire m00_axi_armed,
+    input wire fifo_rd_en,
+    output wire [23:0] fifo_diff,
+    output reg [127:0] fifo_rd_data
 );
 
 genvar i;
@@ -152,7 +153,7 @@ begin
     if (e_buffer_wr_en)
     begin
     
-        if (e_buffer_idx >= 8'h80)
+        if (e_buffer_idx[7])
         begin
             // There's enough data to trigger a FIFO write. Shift existing data down.
             // Further non-blocking assigns will override individual bits as-needed.
@@ -168,6 +169,74 @@ begin
 end
 // -------------------------------------------------------------------------------------------------
 
-assign debug_e_buffer = e_buffer;
+// 128-bit wide BRAM FIFO.
+// -------------------------------------------------------------------------------------------------
+// Memory (to be inferred as two 32K BRAMs) for the FIFO.
+reg [63:0] fifo_H [511:0];
+reg [63:0] fifo_L [511:0];
+reg [8:0] fifo_wr_addr;
+
+// Writes operation.
+always @(posedge px_clk_2x)
+begin
+    if (px_count_e < 24'h0)
+    begin
+        // Start of a frame, before the data front has hit the FIFO.
+        fifo_wr_addr <= 9'h0;
+    end
+    else if(e_buffer_idx[7])
+    begin
+        // During a frame, writes are triggered when e_buffer threshold is reached.
+        fifo_H[fifo_wr_addr] <= e_buffer[127:64];
+        fifo_L[fifo_wr_addr] <= e_buffer[63:0];
+        fifo_wr_addr <= fifo_wr_addr + 9'h1;
+    end
+end
+
+// FIFO input counter, synchronized to the AXI clock domain using a bit pump.
+reg [23:0] fifo_in_count;
+reg fifo_in_count_sync_0;
+reg fifo_in_count_sync_1;
+always @(posedge m00_axi_aclk)
+begin
+    if(~m00_axi_armed)
+    begin
+        // AXI Master is disarmed. Reset FIFO input counter to zero.
+        fifo_in_count_sync_1 <= 1'b0;
+        fifo_in_count_sync_0 <= 1'b0;
+        fifo_in_count <= 24'h0;
+    end
+    else
+    begin
+        fifo_in_count_sync_1 <= fifo_in_count_sync_0;
+        fifo_in_count_sync_0 <= fifo_wr_addr[0];
+        fifo_in_count <= fifo_in_count + (fifo_in_count_sync_1 ^ fifo_in_count_sync_0);
+    end
+end
+
+// FIFO output counter and read address.
+reg [23:0] fifo_out_count;
+wire [8:0] fifo_rd_addr;
+assign fifo_rd_addr = fifo_out_count[8:0];
+
+// Read operation.
+always @(posedge m00_axi_aclk)
+begin
+    if(~m00_axi_armed)
+    begin
+        fifo_rd_data <= 128'h0;
+        fifo_out_count <= 24'h0;
+    end
+    else
+    begin
+        fifo_rd_data <= {fifo_H[fifo_rd_addr], fifo_L[fifo_rd_addr]};
+        fifo_out_count <= fifo_out_count + fifo_rd_en;
+    end
+end
+
+// Present the FIFO fill level as an output. 
+assign fifo_diff = fifo_in_count - fifo_out_count;
+
+// -------------------------------------------------------------------------------------------------
 
 endmodule
