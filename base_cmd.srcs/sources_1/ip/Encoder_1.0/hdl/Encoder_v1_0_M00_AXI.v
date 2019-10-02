@@ -16,7 +16,7 @@ module Encoder_v1_0_M00_AXI
 	// Do not modify the parameters beyond this line
 
 	// Base address of targeted slave
-	parameter  C_M_TARGET_SLAVE_BASE_ADDR	= 32'h40000000,
+	parameter  C_M_TARGET_SLAVE_BASE_ADDR	= 32'h20000000,
 	// Burst Length. Supports 1, 2, 4, 8, 16, 32, 64, 128, 256 burst lengths
 	// Note: Maximum 16 for PL-PS interface.
 	parameter integer C_M_AXI_BURST_LEN	= 16,
@@ -40,13 +40,13 @@ module Encoder_v1_0_M00_AXI
 (
 	// User Ports (Interface to IP)
 	// -----------------------------------------------------------------------------------------------------
-	// Rising edge from IP triggers the start of a 4096B transfer (16 x 16 Bursts x 128b).
+	// Rising edge from IP triggers the start of a 256B transfer (1burst x 128b).
 	input wire axi_init_txn,
 	
-	// Starting address of the 4096B transfer, offset from C_M_TARGET_SLAVE_BASE_ADDR.
+	// Starting address of the 256B transfer, offset from C_M_TARGET_SLAVE_BASE_ADDR.
 	input wire [(C_M_AXI_ADDR_WIDTH-1):0] axi_awaddr_init,
 	
-	// Immediate data to write. This is updated 128 times per 4096B transfer.
+	// Immediate data to write. This is updated 16 times per 256B transfer.
     input wire [(C_M_AXI_DATA_WIDTH-1):0] axi_wdata,
     
     // Signal to IP to update the data. This signal is also used internally.
@@ -191,7 +191,7 @@ localparam integer C_TRANSACTIONS_NUM = clogb2(C_M_AXI_BURST_LEN-1);
 
 // Burst length for transactions, in C_M_AXI_DATA_WIDTHs.
 // Non-2^n lengths will eventually cause bursts across 4K address boundaries.
-localparam integer C_MASTER_LENGTH	= 12;
+localparam integer C_MASTER_LENGTH	= 8;
 // total number of burst transfers is master length divided by burst length and burst size
 localparam integer C_NO_BURSTS_REQ = C_MASTER_LENGTH-clogb2((C_M_AXI_BURST_LEN*C_M_AXI_DATA_WIDTH/8)-1);
 // Example State machine to initialize counter, initialize write transactions, 
