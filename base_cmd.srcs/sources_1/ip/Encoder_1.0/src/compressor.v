@@ -18,20 +18,12 @@ module compressor
     input wire signed [23:0] px_count_c,
     input wire signed [9:0] q_mult,
     
-    input wire [31:0] in_2px_0,
-    input wire [31:0] in_2px_1,
-    input wire [31:0] in_2px_2,
-    input wire [31:0] in_2px_3,
-    input wire [31:0] in_2px_4,
-    input wire [31:0] in_2px_5,
-    input wire [31:0] in_2px_6,
-    input wire [31:0] in_2px_7,
+    input wire [255:0] in_2px_concat,
     
     input wire m00_axi_aclk,
-    input wire m00_axi_armed,
-    input wire fifo_rd_en,
-    output wire [23:0] fifo_diff,
-    output reg [127:0] fifo_rd_data
+    input wire fifo_rd_next,
+    output wire [13:0] fifo_rd_count,
+    output wire [127:0] fifo_rd_data
 );
 
 genvar i;
@@ -39,14 +31,11 @@ genvar i;
 // Array views of input data for convenience.
 wire [31:0] in_2px_H[3:0];
 wire [31:0] in_2px_L[3:0];
-assign in_2px_H[3] = in_2px_7;
-assign in_2px_H[2] = in_2px_6;
-assign in_2px_H[1] = in_2px_5;
-assign in_2px_H[0] = in_2px_4;
-assign in_2px_L[3] = in_2px_3;
-assign in_2px_L[2] = in_2px_2;
-assign in_2px_L[1] = in_2px_1;
-assign in_2px_L[0] = in_2px_0;
+for(i = 0; i < 4; i = i + 1)
+begin
+    assign in_2px_H[i] = in_2px_concat[(32*i+128)+:32];
+    assign in_2px_L[i] = in_2px_concat[(32*i)+:32];
+end
 
 // Registers for storing previous two-pixel inputs.
 reg [31:0] in_2px_H_prev[3:0];
@@ -171,72 +160,50 @@ end
 
 // 128-bit wide BRAM FIFO.
 // -------------------------------------------------------------------------------------------------
-// Memory (to be inferred as two 32K BRAMs) for the FIFO.
-reg [63:0] fifo_H [511:0];
-reg [63:0] fifo_L [511:0];
-reg [8:0] fifo_wr_addr;
+// Enable FIFO writes when px_count_e is positive and the e_buffer has enough data.
+wire fifo_wren;
+assign fifo_wren = (px_count_e >= 24'sh000000) & e_buffer_idx[7];
 
-// Writes operation.
-always @(posedge px_clk_2x)
-begin
-    if (px_count_e < 24'h0)
-    begin
-        // Start of a frame, before the data front has hit the FIFO.
-        fifo_wr_addr <= 9'h0;
-    end
-    else if(e_buffer_idx[7])
-    begin
-        // During a frame, writes are triggered when e_buffer threshold is reached.
-        fifo_H[fifo_wr_addr] <= e_buffer[127:64];
-        fifo_L[fifo_wr_addr] <= e_buffer[63:0];
-        fifo_wr_addr <= fifo_wr_addr + 9'h1;
-    end
-end
+// Instantiate two FIFO36 primatives.
+FIFO36E2 
+#(
+   .FIRST_WORD_FALL_THROUGH("TRUE"),
+   .RDCOUNT_TYPE("EXTENDED_DATACOUNT"),
+   .READ_WIDTH(72),
+   .REGISTER_MODE("UNREGISTERED"),
+   .WRITE_WIDTH(72)
+)
+FIFO36E2_H 
+(
+   .DOUT(fifo_rd_data[127:64]),
+   .RDCOUNT(fifo_rd_count),         // Driver.
+   .RDCLK(m00_axi_aclk),
+   .RDEN(fifo_rd_next),
 
-// FIFO input counter, synchronized to the AXI clock domain using a bit pump.
-reg [23:0] fifo_in_count;
-reg fifo_in_count_sync_0;
-reg fifo_in_count_sync_1;
-always @(posedge m00_axi_aclk)
-begin
-    if(~m00_axi_armed)
-    begin
-        // AXI Master is disarmed. Reset FIFO input counter to zero.
-        fifo_in_count_sync_1 <= 1'b0;
-        fifo_in_count_sync_0 <= 1'b0;
-        fifo_in_count <= 24'h0;
-    end
-    else
-    begin
-        fifo_in_count_sync_1 <= fifo_in_count_sync_0;
-        fifo_in_count_sync_0 <= fifo_wr_addr[0];
-        fifo_in_count <= fifo_in_count + (fifo_in_count_sync_1 ^ fifo_in_count_sync_0);
-    end
-end
+   .WRCLK(px_clk_2x),
+   .WREN(fifo_wren), 
+   .DIN(e_buffer[127:64])
+);
 
-// FIFO output counter and read address.
-reg [23:0] fifo_out_count;
-wire [8:0] fifo_rd_addr;
-assign fifo_rd_addr = fifo_out_count[8:0];
-
-// Read operation.
-always @(posedge m00_axi_aclk)
-begin
-    if(~m00_axi_armed)
-    begin
-        fifo_rd_data <= 128'h0;
-        fifo_out_count <= 24'h0;
-    end
-    else
-    begin
-        fifo_rd_data <= {fifo_H[fifo_rd_addr], fifo_L[fifo_rd_addr]};
-        fifo_out_count <= fifo_out_count + fifo_rd_en;
-    end
-end
-
-// Present the FIFO fill level as an output. 
-assign fifo_diff = fifo_in_count - fifo_out_count;
-
+FIFO36E2 
+#(
+   .FIRST_WORD_FALL_THROUGH("TRUE"),
+   .RDCOUNT_TYPE("EXTENDED_DATACOUNT"),
+   .READ_WIDTH(72),
+   .REGISTER_MODE("UNREGISTERED"),
+   .WRITE_WIDTH(72)
+)
+FIFO36E2_L 
+(
+   .DOUT(fifo_rd_data[63:0]),
+   .RDCOUNT(),                      // Follower.
+   .RDCLK(m00_axi_aclk),
+   .RDEN(fifo_rd_next),
+   
+   .WRCLK(px_clk_2x),
+   .WREN(fifo_wren), 
+   .DIN(e_buffer[63:0])
+);
 // -------------------------------------------------------------------------------------------------
 
 endmodule

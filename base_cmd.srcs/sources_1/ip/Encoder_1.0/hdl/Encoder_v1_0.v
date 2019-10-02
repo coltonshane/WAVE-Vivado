@@ -3,7 +3,7 @@
 ===================================================================================
 Encoderv1_0.v
 Top module of encoder/quantizer. Receives output data from the wavelet stages,
-quantizes and encoders it, and writes the compressed stream to PS DDR4 using a 
+quantizes and encodes it, and writes the compressed stream to PS DDR4 using a 
 250MHz x 128b AXI master. Configuration and control is done via an AXI-Lite slave.
 ===================================================================================
 */
@@ -12,7 +12,7 @@ module Encoder_v1_0
 #(
 	// Parameters for AXI-Lite Slave.
 	parameter integer C_S00_AXI_DATA_WIDTH = 32,
-	parameter integer C_S00_AXI_ADDR_WIDTH = 10,
+	parameter integer C_S00_AXI_ADDR_WIDTH = 4,
 
 	// Parameters for AXI Master 00.
 	parameter  C_M00_AXI_TARGET_SLAVE_BASE_ADDR	= 32'h40000000,
@@ -30,6 +30,7 @@ module Encoder_v1_0
 	// Users to add ports here
 	
 	input wire px_clk,
+	input wire px_clk_2x,
 	input wire signed [23:0] px_count,
 	input wire [1023:0] HH1_concat,
 	input wire [1023:0] HL1_concat,
@@ -109,8 +110,8 @@ module Encoder_v1_0
 	output wire  m00_axi_rready
 );
 
-// Debug signals.
-wire debug_arm_axi;
+// AXI Master arming signal
+wire m00_axi_armed;
 
 // AXI Master 00 signals.
 reg axi_init_txn;
@@ -222,6 +223,282 @@ Encoder_v1_0_M00_AXI_inst
 // Add user logic here
 
 genvar i;
+
+// Compressor quantizer settings. These should be mapped to AXI-Lite Slave registers.
+wire signed [9:0] q_mult_HH1;
+wire signed [9:0] q_mult_HL1;
+wire signed [9:0] q_mult_LH1;
+wire signed [9:0] q_mult_LL1;
+assign q_mult_HH1 = 9'sh20;
+assign q_mult_HL1 = 9'sh20;
+assign q_mult_LH1 = 9'sh20;
+assign q_mult_LL1 = 9'sh80;
+
+// Pixel counters at the interface between the vertical wavelet cores and the compressor.
+// These are offset for the known latency of the wavelet stage(s):
+// {HH1, HL1, LH1, LL1} R1 and G2 color field wavelet stage: 517 px_clk.
+// {HH1, HL1, LH1, LL1} G2 and B1 color field wavelet stage: 518 px_clk.
+wire signed [23:0] px_count_c_XX1_R1G2;
+assign px_count_c_XX1_R1G2 = px_count - 24'sh000205;
+wire signed [23:0] px_count_c_XX1_G1B1;
+assign px_count_c_XX1_G1B1 = px_count - 24'sh000206;
+
+// Shared FIFO read enable signal, controlled by the AXI Master round-robin.
+wire fifo_rd_en;
+
+// Independent compressor FIFO controls and data.
+wire fifo_rd_next[15:0];
+wire [13:0] fifo_rd_count[15:0];
+wire [127:0] fifo_rd_data[15:0];
+
+// Compressor instantiation and mapping.
+// --------------------------------------------------------------------------------
+compressor c_HH1_R1     // Stream 00, handling HH1.R1[7:0]
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_count_c(px_count_c_XX1_R1G2),
+    .q_mult(q_mult_HH1),
+    
+    .in_2px_concat(HH1_concat[0+:256]),
+    
+    .m00_axi_aclk(m00_axi_aclk),
+    .fifo_rd_next(fifo_rd_next[0]),
+    .fifo_rd_count(fifo_rd_count[0]),
+    .fifo_rd_data(fifo_rd_data[0])
+);
+compressor c_HH1_G1     // Stream 01, handling HH1.G1[7:0]
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_count_c(px_count_c_XX1_G1B1),
+    .q_mult(q_mult_HH1),
+    
+    .in_2px_concat(HH1_concat[256+:256]),
+    
+    .m00_axi_aclk(m00_axi_aclk),
+    .fifo_rd_next(fifo_rd_next[1]),
+    .fifo_rd_count(fifo_rd_count[1]),
+    .fifo_rd_data(fifo_rd_data[1])
+);
+compressor c_HH1_G2     // Stream 02, handling HH1.G2[7:0]
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_count_c(px_count_c_XX1_R1G2),
+    .q_mult(q_mult_HH1),
+    
+    .in_2px_concat(HH1_concat[512+:256]),
+    
+    .m00_axi_aclk(m00_axi_aclk),
+    .fifo_rd_next(fifo_rd_next[2]),
+    .fifo_rd_count(fifo_rd_count[2]),
+    .fifo_rd_data(fifo_rd_data[2])
+);
+compressor c_HH1_B1     // Stream 03, handling HH1.B1[7:0]
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_count_c(px_count_c_XX1_G1B1),
+    .q_mult(q_mult_HH1),
+    
+    .in_2px_concat(HH1_concat[768+:256]),
+    
+    .m00_axi_aclk(m00_axi_aclk),
+    .fifo_rd_next(fifo_rd_next[3]),
+    .fifo_rd_count(fifo_rd_count[3]),
+    .fifo_rd_data(fifo_rd_data[3])
+);
+compressor c_HL1_R1     // Stream 04, handling HL1.R1[7:0]
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_count_c(px_count_c_XX1_R1G2),
+    .q_mult(q_mult_HL1),
+    
+    .in_2px_concat(HL1_concat[0+:256]),
+    
+    .m00_axi_aclk(m00_axi_aclk),
+    .fifo_rd_next(fifo_rd_next[4]),
+    .fifo_rd_count(fifo_rd_count[4]),
+    .fifo_rd_data(fifo_rd_data[4])
+);
+compressor c_HL1_G1     // Stream 05, handling HL1.G1[7:0]
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_count_c(px_count_c_XX1_G1B1),
+    .q_mult(q_mult_HL1),
+    
+    .in_2px_concat(HL1_concat[256+:256]),
+    
+    .m00_axi_aclk(m00_axi_aclk),
+    .fifo_rd_next(fifo_rd_next[5]),
+    .fifo_rd_count(fifo_rd_count[5]),
+    .fifo_rd_data(fifo_rd_data[5])
+);
+compressor c_HL1_G2     // Stream 06, handling HL1.G2[7:0]
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_count_c(px_count_c_XX1_R1G2),
+    .q_mult(q_mult_HL1),
+    
+    .in_2px_concat(HL1_concat[512+:256]),
+    
+    .m00_axi_aclk(m00_axi_aclk),
+    .fifo_rd_next(fifo_rd_next[6]),
+    .fifo_rd_count(fifo_rd_count[6]),
+    .fifo_rd_data(fifo_rd_data[6])
+);
+compressor c_HL1_B1     // Stream 07, handling HL1.B1[7:0]
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_count_c(px_count_c_XX1_G1B1),
+    .q_mult(q_mult_HL1),
+    
+    .in_2px_concat(HL1_concat[768+:256]),
+    
+    .m00_axi_aclk(m00_axi_aclk),
+    .fifo_rd_next(fifo_rd_next[7]),
+    .fifo_rd_count(fifo_rd_count[7]),
+    .fifo_rd_data(fifo_rd_data[7])
+);
+compressor c_LH1_R1     // Stream 08, handling LH1.R1[7:0]
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_count_c(px_count_c_XX1_R1G2),
+    .q_mult(q_mult_LH1),
+    
+    .in_2px_concat(LH1_concat[0+:256]),
+    
+    .m00_axi_aclk(m00_axi_aclk),
+    .fifo_rd_next(fifo_rd_next[8]),
+    .fifo_rd_count(fifo_rd_count[8]),
+    .fifo_rd_data(fifo_rd_data[8])
+);
+compressor c_LH1_G1     // Stream 09, handling LH1.G1[7:0]
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_count_c(px_count_c_XX1_G1B1),
+    .q_mult(q_mult_LH1),
+    
+    .in_2px_concat(LH1_concat[256+:256]),
+    
+    .m00_axi_aclk(m00_axi_aclk),
+    .fifo_rd_next(fifo_rd_next[9]),
+    .fifo_rd_count(fifo_rd_count[9]),
+    .fifo_rd_data(fifo_rd_data[9])
+);
+compressor c_LH1_G2     // Stream 10, handling LH1.G2[7:0]
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_count_c(px_count_c_XX1_R1G2),
+    .q_mult(q_mult_LH1),
+    
+    .in_2px_concat(LH1_concat[512+:256]),
+    
+    .m00_axi_aclk(m00_axi_aclk),
+    .fifo_rd_next(fifo_rd_next[10]),
+    .fifo_rd_count(fifo_rd_count[10]),
+    .fifo_rd_data(fifo_rd_data[10])
+);
+compressor c_LH1_B1     // Stream 11, handling LH1.B1[7:0]
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_count_c(px_count_c_XX1_G1B1),
+    .q_mult(q_mult_LH1),
+    
+    .in_2px_concat(LH1_concat[768+:256]),
+    
+    .m00_axi_aclk(m00_axi_aclk),
+    .fifo_rd_next(fifo_rd_next[11]),
+    .fifo_rd_count(fifo_rd_count[11]),
+    .fifo_rd_data(fifo_rd_data[11])
+);
+compressor c_LL1_R1     // Stream 12, handling LL1.R1[7:0]
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_count_c(px_count_c_XX1_R1G2),
+    .q_mult(q_mult_LL1),
+    
+    .in_2px_concat(LL1_concat[0+:256]),
+    
+    .m00_axi_aclk(m00_axi_aclk),
+    .fifo_rd_next(fifo_rd_next[12]),
+    .fifo_rd_count(fifo_rd_count[12]),
+    .fifo_rd_data(fifo_rd_data[12])
+);
+compressor c_LL1_G1     // Stream 13, handling LL1.G1[7:0]
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_count_c(px_count_c_XX1_G1B1),
+    .q_mult(q_mult_LL1),
+    
+    .in_2px_concat(LL1_concat[256+:256]),
+    
+    .m00_axi_aclk(m00_axi_aclk),
+    .fifo_rd_next(fifo_rd_next[13]),
+    .fifo_rd_count(fifo_rd_count[13]),
+    .fifo_rd_data(fifo_rd_data[13])
+);
+compressor c_LL1_G2     // Stream 14, handling LL1.G2[7:0]
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_count_c(px_count_c_XX1_R1G2),
+    .q_mult(q_mult_LL1),
+    
+    .in_2px_concat(LL1_concat[512+:256]),
+    
+    .m00_axi_aclk(m00_axi_aclk),
+    .fifo_rd_next(fifo_rd_next[14]),
+    .fifo_rd_count(fifo_rd_count[14]),
+    .fifo_rd_data(fifo_rd_data[14])
+);
+compressor c_LL1_B1     // Stream 15, handling LL1.B1[7:0]
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_count_c(px_count_c_XX1_G1B1),
+    .q_mult(q_mult_LL1),
+    
+    .in_2px_concat(LL1_concat[768+:256]),
+    
+    .m00_axi_aclk(m00_axi_aclk),
+    .fifo_rd_next(fifo_rd_next[15]),
+    .fifo_rd_count(fifo_rd_count[15]),
+    .fifo_rd_data(fifo_rd_data[15])
+);
+// --------------------------------------------------------------------------------
+
+// Dumb muxer just to see if the correct number of resources are used.
+assign fifo_rd_en = 1'b1;       // Always read.
+reg [3:0] fifo_rd_state;
+
+always @(posedge m00_axi_aclk)
+begin
+    if (~axi_init_txn & ~axi_busy)
+    begin
+        // Request to transmit.
+        axi_init_txn <= 1'b1;
+    end
+    else if (axi_init_txn & axi_busy)
+    begin
+        // Request received, end pulse and increment address.
+        axi_init_txn <= 1'b0;
+        fifo_rd_state <= fifo_rd_state + 1'b1;
+    end
+
+    axi_wdata <= fifo_rd_data[fifo_rd_state];
+end
 
 // User logic ends
 
