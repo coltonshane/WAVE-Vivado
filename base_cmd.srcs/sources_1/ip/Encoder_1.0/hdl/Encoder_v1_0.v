@@ -15,7 +15,7 @@ module Encoder_v1_0
 	parameter integer C_S00_AXI_ADDR_WIDTH = 4,
 
 	// Parameters for AXI Master 00.
-	parameter  C_M00_AXI_TARGET_SLAVE_BASE_ADDR	= 32'h40000000,
+    parameter C_M00_AXI_TARGET_SLAVE_BASE_ADDR	= 32'h00000000,
 	parameter integer C_M00_AXI_BURST_LEN = 16,
 	parameter integer C_M00_AXI_ID_WIDTH = 1,
 	parameter integer C_M00_AXI_ADDR_WIDTH = 32,
@@ -116,7 +116,7 @@ wire m00_axi_armed;
 // AXI Master 00 signals.
 reg axi_init_txn;
 reg [(C_M00_AXI_ADDR_WIDTH-1):0] axi_awaddr_init;
-reg [(C_M00_AXI_DATA_WIDTH-1):0] axi_wdata;
+wire [(C_M00_AXI_DATA_WIDTH-1):0] axi_wdata;
 wire axi_wnext;
 wire axi_busy;
 
@@ -221,8 +221,6 @@ Encoder_v1_0_M00_AXI_inst
 );
 
 // Add user logic here
-
-genvar i;
 
 // Compressor quantizer settings. These should be mapped to AXI-Lite Slave registers.
 wire signed [9:0] q_mult_HH1;
@@ -479,26 +477,92 @@ compressor c_LL1_B1     // Stream 15, handling LL1.B1[7:0]
 );
 // --------------------------------------------------------------------------------
 
-// Dumb muxer just to see if the correct number of resources are used.
-assign fifo_rd_en = 1'b1;       // Always read.
-reg [3:0] fifo_rd_state;
+// Round-robin RAM writer.
+// --------------------------------------------------------------------------------
+// RAM writer state, cycles through the 16 compressors.
+reg [3:0] c_state;
 
+// Data switch.
+assign axi_wdata = fifo_rd_data[c_state];
+
+// Read next data switch.
+genvar i;
+for (i = 0; i < 15; i = i + 1)
+begin
+    assign fifo_rd_next[i] = axi_wnext & (c_state == i);
+end
+
+// Address generation.
+reg [31:0] c_RAM_offset [15:0];
+localparam [511:0] c_RAM_base_concat = 
+{32'h2C000000, 32'h28000000, 32'h24000000, 32'h20000000,    // HH1
+ 32'h3C000000, 32'h38000000, 32'h34000000, 32'h30000000,    // HL1
+ 32'h4C000000, 32'h48000000, 32'h44000000, 32'h40000000,    // LH1
+ 32'h68000000, 32'h60000000, 32'h58000000, 32'h50000000};   // LL1
+localparam [511:0] c_RAM_mask = 
+{32'h03FFFFFF, 32'h03FFFFFF, 32'h03FFFFFF, 32'h03FFFFFF,    // HH1
+ 32'h03FFFFFF, 32'h03FFFFFF, 32'h03FFFFFF, 32'h03FFFFFF,    // HL1
+ 32'h03FFFFFF, 32'h03FFFFFF, 32'h03FFFFFF, 32'h03FFFFFF,    // LH1
+ 32'h07FFFFFF, 32'h07FFFFFF, 32'h07FFFFFF, 32'h07FFFFFF};   // LL1
+wire [31:0] c_RAM_base;
+wire [31:0] c_RAM_offset_masked;
+assign c_RAM_base = c_RAM_base_concat[32*c_state+:32];
+assign c_RAM_offset_masked = c_RAM_offset[c_state] & c_RAM_mask[32*c_state+:32];
+
+// Trigger on FIFO fill level.
+wire fifo_trigger;
+assign fifo_trigger = (fifo_rd_count[c_state] > 9'h80);
+
+assign m00_axi_armed = 1'b1;
+
+// Fun times state machine.
+reg axi_busy_wait;
 always @(posedge m00_axi_aclk)
 begin
-    if (~axi_init_txn & ~axi_busy)
-    begin
-        // Request to transmit.
-        axi_init_txn <= 1'b1;
-    end
-    else if (axi_init_txn & axi_busy)
-    begin
-        // Request received, end pulse and increment address.
+    if (~m00_axi_armed)
+    begin : axi_rst
+        // Synchronous reset of the RAM writer.
+        integer j;
+        for(j = 0; j < 16; j = j + 1)
+        begin
+            c_RAM_offset[j] <= 32'h0;
+        end
+        c_state <= 4'h0;
+        axi_awaddr_init <= 1'b0;
         axi_init_txn <= 1'b0;
-        fifo_rd_state <= fifo_rd_state + 1'b1;
+        axi_busy_wait <= 1'b0;
+    end : axi_rst
+    else
+    begin
+        if (fifo_trigger & ~axi_init_txn & ~axi_busy)
+        begin
+            // FIFO threshold is met, start a transcation.
+            axi_awaddr_init <= c_RAM_base + c_RAM_offset_masked;
+            axi_init_txn <= 1'b1;
+        end
+        else if (axi_init_txn & axi_busy)
+        begin
+            // Transaction started, end init pulse and set busy wait.
+            axi_init_txn <= 1'b0;
+            axi_busy_wait <= 1'b1;
+        end
+        else if (axi_busy_wait & ~axi_busy)
+        begin
+            // Transaction complete, end the busy wait. 
+            // Increment the write offset by 256B and increment the state.
+            axi_busy_wait <= 1'b0;
+            c_RAM_offset[c_state] <= c_RAM_offset[c_state] + 32'h100;
+            c_state <= c_state + 4'h1;
+        end
+        else if(~fifo_trigger)
+        begin
+            // FIFO threshold is not met. Just increment the state.
+            c_state <= c_state + 4'h1;
+        end
     end
-
-    axi_wdata <= fifo_rd_data[fifo_rd_state];
 end
+
+// --------------------------------------------------------------------------------
 
 // User logic ends
 
