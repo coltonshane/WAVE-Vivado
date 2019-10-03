@@ -246,7 +246,7 @@ wire fifo_rd_en;
 
 // Independent compressor FIFO controls and data.
 wire fifo_rd_next[15:0];
-wire [13:0] fifo_rd_count[15:0];
+wire [9:0] fifo_rd_count[15:0];
 wire [127:0] fifo_rd_data[15:0];
 
 // Compressor instantiation and mapping.
@@ -511,7 +511,7 @@ assign c_RAM_offset_masked = c_RAM_offset[c_state] & c_RAM_mask[32*c_state+:32];
 
 // Trigger on FIFO fill level.
 wire fifo_trigger;
-assign fifo_trigger = (fifo_rd_count[c_state] > 9'h80);
+assign fifo_trigger = (fifo_rd_count[c_state] > 10'h80);
 
 assign m00_axi_armed = 1'b1;
 

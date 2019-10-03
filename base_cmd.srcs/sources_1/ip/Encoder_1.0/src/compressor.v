@@ -22,7 +22,7 @@ module compressor
     
     input wire m00_axi_aclk,
     input wire fifo_rd_next,
-    output wire [13:0] fifo_rd_count,
+    output wire [9:0] fifo_rd_count,
     output wire [127:0] fifo_rd_data
 );
 
@@ -170,7 +170,7 @@ FIFO36E2
    .FIRST_WORD_FALL_THROUGH("TRUE"),
    .RDCOUNT_TYPE("EXTENDED_DATACOUNT"),
    .READ_WIDTH(72),
-   .REGISTER_MODE("UNREGISTERED"),
+   .REGISTER_MODE("REGISTERED"),
    .WRITE_WIDTH(72)
 )
 FIFO36E2_H 
@@ -190,7 +190,7 @@ FIFO36E2
    .FIRST_WORD_FALL_THROUGH("TRUE"),
    .RDCOUNT_TYPE("EXTENDED_DATACOUNT"),
    .READ_WIDTH(72),
-   .REGISTER_MODE("UNREGISTERED"),
+   .REGISTER_MODE("REGISTERED"),
    .WRITE_WIDTH(72)
 )
 FIFO36E2_L 
