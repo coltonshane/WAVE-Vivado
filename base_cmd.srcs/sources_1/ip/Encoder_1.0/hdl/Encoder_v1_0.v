@@ -110,8 +110,10 @@ module Encoder_v1_0
 	output wire  m00_axi_rready
 );
 
-// AXI Master arming signal
-wire m00_axi_armed;
+// Debug signals mapped to AXI slave registers.
+wire debug_m00_axi_armed;
+wire [9:0] debug_fifo_rd_count;
+wire [31:0] debug_c_RAM_offset;
 
 // AXI Master 00 signals.
 reg axi_init_txn;
@@ -128,6 +130,8 @@ Encoder_v1_0_S00_AXI
 ) 
 Encoder_v1_0_S00_AXI_inst 
 (
+    .debug_m00_axi_armed(debug_m00_axi_armed),
+
     // AXI-Lite slave controller signals.
 	.S_AXI_ACLK(s00_axi_aclk),
 	.S_AXI_ARESETN(s00_axi_aresetn),
@@ -513,13 +517,11 @@ assign c_RAM_offset_masked = c_RAM_offset[c_state] & c_RAM_mask[32*c_state+:32];
 wire fifo_trigger;
 assign fifo_trigger = (fifo_rd_count[c_state] > 10'h80);
 
-assign m00_axi_armed = 1'b1;
-
 // Fun times state machine.
 reg axi_busy_wait;
 always @(posedge m00_axi_aclk)
 begin
-    if (~m00_axi_armed)
+    if (~debug_m00_axi_armed)
     begin : axi_rst
         // Synchronous reset of the RAM writer.
         integer j;
@@ -563,6 +565,10 @@ begin
 end
 
 // --------------------------------------------------------------------------------
+
+// Debug signals.
+assign debug_fifo_rd_count = fifo_rd_count[0];
+assign debug_c_RAM_offset = c_RAM_offset[0];
 
 // User logic ends
 

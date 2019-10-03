@@ -23,6 +23,10 @@ module Encoder_v1_0_S00_AXI
 (
 	// Users to add ports here
     
+    output wire debug_m00_axi_armed,
+    input wire [9:0] debug_fifo_rd_count,
+    input wire [31:0] debug_cRAM_offset,
+    
 	// User ports ends
 	// Do not modify the ports beyond this line
 
@@ -237,7 +241,8 @@ begin
 	    
 	    // Latch in read values from input ports.
 	    begin : in_latch
-        
+            slv_reg[1] <= debug_fifo_rd_count;
+            slv_reg[2] <= debug_cRAM_offset;
 	    end : in_latch
 	    
 	end
@@ -367,6 +372,8 @@ begin
 end    
 
 // Add user logic here
+
+assign debug_m00_axi_armed = slv_reg[0][0];
 
 // User logic ends
 

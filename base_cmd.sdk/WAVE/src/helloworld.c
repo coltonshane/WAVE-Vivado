@@ -91,6 +91,7 @@ XSpiPs Spi0;
 
 u32 triggerShutdown = 0;
 u32 requestFrame = 0;
+u32 invalidateDCache = 0;
 u32 updateCMVRegs = 0;
 u16 cmv_Exp_time = 1536;
 u16 cmv_Exp_kp1 = 0;
@@ -104,6 +105,10 @@ u32 * debug_core_HH1_data = (u32 *)(0xA0001010);
 u32 * debug_core_HL1_data = (u32 *)(0xA0001014);
 u32 * debug_core_LH1_data = (u32 *)(0xA0001018);
 u32 * debug_core_LL1_data = (u32 *)(0xA000101C);
+
+u32 * debug_m00_axi_arm = (u32 *)(0xA0002000);
+u32 * debug_fifo_rd_count = (u32 *)(0xA0002004);
+u32 * debug_c_RAM_offset = (u32 *)(0xA0002008);
 
 int main()
 {
@@ -207,6 +212,12 @@ int main()
     	    cmvRegWrite(&Spi0, CMV_REG_ADDR_EXP_KP2_L, cmv_Exp_kp2);
     	    cmvRegWrite(&Spi0, CMV_REG_ADDR_VTFL, cmv_Vtfl);
     	    cmvRegWrite(&Spi0, CMV_REG_ADDR_NUMBER_SLOPES, cmv_Number_slopes);
+    	}
+
+    	if(invalidateDCache)
+    	{
+    		invalidateDCache = 0;
+    		Xil_DCacheInvalidate();
     	}
     }
 
