@@ -12,7 +12,7 @@ module Encoder_v1_0
 #(
 	// Parameters for AXI-Lite Slave.
 	parameter integer C_S00_AXI_DATA_WIDTH = 32,
-	parameter integer C_S00_AXI_ADDR_WIDTH = 4,
+	parameter integer C_S00_AXI_ADDR_WIDTH = 6,
 
 	// Parameters for AXI Master 00.
     parameter C_M00_AXI_TARGET_SLAVE_BASE_ADDR	= 32'h00000000,
@@ -112,8 +112,7 @@ module Encoder_v1_0
 
 // Debug signals mapped to AXI slave registers.
 wire debug_m00_axi_armed;
-wire [9:0] debug_fifo_rd_count;
-wire [31:0] debug_c_RAM_offset;
+wire [255:0] debug_fifo_rd_count_concat;
 
 // AXI Master 00 signals.
 reg axi_init_txn;
@@ -131,6 +130,7 @@ Encoder_v1_0_S00_AXI
 Encoder_v1_0_S00_AXI_inst 
 (
     .debug_m00_axi_armed(debug_m00_axi_armed),
+    .debug_fifo_rd_count_concat(debug_fifo_rd_count_concat),
 
     // AXI-Lite slave controller signals.
 	.S_AXI_ACLK(s00_axi_aclk),
@@ -231,10 +231,10 @@ wire signed [9:0] q_mult_HH1;
 wire signed [9:0] q_mult_HL1;
 wire signed [9:0] q_mult_LH1;
 wire signed [9:0] q_mult_LL1;
-assign q_mult_HH1 = 9'sh20;
-assign q_mult_HL1 = 9'sh20;
-assign q_mult_LH1 = 9'sh20;
-assign q_mult_LL1 = 9'sh80;
+assign q_mult_HH1 = 9'sh100;
+assign q_mult_HL1 = 9'sh100;
+assign q_mult_LH1 = 9'sh100;
+assign q_mult_LL1 = 9'sh100;
 
 // Pixel counters at the interface between the vertical wavelet cores and the compressor.
 // These are offset for the known latency of the wavelet stage(s):
@@ -567,8 +567,10 @@ end
 // --------------------------------------------------------------------------------
 
 // Debug signals.
-assign debug_fifo_rd_count = fifo_rd_count[0];
-assign debug_c_RAM_offset = c_RAM_offset[0];
+for (i = 0; i < 16; i = i + 1)
+begin
+    assign debug_fifo_rd_count_concat[16*i+:16] = fifo_rd_count[i];
+end
 
 // User logic ends
 

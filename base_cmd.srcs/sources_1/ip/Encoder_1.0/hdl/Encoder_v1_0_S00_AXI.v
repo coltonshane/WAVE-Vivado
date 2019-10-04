@@ -18,14 +18,13 @@ module Encoder_v1_0_S00_AXI
 	// Width of S_AXI data bus
 	parameter integer C_S_AXI_DATA_WIDTH = 32,
 	// Width of S_AXI address bus
-	parameter integer C_S_AXI_ADDR_WIDTH = 4
+	parameter integer C_S_AXI_ADDR_WIDTH = 6
 )
 (
 	// Users to add ports here
     
     output wire debug_m00_axi_armed,
-    input wire [9:0] debug_fifo_rd_count,
-    input wire [31:0] debug_cRAM_offset,
+    input wire [255:0] debug_fifo_rd_count_concat,
     
 	// User ports ends
 	// Do not modify the ports beyond this line
@@ -110,12 +109,12 @@ reg  	axi_rvalid;
 // ADDR_LSB = 2 for 32 bits (n downto 2)
 // ADDR_LSB = 3 for 64 bits (n downto 3)
 localparam integer ADDR_LSB = (C_S_AXI_DATA_WIDTH/32) + 1;
-localparam integer OPT_MEM_ADDR_BITS = 1;
+localparam integer OPT_MEM_ADDR_BITS = 3;
 //----------------------------------------------
 //-- Signals for user logic register space example
 //------------------------------------------------
-//-- Number of Slave Registers: 4 <= 2^(OPT_MEM_ADDR_BITS+1)
-reg [C_S_AXI_DATA_WIDTH-1:0] slv_reg [3:0];
+//-- Number of Slave Registers: 9 <= 2^(OPT_MEM_ADDR_BITS+1)
+reg [C_S_AXI_DATA_WIDTH-1:0] slv_reg [8:0];
 wire	 slv_reg_rden;
 wire	 slv_reg_wren;
 reg [C_S_AXI_DATA_WIDTH-1:0]	 reg_data_out;
@@ -226,7 +225,7 @@ begin
     if ( S_AXI_ARESETN == 1'b0 )
     begin : s_axi_areset_block
         integer i;
-        for(i = 0; i < 4; i = i + 1)
+        for(i = 0; i < 9; i = i + 1)
         begin
             slv_reg[i] <= 0;
         end
@@ -241,8 +240,11 @@ begin
 	    
 	    // Latch in read values from input ports.
 	    begin : in_latch
-            slv_reg[1] <= debug_fifo_rd_count;
-            slv_reg[2] <= debug_cRAM_offset;
+	        integer i;
+	        for(i = 0; i < 8; i = i + 1)
+	        begin
+                slv_reg[1 + i] <= debug_fifo_rd_count_concat[32*i+:32];
+            end
 	    end : in_latch
 	    
 	end
