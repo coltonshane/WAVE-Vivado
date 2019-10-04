@@ -92,8 +92,15 @@ encoder_4x16 e4x16_L (px_clk, q_4px_concat_L, e_4px_L, e_len_L);
 // Encoder buffer for staging 64-bit writes to the FIFO. This is a logic-heavy section!!!
 // -------------------------------------------------------------------------------------------------
 // Memory (FF) for the encoder buffer and bit index for writes to it.
-reg [127:0] e_buffer;
+reg [63:0] e_buffer_0;
+reg [63:0] e_buffer_1;
 reg [6:0] e_buffer_idx;
+reg e_buffer_state;
+wire e_buffer_state_next;
+assign e_buffer_state_next = e_buffer_idx[6] ? ~e_buffer_state : e_buffer_state;
+
+wire [63:0] e_buffer_rd_interface;
+assign e_buffer_rd_interface = e_buffer_state ? e_buffer_1 : e_buffer_0;
 
 // Create a pixel counter at the interface between the encoders and the buffer accounting for the
 // latency of previous value storage (4), the quantizers (1), and the encoders (1).
@@ -134,28 +141,30 @@ wire [6:0] e_buffer_wr_len;
 assign e_buffer_wr_data = e_buffer_wr_phase ? e_4px_H : e_4px_L;
 assign e_buffer_wr_len = e_buffer_wr_phase ? e_len_H : e_len_L;
 
-// If there's enough data in the e_buffer to trigger a FIFO write, shift the index.
-wire [6:0] e_buffer_idx_shift;
-assign e_buffer_idx_shift = {e_buffer_idx[6], 6'b0000000};
+wire [127:0] e_buffer_wr_data_shifted;
+assign e_buffer_wr_data_shifted = e_buffer_wr_data << e_buffer_idx[5:0];
 
 // Write operation.
 always @(posedge px_clk_2x)
 begin
     if (e_buffer_wr_en)
     begin
-    
-        if (e_buffer_idx[6])
+        
+        if (e_buffer_state_next)
         begin
-            // There's enough data to trigger a FIFO write. Shift existing data down.
-            // Further non-blocking assigns will override individual bits as-needed.
-            e_buffer[63:0] <= e_buffer[127:64];
+            e_buffer_0 <= e_buffer_wr_data_shifted[127:64];
+            e_buffer_1 <= e_buffer_1 | e_buffer_wr_data_shifted[63:0];
         end
-            
-        // Add new data.
-        e_buffer[(e_buffer_idx - e_buffer_idx_shift)+:64] <= e_buffer_wr_data;
-            
-        // Update the index.
-        e_buffer_idx <= e_buffer_idx - e_buffer_idx_shift + e_buffer_wr_len;    
+        else
+        begin
+            e_buffer_1 <= e_buffer_wr_data_shifted[127:64];
+            e_buffer_0 <= e_buffer_0 | e_buffer_wr_data_shifted[63:0];
+        end
+        
+        e_buffer_idx <= e_buffer_idx + e_buffer_wr_len - {e_buffer_idx[6], 6'b000000};
+        
+        e_buffer_state <= e_buffer_state_next;
+
     end
 end
 // -------------------------------------------------------------------------------------------------
@@ -184,7 +193,7 @@ FIFO36E2_H
 
    .WRCLK(px_clk_2x),
    .WREN(fifo_wren), 
-   .DIN(e_buffer[63:32])
+   .DIN(e_buffer_rd_interface[63:32])
 );
 
 FIFO36E2 
@@ -204,10 +213,10 @@ FIFO36E2_L
    
    .WRCLK(px_clk_2x),
    .WREN(fifo_wren), 
-   .DIN(e_buffer[31:0])
+   .DIN(e_buffer_rd_interface[31:0])
 );
 // -------------------------------------------------------------------------------------------------
 
-assign debug_e_buffer = e_buffer;
+assign debug_e_buffer = {e_buffer_1, e_buffer_0};
 
 endmodule
