@@ -23,7 +23,9 @@ module compressor
     input wire m00_axi_aclk,
     input wire fifo_rd_next,
     output wire [9:0] fifo_rd_count,
-    output wire [127:0] fifo_rd_data
+    output wire [127:0] fifo_rd_data,
+    
+    output wire [127:0] debug_e_buffer
 );
 
 genvar i;
@@ -87,11 +89,11 @@ wire [6:0] e_len_L;
 encoder_4x16 e4x16_H (px_clk, q_4px_concat_H, e_4px_H, e_len_H);
 encoder_4x16 e4x16_L (px_clk, q_4px_concat_L, e_4px_L, e_len_L);
 
-// Encoder buffer for staging 128-bit writes to the FIFO. This is a logic-heavy section!!!
+// Encoder buffer for staging 64-bit writes to the FIFO. This is a logic-heavy section!!!
 // -------------------------------------------------------------------------------------------------
 // Memory (FF) for the encoder buffer and bit index for writes to it.
-reg [191:0] e_buffer;
-reg [7:0] e_buffer_idx;
+reg [127:0] e_buffer;
+reg [6:0] e_buffer_idx;
 
 // Create a pixel counter at the interface between the encoders and the buffer accounting for the
 // latency of previous value storage (4), the quantizers (1), and the encoders (1).
@@ -133,8 +135,8 @@ assign e_buffer_wr_data = e_buffer_wr_phase ? e_4px_H : e_4px_L;
 assign e_buffer_wr_len = e_buffer_wr_phase ? e_len_H : e_len_L;
 
 // If there's enough data in the e_buffer to trigger a FIFO write, shift the index.
-wire [7:0] e_buffer_idx_shift;
-assign e_buffer_idx_shift = {e_buffer_idx[7], 7'b0000000};
+wire [6:0] e_buffer_idx_shift;
+assign e_buffer_idx_shift = {e_buffer_idx[6], 6'b0000000};
 
 // Write operation.
 always @(posedge px_clk_2x)
@@ -142,11 +144,11 @@ begin
     if (e_buffer_wr_en)
     begin
     
-        if (e_buffer_idx[7])
+        if (e_buffer_idx[6])
         begin
             // There's enough data to trigger a FIFO write. Shift existing data down.
             // Further non-blocking assigns will override individual bits as-needed.
-            e_buffer[63:0] <= e_buffer[191:128];
+            e_buffer[63:0] <= e_buffer[127:64];
         end
             
         // Add new data.
@@ -158,11 +160,11 @@ begin
 end
 // -------------------------------------------------------------------------------------------------
 
-// 128-bit wide BRAM FIFO.
+// BRAM FIFO. Write interface is 64b. Read interface is 128b.
 // -------------------------------------------------------------------------------------------------
 // Enable FIFO writes when px_count_e is positive and the e_buffer has enough data.
 wire fifo_wren;
-assign fifo_wren = (px_count_e >= 24'sh000000) & e_buffer_idx[7];
+assign fifo_wren = e_buffer_wr_en & e_buffer_idx[6];
 
 // Instantiate two FIFO36 primatives.
 FIFO36E2 
@@ -171,7 +173,7 @@ FIFO36E2
    .RDCOUNT_TYPE("EXTENDED_DATACOUNT"),
    .READ_WIDTH(72),
    .REGISTER_MODE("REGISTERED"),
-   .WRITE_WIDTH(72)
+   .WRITE_WIDTH(36)
 )
 FIFO36E2_H 
 (
@@ -182,7 +184,7 @@ FIFO36E2_H
 
    .WRCLK(px_clk_2x),
    .WREN(fifo_wren), 
-   .DIN(e_buffer[127:64])
+   .DIN(e_buffer[63:32])
 );
 
 FIFO36E2 
@@ -191,7 +193,7 @@ FIFO36E2
    .RDCOUNT_TYPE("EXTENDED_DATACOUNT"),
    .READ_WIDTH(72),
    .REGISTER_MODE("REGISTERED"),
-   .WRITE_WIDTH(72)
+   .WRITE_WIDTH(36)
 )
 FIFO36E2_L 
 (
@@ -202,8 +204,10 @@ FIFO36E2_L
    
    .WRCLK(px_clk_2x),
    .WREN(fifo_wren), 
-   .DIN(e_buffer[63:0])
+   .DIN(e_buffer[31:0])
 );
 // -------------------------------------------------------------------------------------------------
+
+assign debug_e_buffer = e_buffer;
 
 endmodule
