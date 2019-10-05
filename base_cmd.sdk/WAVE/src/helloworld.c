@@ -108,7 +108,6 @@ u32 * debug_core_LL1_data = (u32 *)(0xA000101C);
 
 u32 * debug_m00_axi_arm = (u32 *)(0xA0002000);
 u32 * debug_fifo_rd_count = (u32 *)(0xA0002004);
-u32 * debug_c_RAM_offset = (u32 *)(0xA0002008);
 
 int main()
 {

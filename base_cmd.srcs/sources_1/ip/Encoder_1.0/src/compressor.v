@@ -16,6 +16,7 @@ module compressor
     input wire px_clk,
     input wire px_clk_2x,
     input wire signed [23:0] px_count_c,
+    input wire signed [23:0] px_count_e,
     input wire signed [9:0] q_mult,
     
     input wire [255:0] in_2px_concat,
@@ -101,11 +102,6 @@ assign e_buffer_state_next = e_buffer_idx[6] ? ~e_buffer_state : e_buffer_state;
 
 wire [63:0] e_buffer_rd_interface;
 assign e_buffer_rd_interface = e_buffer_state ? e_buffer_1 : e_buffer_0;
-
-// Create a pixel counter at the interface between the encoders and the buffer accounting for the
-// latency of previous value storage (4), the quantizers (1), and the encoders (1).
-wire signed [23:0] px_count_e;
-assign px_count_e = px_count_c - 24'sh000006;
 
 // Keep track of the LSB of this pixel counter to know if new data is being presented.
 reg px_count_e_prev_LSB;
