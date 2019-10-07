@@ -24,6 +24,7 @@ module Encoder_v1_0_S00_AXI
 	// Users to add ports here
     
     output wire debug_m00_axi_armed,
+    output wire [3:0] debug_c_state,
     input wire [255:0] debug_fifo_rd_count_concat,
     
 	// User ports ends
@@ -376,6 +377,7 @@ end
 // Add user logic here
 
 assign debug_m00_axi_armed = slv_reg[0][0];
+assign debug_c_state = slv_reg[0][7:4];
 
 // User logic ends
 

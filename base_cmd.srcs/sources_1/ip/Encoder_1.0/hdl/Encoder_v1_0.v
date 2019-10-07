@@ -112,6 +112,7 @@ module Encoder_v1_0
 
 // Debug signals mapped to AXI slave registers.
 wire debug_m00_axi_armed;
+wire [3:0] debug_c_state;
 wire [255:0] debug_fifo_rd_count_concat;
 
 // AXI Master 00 signals.
@@ -130,6 +131,7 @@ Encoder_v1_0_S00_AXI
 Encoder_v1_0_S00_AXI_inst 
 (
     .debug_m00_axi_armed(debug_m00_axi_armed),
+    .debug_c_state(debug_c_state),
     .debug_fifo_rd_count_concat(debug_fifo_rd_count_concat),
 
     // AXI-Lite slave controller signals.
@@ -231,28 +233,28 @@ wire signed [9:0] q_mult_HH1;
 wire signed [9:0] q_mult_HL1;
 wire signed [9:0] q_mult_LH1;
 wire signed [9:0] q_mult_LL1;
-assign q_mult_HH1 = 9'sh100;
-assign q_mult_HL1 = 9'sh100;
-assign q_mult_LH1 = 9'sh100;
-assign q_mult_LL1 = 9'sh100;
+assign q_mult_HH1 = 10'sh100;
+assign q_mult_HL1 = 10'sh100;
+assign q_mult_LH1 = 10'sh100;
+assign q_mult_LL1 = 10'sh100;
 
 // Pixel counters at the interface between the vertical wavelet cores and the compressor.
 // These are offset for the known latency of the wavelet stage(s):
-// {HH1, HL1, LH1, LL1} R1 and G2 color field wavelet stage: 517 px_clk.
-// {HH1, HL1, LH1, LL1} G2 and B1 color field wavelet stage: 518 px_clk.
+// {HH1, HL1, LH1, LL1} R1 and G2 color field wavelet stage: 532 px_clk.
+// {HH1, HL1, LH1, LL1} G2 and B1 color field wavelet stage: 533 px_clk.
 wire signed [23:0] px_count_c_XX1_R1G2;
-assign px_count_c_XX1_R1G2 = px_count - 24'sh000205;
+assign px_count_c_XX1_R1G2 = px_count - 24'sh000214;
 wire signed [23:0] px_count_c_XX1_G1B1;
-assign px_count_c_XX1_G1B1 = px_count - 24'sh000206;
+assign px_count_c_XX1_G1B1 = px_count - 24'sh000215;
 
 // Pixel counters at the interface between the encoders and their output buffer.
 // These are offset for the known latency of the wavelet stage(s) + 6 for the encoder and quantizer:
-// {HH1, HL1, LH1, LL1} R1 and G2 color field wavelet stage: 523 px_clk.
-// {HH1, HL1, LH1, LL1} G2 and B1 color field wavelet stage: 524 px_clk.
+// {HH1, HL1, LH1, LL1} R1 and G2 color field wavelet stage: 538 px_clk.
+// {HH1, HL1, LH1, LL1} G2 and B1 color field wavelet stage: 539 px_clk.
 wire signed [23:0] px_count_e_XX1_R1G2;
-assign px_count_e_XX1_R1G2 = px_count - 24'sh00020B;
+assign px_count_e_XX1_R1G2 = px_count - 24'sh00021A;
 wire signed [23:0] px_count_e_XX1_G1B1;
-assign px_count_e_XX1_G1B1 = px_count - 24'sh00020C;
+assign px_count_e_XX1_G1B1 = px_count - 24'sh00021B;
 
 // Shared FIFO read enable signal, controlled by the AXI Master round-robin.
 wire fifo_rd_en;
@@ -516,7 +518,7 @@ assign axi_wdata = fifo_rd_data[c_state];
 
 // Read next data switch.
 genvar i;
-for (i = 0; i < 15; i = i + 1)
+for (i = 0; i < 16; i = i + 1)
 begin
     assign fifo_rd_next[i] = axi_wnext & (c_state == i);
 end
@@ -524,15 +526,15 @@ end
 // Address generation.
 reg [31:0] c_RAM_offset [15:0];
 localparam [511:0] c_RAM_base_concat = 
-{32'h2C000000, 32'h28000000, 32'h24000000, 32'h20000000,    // HH1
- 32'h3C000000, 32'h38000000, 32'h34000000, 32'h30000000,    // HL1
+{32'h68000000, 32'h60000000, 32'h58000000, 32'h50000000,    // LL1
  32'h4C000000, 32'h48000000, 32'h44000000, 32'h40000000,    // LH1
- 32'h68000000, 32'h60000000, 32'h58000000, 32'h50000000};   // LL1
+ 32'h3C000000, 32'h38000000, 32'h34000000, 32'h30000000,    // HL1
+ 32'h2C000000, 32'h28000000, 32'h24000000, 32'h20000000};   // HH1
 localparam [511:0] c_RAM_mask = 
-{32'h03FFFFFF, 32'h03FFFFFF, 32'h03FFFFFF, 32'h03FFFFFF,    // HH1
- 32'h03FFFFFF, 32'h03FFFFFF, 32'h03FFFFFF, 32'h03FFFFFF,    // HL1
+{32'h07FFFFFF, 32'h07FFFFFF, 32'h07FFFFFF, 32'h07FFFFFF,    // LL1
  32'h03FFFFFF, 32'h03FFFFFF, 32'h03FFFFFF, 32'h03FFFFFF,    // LH1
- 32'h07FFFFFF, 32'h07FFFFFF, 32'h07FFFFFF, 32'h07FFFFFF};   // LL1
+ 32'h03FFFFFF, 32'h03FFFFFF, 32'h03FFFFFF, 32'h03FFFFFF,    // HL1
+ 32'h03FFFFFF, 32'h03FFFFFF, 32'h03FFFFFF, 32'h03FFFFFF};   // HH1
 wire [31:0] c_RAM_base;
 wire [31:0] c_RAM_offset_masked;
 assign c_RAM_base = c_RAM_base_concat[32*c_state+:32];
@@ -579,13 +581,15 @@ begin
             // Increment the write offset by 256B and increment the state.
             axi_busy_wait <= 1'b0;
             c_RAM_offset[c_state] <= c_RAM_offset[c_state] + 32'h100;
-            c_state <= c_state + 4'h1;
+            // c_state <= c_state + 4'h1;
         end
         else if(~fifo_trigger)
         begin
             // FIFO threshold is not met. Just increment the state.
-            c_state <= c_state + 4'h1;
+            // c_state <= c_state + 4'h1;
         end
+        
+        c_state <= debug_c_state;
     end
 end
 
