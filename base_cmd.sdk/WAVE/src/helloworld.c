@@ -107,7 +107,8 @@ u32 * debug_core_LH1_data = (u32 *)(0xA0001018);
 u32 * debug_core_LL1_data = (u32 *)(0xA000101C);
 
 u32 * debug_m00_axi_arm = (u32 *)(0xA0002000);
-u32 * debug_fifo_rd_count = (u32 *)(0xA0002004);
+u32 * q_mult_HL1_HH1 = (u32 *)(0xA0002004);
+u32 * q_mult_LL1_LH1 = (u32 *)(0xA0002008);
 
 int main()
 {
@@ -186,7 +187,7 @@ int main()
 
     cmvRegInit(&Spi0);
     cmvRegSetMode(&Spi0);
-    cmvRegWrite(&Spi0, CMV_REG_ADDR_TEST_PATTERN, CMV_REG_VAL_TEST_PATTERN_ON);
+    // cmvRegWrite(&Spi0, CMV_REG_ADDR_TEST_PATTERN, CMV_REG_VAL_TEST_PATTERN_ON);
 
     usleep(1000);
 

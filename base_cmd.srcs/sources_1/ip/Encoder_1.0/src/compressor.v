@@ -36,8 +36,8 @@ wire [31:0] in_2px_H[3:0];
 wire [31:0] in_2px_L[3:0];
 for(i = 0; i < 4; i = i + 1)
 begin
-    assign in_2px_H[i] = in_2px_concat[(32*i+128)+:32];
-    assign in_2px_L[i] = in_2px_concat[(32*i)+:32];
+    assign in_2px_H[i] = in_2px_concat[(64*i+32)+:32];
+    assign in_2px_L[i] = in_2px_concat[(64*i)+:32];
 end
 
 // Registers for storing previous two-pixel inputs.

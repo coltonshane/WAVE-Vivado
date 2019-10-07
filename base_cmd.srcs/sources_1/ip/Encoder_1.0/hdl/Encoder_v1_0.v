@@ -113,6 +113,10 @@ module Encoder_v1_0
 // Debug signals mapped to AXI slave registers.
 wire debug_m00_axi_armed;
 wire [3:0] debug_c_state;
+wire signed [9:0] q_mult_HH1;
+wire signed [9:0] q_mult_HL1;
+wire signed [9:0] q_mult_LH1;
+wire signed [9:0] q_mult_LL1;
 wire [255:0] debug_fifo_rd_count_concat;
 
 // AXI Master 00 signals.
@@ -132,6 +136,10 @@ Encoder_v1_0_S00_AXI_inst
 (
     .debug_m00_axi_armed(debug_m00_axi_armed),
     .debug_c_state(debug_c_state),
+    .q_mult_HH1(q_mult_HH1),
+    .q_mult_HL1(q_mult_HL1),
+    .q_mult_LH1(q_mult_LH1),
+    .q_mult_LL1(q_mult_LL1),
     .debug_fifo_rd_count_concat(debug_fifo_rd_count_concat),
 
     // AXI-Lite slave controller signals.
@@ -227,16 +235,6 @@ Encoder_v1_0_M00_AXI_inst
 );
 
 // Add user logic here
-
-// Compressor quantizer settings. These should be mapped to AXI-Lite Slave registers.
-wire signed [9:0] q_mult_HH1;
-wire signed [9:0] q_mult_HL1;
-wire signed [9:0] q_mult_LH1;
-wire signed [9:0] q_mult_LL1;
-assign q_mult_HH1 = 10'sh100;
-assign q_mult_HL1 = 10'sh100;
-assign q_mult_LH1 = 10'sh100;
-assign q_mult_LL1 = 10'sh100;
 
 // Pixel counters at the interface between the vertical wavelet cores and the compressor.
 // These are offset for the known latency of the wavelet stage(s):
@@ -581,15 +579,15 @@ begin
             // Increment the write offset by 256B and increment the state.
             axi_busy_wait <= 1'b0;
             c_RAM_offset[c_state] <= c_RAM_offset[c_state] + 32'h100;
-            // c_state <= c_state + 4'h1;
+            c_state <= c_state + 4'h1;
         end
         else if(~fifo_trigger & ~axi_init_txn & ~axi_busy_wait)
         begin
             // FIFO threshold is not met. Just increment the state.
-            // c_state <= c_state + 4'h1;
+            c_state <= c_state + 4'h1;
         end
         
-        c_state <= debug_c_state;
+        // c_state <= debug_c_state;
     end
 end
 
