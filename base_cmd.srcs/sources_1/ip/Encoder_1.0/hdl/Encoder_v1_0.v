@@ -563,7 +563,7 @@ begin
     end : axi_rst
     else
     begin
-        if (fifo_trigger & ~axi_init_txn & ~axi_busy)
+        if (fifo_trigger & ~axi_init_txn & ~axi_busy_wait)
         begin
             // FIFO threshold is met, start a transcation.
             axi_awaddr_init <= c_RAM_base + c_RAM_offset_masked;
@@ -583,7 +583,7 @@ begin
             c_RAM_offset[c_state] <= c_RAM_offset[c_state] + 32'h100;
             // c_state <= c_state + 4'h1;
         end
-        else if(~fifo_trigger)
+        else if(~fifo_trigger & ~axi_init_txn & ~axi_busy_wait)
         begin
             // FIFO threshold is not met. Just increment the state.
             // c_state <= c_state + 4'h1;

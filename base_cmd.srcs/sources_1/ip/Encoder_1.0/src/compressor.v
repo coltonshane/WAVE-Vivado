@@ -182,8 +182,8 @@ FIFO36E2
 )
 FIFO36E2_H 
 (
-   .DOUT(fifo_rd_data[127:64]),
-   .RDCOUNT(fifo_rd_count),         // Driver.
+   .DOUT({fifo_rd_data[127:96], fifo_rd_data[63:32]}),  // Reorder to match input.
+   .RDCOUNT(fifo_rd_count),                             // Driver.
    .RDCLK(m00_axi_aclk),
    .RDEN(fifo_rd_next),
 
@@ -202,8 +202,8 @@ FIFO36E2
 )
 FIFO36E2_L 
 (
-   .DOUT(fifo_rd_data[63:0]),
-   .RDCOUNT(),                      // Follower.
+   .DOUT({fifo_rd_data[95:64], fifo_rd_data[31:0]}),    // Reorder to match input.
+   .RDCOUNT(),                                          // Follower.
    .RDCLK(m00_axi_aclk),
    .RDEN(fifo_rd_next),
    
