@@ -112,15 +112,12 @@ begin
     px_count_e_updated <= (px_count_e[0] ^ px_count_e_prev_LSB);
 end
 
-// Three conditions must be met for e_buffer writing:
+// Conditions must be met for e_buffer writing:
 // 1. New data is being presented, i.e. px_count_e[0] has toggled.
-// 2. The data front has reached the encoder/buffer interface, i.e. px_count_e >= 0.
-// 3. The data is from a valid input pair. This happens on px_count_e = {0,1,2,3,8,9,10,11,...},
+// 2. The data is from a valid input pair. This happens on px_count_e = {0,1,2,3,8,9,10,11,...},
 //    i.e. px_count_e[2] == 0. This masks out encoder data from the previous value storage phase.
 wire e_buffer_wr_en;
-assign e_buffer_wr_en = (px_count_e_updated) 
-                      & (px_count_e >= 24'sh000000)
-                      & (~px_count_e[2]);
+assign e_buffer_wr_en = (px_count_e_updated) & (~px_count_e[2]);
 
 // Split each px_clk period into two write phases.
 wire e_buffer_wr_phase;

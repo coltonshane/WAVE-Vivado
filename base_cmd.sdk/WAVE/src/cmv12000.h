@@ -37,6 +37,13 @@
 
 // Public Type Definitions ---------------------------------------------------------------------------------------------
 
+typedef struct
+{
+	u32 ch[65];				// [63:0] are pixel channels, [64] is the control channel
+	u32 px_count_limit;		// Limit for pixel counter, to stop capture in mid-frame for debugging.
+	u32 px_count;			// Master pixel count, in increments of 64px.
+} CMV_Input_s;
+
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
 void cmvLinkTrain(void);
@@ -48,6 +55,8 @@ u16 cmvRegRead(XSpiPs * spiDevice, u8 addr);
 void cmvRegWrite(XSpiPs * spiDevice, u8 addr, u16 val);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
+
+extern CMV_Input_s * CMV_Input;
 
 #endif
 

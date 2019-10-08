@@ -90,7 +90,7 @@ XUartPs Uart1;
 XSpiPs Spi0;
 
 u32 triggerShutdown = 0;
-u32 requestFrame = 0;
+u32 requestFrames = 0;
 u32 invalidateDCache = 0;
 u32 updateCMVRegs = 0;
 u16 cmv_Exp_time = 1536;
@@ -191,17 +191,24 @@ int main()
 
     usleep(1000);
 
+    // ARM the AXI Master and configure encoder quantizers.
+    *debug_m00_axi_arm = 0x00000001;
+    *q_mult_HL1_HH1 = 0x00200020;
+    *q_mult_LL1_LH1 = 0x00800020;
+
     while(!triggerShutdown)
     {
 
-    	if(requestFrame)
+    	while(requestFrames)
     	{
-    		requestFrame = 0;
-
     		// Toggle the frame request pin.
     		XGpioPs_WritePin(&Gpio, FRAME_REQ_PIN, 1);
     		usleep(1);
     		XGpioPs_WritePin(&Gpio, FRAME_REQ_PIN, 0);
+
+    		// Wait for completed frame read-in.
+    		while(CMV_Input->px_count < 0x30000);
+    		requestFrames--;
     	}
 
     	if(updateCMVRegs)

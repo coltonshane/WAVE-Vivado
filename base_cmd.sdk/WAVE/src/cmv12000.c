@@ -31,20 +31,13 @@
 
 // Private Type Definitions --------------------------------------------------------------------------------------------
 
-typedef struct
-{
-	u32 ch[65];				// [63:0] are pixel channels, [64] is the control channel
-	u32 px_count_limit;		// Limit for pixel counter, to stop capture in mid-frame for debugging.
-	u32 px_count;			// Master pixel count, in increments of 64px.
-} CMV_Input_s;
-
 // Private Function Prototypes -----------------------------------------------------------------------------------------
 
 // Public Global Variables ---------------------------------------------------------------------------------------------
 
-// Private Global Variables --------------------------------------------------------------------------------------------
-
 CMV_Input_s * CMV_Input = (CMV_Input_s *) 0xA0000000;
+
+// Private Global Variables --------------------------------------------------------------------------------------------
 
 // Registers that are initialized to constant but non-default values.
 u8 cmvRegAddrInit[] =

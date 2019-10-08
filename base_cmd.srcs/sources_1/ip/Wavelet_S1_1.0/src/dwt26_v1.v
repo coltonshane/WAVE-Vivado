@@ -60,7 +60,7 @@ always @(posedge px_clk)
 begin
     px_count_v1_prev_LSB <= px_count_v1[0];
 end
-assign wr_en = (px_count_v1[0] ^ px_count_v1_prev_LSB) & (px_count_v1 >= 24'sh000000);
+assign wr_en = (px_count_v1[0] ^ px_count_v1_prev_LSB);
 // -------------------------------------------------------------------------------------------------
 
 // Write address generation.
