@@ -93,11 +93,12 @@ u32 triggerShutdown = 0;
 u32 requestFrames = 0;
 u32 invalidateDCache = 0;
 u32 updateCMVRegs = 0;
-u16 cmv_Exp_time = 1536;
-u16 cmv_Exp_kp1 = 0;
-u16 cmv_Exp_kp2 = 0;
-u16 cmv_Vtfl = 64 * 128 + 64;
-u16 cmv_Number_slopes = 1;
+u16 cmv_Exp_time = 810;
+u16 cmv_Exp_kp1 = 80;
+u16 cmv_Exp_kp2 = 8;
+u16 cmv_Vtfl = 84 * 128 + 104;
+u16 cmv_Number_slopes = 3;
+u16 cmv_Number_frames = 168;
 
 u32 * debug_px_count_trig = (u32 *)(0xA0001000);
 u32 * debug_core_addr  = (u32 *)(0xA0001004);
@@ -203,12 +204,9 @@ int main()
     	{
     		// Toggle the frame request pin.
     		XGpioPs_WritePin(&Gpio, FRAME_REQ_PIN, 1);
-    		usleep(1);
+    		usleep(requestFrames);
     		XGpioPs_WritePin(&Gpio, FRAME_REQ_PIN, 0);
-
-    		// Wait for completed frame read-in.
-    		while(CMV_Input->px_count < 0x30000);
-    		requestFrames--;
+    		requestFrames = 0;
     	}
 
     	if(updateCMVRegs)
@@ -219,6 +217,7 @@ int main()
     	    cmvRegWrite(&Spi0, CMV_REG_ADDR_EXP_KP2_L, cmv_Exp_kp2);
     	    cmvRegWrite(&Spi0, CMV_REG_ADDR_VTFL, cmv_Vtfl);
     	    cmvRegWrite(&Spi0, CMV_REG_ADDR_NUMBER_SLOPES, cmv_Number_slopes);
+    	    cmvRegWrite(&Spi0, CMV_REG_ADDR_NUMBER_FRAMES, cmv_Number_frames);
     	}
 
     	if(invalidateDCache)

@@ -24,7 +24,7 @@ module Encoder_v1_0_S00_AXI
 	// Users to add ports here
     
     output wire debug_m00_axi_armed,
-    output wire [3:0] debug_c_state,
+    output wire [4:0] debug_c_state,
     output wire signed [9:0] q_mult_HH1,
     output wire signed [9:0] q_mult_HL1,
     output wire signed [9:0] q_mult_LH1,
@@ -381,7 +381,7 @@ end
 // Add user logic here
 
 assign debug_m00_axi_armed = slv_reg[0][0];
-assign debug_c_state = slv_reg[0][7:4];
+assign debug_c_state = slv_reg[0][8:4];
 assign q_mult_HH1 = slv_reg[1][0+:10];
 assign q_mult_HL1 = slv_reg[1][16+:10];
 assign q_mult_LH1 = slv_reg[2][0+:10];

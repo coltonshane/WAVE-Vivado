@@ -112,7 +112,7 @@ module Encoder_v1_0
 
 // Debug signals mapped to AXI slave registers.
 wire debug_m00_axi_armed;
-wire [3:0] debug_c_state;
+wire [4:0] debug_c_state;
 wire signed [9:0] q_mult_HH1;
 wire signed [9:0] q_mult_HL1;
 wire signed [9:0] q_mult_LH1;
@@ -587,7 +587,10 @@ begin
             c_state <= c_state + 4'h1;
         end
         
-        // c_state <= debug_c_state;
+        if (debug_c_state[4])
+        begin
+            c_state <= debug_c_state[3:0];
+        end
     end
 end
 
