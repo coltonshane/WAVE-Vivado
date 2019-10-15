@@ -179,6 +179,10 @@ end
 // -------------------------------------------------------------------------------------------------
 always @(posedge px_clk_2x)
 begin
+// Gate with wr_en to enforce read:write ratio, otherwise states can run more than once during
+// line overhead time when LVAL/DVAL are low and px_count_v1 is not incrementing.
+if (wr_en)
+begin
     case (rd_state)
     
     3'b000: // Nothing to do here. Just waiting for first rd_data.
@@ -228,6 +232,7 @@ begin
     end
     
     endcase
+end
 end
 
 // -------------------------------------------------------------------------------------------------
