@@ -93,12 +93,12 @@ u32 triggerShutdown = 0;
 u32 requestFrames = 0;
 u32 invalidateDCache = 0;
 u32 updateCMVRegs = 0;
-u16 cmv_Exp_time = 810;
+u16 cmv_Exp_time = 768;
 u16 cmv_Exp_kp1 = 80;
 u16 cmv_Exp_kp2 = 8;
 u16 cmv_Vtfl = 84 * 128 + 104;
-u16 cmv_Number_slopes = 3;
-u16 cmv_Number_frames = 168;
+u16 cmv_Number_slopes = 1;
+u16 cmv_Number_frames = 16;
 
 u32 * debug_px_count_trig = (u32 *)(0xA0001000);
 u32 * debug_core_addr  = (u32 *)(0xA0001004);
@@ -204,7 +204,7 @@ int main()
     	{
     		// Toggle the frame request pin.
     		XGpioPs_WritePin(&Gpio, FRAME_REQ_PIN, 1);
-    		usleep(requestFrames);
+    		usleep(1);
     		XGpioPs_WritePin(&Gpio, FRAME_REQ_PIN, 0);
     		requestFrames = 0;
     	}
