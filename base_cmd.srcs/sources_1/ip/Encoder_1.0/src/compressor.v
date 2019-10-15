@@ -15,6 +15,7 @@ module compressor
 (
     input wire px_clk,
     input wire px_clk_2x,
+    input wire px_clk_2x_phase,
     input wire signed [23:0] px_count_c,
     input wire signed [23:0] px_count_e,
     input wire signed [9:0] q_mult,
@@ -119,20 +120,11 @@ end
 wire e_buffer_wr_en;
 assign e_buffer_wr_en = (px_count_e_updated) & (~px_count_e[2]);
 
-// Split each px_clk period into two write phases.
-wire e_buffer_wr_phase;
-reg px_count_e_prev_LSB_2x;
-always @(posedge px_clk_2x)
-begin
-    px_count_e_prev_LSB_2x <= px_count_e[0];
-end
-assign e_buffer_wr_phase = (px_count_e[0] == px_count_e_prev_LSB_2x);
-
 // Select data from either the high or low encoder based on the write phase.
 wire [63:0] e_buffer_wr_data;
 wire [6:0] e_buffer_wr_len;
-assign e_buffer_wr_data = e_buffer_wr_phase ? e_4px_H : e_4px_L;
-assign e_buffer_wr_len = e_buffer_wr_phase ? e_len_H : e_len_L;
+assign e_buffer_wr_data = px_clk_2x_phase ? e_4px_H : e_4px_L;
+assign e_buffer_wr_len = px_clk_2x_phase ? e_len_H : e_len_L;
 
 wire [127:0] e_buffer_wr_data_shifted;
 assign e_buffer_wr_data_shifted = e_buffer_wr_data << e_buffer_idx[5:0];

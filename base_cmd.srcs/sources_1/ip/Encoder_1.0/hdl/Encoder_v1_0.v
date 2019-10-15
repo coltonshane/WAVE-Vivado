@@ -254,6 +254,17 @@ assign px_count_e_XX1_R1G2 = px_count - 24'sh00021A;
 wire signed [23:0] px_count_e_XX1_G1B1;
 assign px_count_e_XX1_G1B1 = px_count - 24'sh00021B;
 
+// Create a shared phase flag for px_clk_2x, px_clk_2x_phase:
+// 0: The previous px_clk_2x rising edge was aligned with a px_clk rising edge.
+// 1: The previous px_clk_2x rising edge was aligned with a px_clk falling edge.
+reg px_count_prev_LSB_2x; 
+wire px_clk_2x_phase;
+always @(posedge px_clk_2x)
+begin
+    px_count_prev_LSB_2x <= px_count[0];
+end
+assign px_clk_2x_phase = (px_count[0] == px_count_prev_LSB_2x);
+
 // Shared FIFO read enable signal, controlled by the AXI Master round-robin.
 wire fifo_rd_en;
 
@@ -268,6 +279,7 @@ compressor c_HH1_R1     // Stream 00, handling HH1.R1[7:0]
 (
     .px_clk(px_clk),
     .px_clk_2x(px_clk_2x),
+    .px_clk_2x_phase(px_clk_2x_phase),
     .px_count_c(px_count_c_XX1_R1G2),
     .px_count_e(px_count_e_XX1_R1G2),
     .q_mult(q_mult_HH1),
@@ -283,6 +295,7 @@ compressor c_HH1_G1     // Stream 01, handling HH1.G1[7:0]
 (
     .px_clk(px_clk),
     .px_clk_2x(px_clk_2x),
+    .px_clk_2x_phase(px_clk_2x_phase),
     .px_count_c(px_count_c_XX1_G1B1),
     .px_count_e(px_count_e_XX1_G1B1),
     .q_mult(q_mult_HH1),
@@ -298,6 +311,7 @@ compressor c_HH1_G2     // Stream 02, handling HH1.G2[7:0]
 (
     .px_clk(px_clk),
     .px_clk_2x(px_clk_2x),
+    .px_clk_2x_phase(px_clk_2x_phase),
     .px_count_c(px_count_c_XX1_R1G2),
     .px_count_e(px_count_e_XX1_R1G2),
     .q_mult(q_mult_HH1),
@@ -313,6 +327,7 @@ compressor c_HH1_B1     // Stream 03, handling HH1.B1[7:0]
 (
     .px_clk(px_clk),
     .px_clk_2x(px_clk_2x),
+    .px_clk_2x_phase(px_clk_2x_phase),
     .px_count_c(px_count_c_XX1_G1B1),
     .px_count_e(px_count_e_XX1_G1B1),
     .q_mult(q_mult_HH1),
@@ -328,6 +343,7 @@ compressor c_HL1_R1     // Stream 04, handling HL1.R1[7:0]
 (
     .px_clk(px_clk),
     .px_clk_2x(px_clk_2x),
+    .px_clk_2x_phase(px_clk_2x_phase),
     .px_count_c(px_count_c_XX1_R1G2),
     .px_count_e(px_count_e_XX1_R1G2),
     .q_mult(q_mult_HL1),
@@ -343,6 +359,7 @@ compressor c_HL1_G1     // Stream 05, handling HL1.G1[7:0]
 (
     .px_clk(px_clk),
     .px_clk_2x(px_clk_2x),
+    .px_clk_2x_phase(px_clk_2x_phase),
     .px_count_c(px_count_c_XX1_G1B1),
     .px_count_e(px_count_e_XX1_G1B1),
     .q_mult(q_mult_HL1),
@@ -358,6 +375,7 @@ compressor c_HL1_G2     // Stream 06, handling HL1.G2[7:0]
 (
     .px_clk(px_clk),
     .px_clk_2x(px_clk_2x),
+    .px_clk_2x_phase(px_clk_2x_phase),
     .px_count_c(px_count_c_XX1_R1G2),
     .px_count_e(px_count_e_XX1_R1G2),
     .q_mult(q_mult_HL1),
@@ -373,6 +391,7 @@ compressor c_HL1_B1     // Stream 07, handling HL1.B1[7:0]
 (
     .px_clk(px_clk),
     .px_clk_2x(px_clk_2x),
+    .px_clk_2x_phase(px_clk_2x_phase),
     .px_count_c(px_count_c_XX1_G1B1),
     .px_count_e(px_count_e_XX1_G1B1),
     .q_mult(q_mult_HL1),
@@ -388,6 +407,7 @@ compressor c_LH1_R1     // Stream 08, handling LH1.R1[7:0]
 (
     .px_clk(px_clk),
     .px_clk_2x(px_clk_2x),
+    .px_clk_2x_phase(px_clk_2x_phase),
     .px_count_c(px_count_c_XX1_R1G2),
     .px_count_e(px_count_e_XX1_R1G2),
     .q_mult(q_mult_LH1),
@@ -403,6 +423,7 @@ compressor c_LH1_G1     // Stream 09, handling LH1.G1[7:0]
 (
     .px_clk(px_clk),
     .px_clk_2x(px_clk_2x),
+    .px_clk_2x_phase(px_clk_2x_phase),
     .px_count_c(px_count_c_XX1_G1B1),
     .px_count_e(px_count_e_XX1_G1B1),
     .q_mult(q_mult_LH1),
@@ -418,6 +439,7 @@ compressor c_LH1_G2     // Stream 10, handling LH1.G2[7:0]
 (
     .px_clk(px_clk),
     .px_clk_2x(px_clk_2x),
+    .px_clk_2x_phase(px_clk_2x_phase),
     .px_count_c(px_count_c_XX1_R1G2),
     .px_count_e(px_count_e_XX1_R1G2),
     .q_mult(q_mult_LH1),
@@ -433,6 +455,7 @@ compressor c_LH1_B1     // Stream 11, handling LH1.B1[7:0]
 (
     .px_clk(px_clk),
     .px_clk_2x(px_clk_2x),
+    .px_clk_2x_phase(px_clk_2x_phase),
     .px_count_c(px_count_c_XX1_G1B1),
     .px_count_e(px_count_e_XX1_G1B1),
     .q_mult(q_mult_LH1),
@@ -448,6 +471,7 @@ compressor c_LL1_R1     // Stream 12, handling LL1.R1[7:0]
 (
     .px_clk(px_clk),
     .px_clk_2x(px_clk_2x),
+    .px_clk_2x_phase(px_clk_2x_phase),
     .px_count_c(px_count_c_XX1_R1G2),
     .px_count_e(px_count_e_XX1_R1G2),
     .q_mult(q_mult_LL1),
@@ -463,6 +487,7 @@ compressor c_LL1_G1     // Stream 13, handling LL1.G1[7:0]
 (
     .px_clk(px_clk),
     .px_clk_2x(px_clk_2x),
+    .px_clk_2x_phase(px_clk_2x_phase),
     .px_count_c(px_count_c_XX1_G1B1),
     .px_count_e(px_count_e_XX1_G1B1),
     .q_mult(q_mult_LL1),
@@ -478,6 +503,7 @@ compressor c_LL1_G2     // Stream 14, handling LL1.G2[7:0]
 (
     .px_clk(px_clk),
     .px_clk_2x(px_clk_2x),
+    .px_clk_2x_phase(px_clk_2x_phase),
     .px_count_c(px_count_c_XX1_R1G2),
     .px_count_e(px_count_e_XX1_R1G2),
     .q_mult(q_mult_LL1),
@@ -493,6 +519,7 @@ compressor c_LL1_B1     // Stream 15, handling LL1.B1[7:0]
 (
     .px_clk(px_clk),
     .px_clk_2x(px_clk_2x),
+    .px_clk_2x_phase(px_clk_2x_phase),
     .px_count_c(px_count_c_XX1_G1B1),
     .px_count_e(px_count_e_XX1_G1B1),
     .q_mult(q_mult_LL1),
