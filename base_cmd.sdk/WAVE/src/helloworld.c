@@ -107,9 +107,9 @@ u32 * debug_core_HL1_data = (u32 *)(0xA0001014);
 u32 * debug_core_LH1_data = (u32 *)(0xA0001018);
 u32 * debug_core_LL1_data = (u32 *)(0xA000101C);
 
-u32 * debug_m00_axi_arm = (u32 *)(0xA0002000);
-u32 * q_mult_HL1_HH1 = (u32 *)(0xA0002004);
-u32 * q_mult_LL1_LH1 = (u32 *)(0xA0002008);
+u32 * debug_m00_axi_arm = (u32 *)(0xA0004000);
+u32 * q_mult_HL1_HH1 = (u32 *)(0xA0004004);
+u32 * q_mult_LL1_LH1 = (u32 *)(0xA0004008);
 
 int main()
 {
@@ -194,8 +194,8 @@ int main()
 
     // ARM the AXI Master and configure encoder quantizers.
     *debug_m00_axi_arm = 0x00000001;
-    *q_mult_HL1_HH1 = 0x00200020;
-    *q_mult_LL1_LH1 = 0x00800020;
+    *q_mult_HL1_HH1 = 0x01000100;
+    *q_mult_LL1_LH1 = 0x01000100;
 
     while(!triggerShutdown)
     {

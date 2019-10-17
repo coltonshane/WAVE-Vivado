@@ -35,7 +35,10 @@ module Encoder_v1_0
 	input wire [1023:0] HH1_concat,
 	input wire [1023:0] HL1_concat,
 	input wire [1023:0] LH1_concat,
-	input wire [1023:0] LL1_concat,
+	input wire [511:0] HH2_concat,
+	input wire [511:0] HL2_concat,
+	input wire [511:0] LH2_concat,
+	input wire [511:0] LL2_concat,
 	
 	// User ports ends
 	// Do not modify the ports beyond this line
@@ -240,19 +243,25 @@ Encoder_v1_0_M00_AXI_inst
 // These are offset for the known latency of the wavelet stage(s):
 // {HH1, HL1, LH1, LL1} R1 and G2 color field wavelet stage: 532 px_clk.
 // {HH1, HL1, LH1, LL1} G2 and B1 color field wavelet stage: 533 px_clk.
+// {HH2, HL2, LH2, LL2} All four color fields wavelet stage: 1584 px_clk.
 wire signed [23:0] px_count_c_XX1_R1G2;
 assign px_count_c_XX1_R1G2 = px_count - 24'sh000214;
 wire signed [23:0] px_count_c_XX1_G1B1;
 assign px_count_c_XX1_G1B1 = px_count - 24'sh000215;
+wire signed [23:0] px_count_c_XX2;
+assign px_count_c_XX2 = px_count - 24'sh000630;
 
 // Pixel counters at the interface between the encoders and their output buffer.
 // These are offset for the known latency of the wavelet stage(s) + 6 for the encoder and quantizer:
 // {HH1, HL1, LH1, LL1} R1 and G2 color field wavelet stage: 538 px_clk.
 // {HH1, HL1, LH1, LL1} G2 and B1 color field wavelet stage: 539 px_clk.
+// {HH2, HL2, LH2, LL2} All four color fields wavelet stage: 1590 px_clk.
 wire signed [23:0] px_count_e_XX1_R1G2;
 assign px_count_e_XX1_R1G2 = px_count - 24'sh00021A;
 wire signed [23:0] px_count_e_XX1_G1B1;
 assign px_count_e_XX1_G1B1 = px_count - 24'sh00021B;
+wire signed [23:0] px_count_e_XX2;
+assign px_count_e_XX2 = px_count - 24'sh000636;
 
 // Create a shared phase flag for px_clk_2x, px_clk_2x_phase:
 // 0: The previous px_clk_2x rising edge was aligned with a px_clk rising edge.
@@ -467,64 +476,64 @@ compressor c_LH1_B1     // Stream 11, handling LH1.B1[7:0]
     .fifo_rd_count(fifo_rd_count[11]),
     .fifo_rd_data(fifo_rd_data[11])
 );
-compressor c_LL1_R1     // Stream 12, handling LL1.R1[7:0]
+compressor_16in c_HH2     // Stream 12, handling HH2
 (
     .px_clk(px_clk),
     .px_clk_2x(px_clk_2x),
     .px_clk_2x_phase(px_clk_2x_phase),
-    .px_count_c(px_count_c_XX1_R1G2),
-    .px_count_e(px_count_e_XX1_R1G2),
-    .q_mult(q_mult_LL1),
+    .px_count_c(px_count_c_XX2),
+    .px_count_e(px_count_e_XX2),
+    .q_mult(q_mult_HH1),    // TO-DO: Give this its own setting.
     
-    .in_2px_concat(LL1_concat[0+:256]),
+    .in_2px_concat(HH2_concat),
     
     .m00_axi_aclk(m00_axi_aclk),
     .fifo_rd_next(fifo_rd_next[12]),
     .fifo_rd_count(fifo_rd_count[12]),
     .fifo_rd_data(fifo_rd_data[12])
 );
-compressor c_LL1_G1     // Stream 13, handling LL1.G1[7:0]
+compressor_16in c_HL2     // Stream 13, handling HL2
 (
     .px_clk(px_clk),
     .px_clk_2x(px_clk_2x),
     .px_clk_2x_phase(px_clk_2x_phase),
-    .px_count_c(px_count_c_XX1_G1B1),
-    .px_count_e(px_count_e_XX1_G1B1),
-    .q_mult(q_mult_LL1),
+    .px_count_c(px_count_c_XX2),
+    .px_count_e(px_count_e_XX2),
+    .q_mult(q_mult_HL1),    // TO-DO: Give this its own setting.
     
-    .in_2px_concat(LL1_concat[256+:256]),
+    .in_2px_concat(HL2_concat),
     
     .m00_axi_aclk(m00_axi_aclk),
     .fifo_rd_next(fifo_rd_next[13]),
     .fifo_rd_count(fifo_rd_count[13]),
     .fifo_rd_data(fifo_rd_data[13])
 );
-compressor c_LL1_G2     // Stream 14, handling LL1.G2[7:0]
+compressor_16in c_LH2     // Stream 14, handling LH2
 (
     .px_clk(px_clk),
     .px_clk_2x(px_clk_2x),
     .px_clk_2x_phase(px_clk_2x_phase),
-    .px_count_c(px_count_c_XX1_R1G2),
-    .px_count_e(px_count_e_XX1_R1G2),
-    .q_mult(q_mult_LL1),
+    .px_count_c(px_count_c_XX2),
+    .px_count_e(px_count_e_XX2),
+    .q_mult(q_mult_LH1),    // TO-DO: Give this its own setting.
     
-    .in_2px_concat(LL1_concat[512+:256]),
+    .in_2px_concat(LH2_concat),
     
     .m00_axi_aclk(m00_axi_aclk),
     .fifo_rd_next(fifo_rd_next[14]),
     .fifo_rd_count(fifo_rd_count[14]),
     .fifo_rd_data(fifo_rd_data[14])
 );
-compressor c_LL1_B1     // Stream 15, handling LL1.B1[7:0]
+compressor_16in c_LL2     // Stream 15, handling LL2
 (
     .px_clk(px_clk),
     .px_clk_2x(px_clk_2x),
     .px_clk_2x_phase(px_clk_2x_phase),
-    .px_count_c(px_count_c_XX1_G1B1),
-    .px_count_e(px_count_e_XX1_G1B1),
-    .q_mult(q_mult_LL1),
+    .px_count_c(px_count_c_XX2),
+    .px_count_e(px_count_e_XX2),
+    .q_mult(q_mult_LL1),    // TO-DO: Give this its own setting.
     
-    .in_2px_concat(LL1_concat[768+:256]),
+    .in_2px_concat(LL2_concat),
     
     .m00_axi_aclk(m00_axi_aclk),
     .fifo_rd_next(fifo_rd_next[15]),
