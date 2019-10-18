@@ -29,6 +29,8 @@ module Encoder_v1_0_S00_AXI
     output wire signed [9:0] q_mult_HL1,
     output wire signed [9:0] q_mult_LH1,
     output wire signed [9:0] q_mult_LL1,
+    output wire signed [23:0] debug_c_XX2_offset,
+    output wire signed [23:0] debug_e_XX2_offset,
     input wire [255:0] debug_fifo_rd_count_concat,
     
 	// User ports ends
@@ -118,8 +120,8 @@ localparam integer OPT_MEM_ADDR_BITS = 3;
 //----------------------------------------------
 //-- Signals for user logic register space example
 //------------------------------------------------
-//-- Number of Slave Registers: 11 <= 2^(OPT_MEM_ADDR_BITS+1)
-reg [C_S_AXI_DATA_WIDTH-1:0] slv_reg [10:0];
+//-- Number of Slave Registers: 16 <= 2^(OPT_MEM_ADDR_BITS+1)
+reg [C_S_AXI_DATA_WIDTH-1:0] slv_reg [15:0];
 wire	 slv_reg_rden;
 wire	 slv_reg_wren;
 reg [C_S_AXI_DATA_WIDTH-1:0]	 reg_data_out;
@@ -230,7 +232,7 @@ begin
     if ( S_AXI_ARESETN == 1'b0 )
     begin : s_axi_areset_block
         integer i;
-        for(i = 0; i < 9; i = i + 1)
+        for(i = 0; i < 16; i = i + 1)
         begin
             slv_reg[i] <= 0;
         end
@@ -248,7 +250,7 @@ begin
 	        integer i;
 	        for(i = 0; i < 8; i = i + 1)
 	        begin
-                slv_reg[3 + i] <= debug_fifo_rd_count_concat[32*i+:32];
+                slv_reg[8 + i] <= debug_fifo_rd_count_concat[32*i+:32];
             end
 	    end : in_latch
 	    
@@ -386,6 +388,8 @@ assign q_mult_HH1 = slv_reg[1][0+:10];
 assign q_mult_HL1 = slv_reg[1][16+:10];
 assign q_mult_LH1 = slv_reg[2][0+:10];
 assign q_mult_LL1 = slv_reg[2][16+:10];
+assign debug_c_XX2_offset = slv_reg[3][23:0];
+assign debug_e_XX2_offset = slv_reg[4][23:0];
 
 // User logic ends
 

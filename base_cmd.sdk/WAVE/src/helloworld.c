@@ -110,6 +110,8 @@ u32 * debug_core_LL1_data = (u32 *)(0xA000101C);
 u32 * debug_m00_axi_arm = (u32 *)(0xA0004000);
 u32 * q_mult_HL1_HH1 = (u32 *)(0xA0004004);
 u32 * q_mult_LL1_LH1 = (u32 *)(0xA0004008);
+u32 * debug_c_XX2_offset = (u32 *)(0xA000400C);
+u32 * debug_e_XX2_offset = (u32 *)(0xA0004010);
 
 int main()
 {
@@ -196,6 +198,8 @@ int main()
     *debug_m00_axi_arm = 0x00000001;
     *q_mult_HL1_HH1 = 0x01000100;
     *q_mult_LL1_LH1 = 0x01000100;
+    *debug_c_XX2_offset = 1582;
+    *debug_e_XX2_offset = 1588;
 
     while(!triggerShutdown)
     {

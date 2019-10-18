@@ -109,8 +109,8 @@ genvar i;
 // {HH1, HL1, LH1, LL1} G2 and B1 color field wavelet stage: 533 px_clk.
 // Both color fields are valid at 534 px_clk, so using that as the common latency for S1. 
 // This synchronizes the color fields, and they should remain synchronized downstream.
-wire signed [23:0] px_count_h1;
-assign px_count_h1 = px_count - 24'sh000216;
+wire signed [23:0] px_count_h2;
+assign px_count_h2 = px_count - 24'sh000216;
 
 // Extract pixel pair index within a row from the pixel counter. This increments every
 // four pixels, when a new pixel pair is available from S1. When it increments, a flag is
@@ -118,7 +118,7 @@ assign px_count_h1 = px_count - 24'sh000216;
 wire [5:0] px_idx;
 reg px_idx_prev_LSB;
 wire px_idx_updated;
-assign px_idx = px_count_h1[7:2];
+assign px_idx = px_count_h2[7:2];
 always @(posedge px_clk)
 begin
     px_idx_prev_LSB <= px_idx[0];
@@ -266,9 +266,9 @@ endgenerate
 
 // Pixel counter at the interface between the vertical and horizontal second-stage cores.
 // This is offset for the known latency of the pipeline up to the second-stage: 
-// horizontal cores. All color fields have the same latency here: 550 px_clk.
+// horizontal cores. All color fields have the same latency here: 548 px_clk.
 wire signed [23:0] px_count_v2;
-assign px_count_v2 = px_count - 24'sh000226;
+assign px_count_v2 = px_count - 24'sh000224;
 
 // Arrays for second-stage vertical core output data.
 wire [31:0] HH2_R1 [3:0];

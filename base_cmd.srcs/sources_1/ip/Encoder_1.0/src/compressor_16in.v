@@ -57,11 +57,11 @@ begin
     begin : latch_prev
         integer j;
         for(j = 0; j < 8; j = j + 1)
-        begin: latch_prev
+        begin
             in_2px_H_prev[j] <= in_2px_H[j];
             in_2px_L_prev[j] <= in_2px_L[j];
-        end: latch_prev
-    end
+        end
+    end : latch_prev
 end
 
 // Quantizer data 8:1 muxes. Only c_state 8-15 are needed, but it's easier to

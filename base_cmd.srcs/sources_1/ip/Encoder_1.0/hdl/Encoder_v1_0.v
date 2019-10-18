@@ -120,6 +120,8 @@ wire signed [9:0] q_mult_HH1;
 wire signed [9:0] q_mult_HL1;
 wire signed [9:0] q_mult_LH1;
 wire signed [9:0] q_mult_LL1;
+wire signed [23:0] debug_c_XX2_offset;
+wire signed [23:0] debug_e_XX2_offset;
 wire [255:0] debug_fifo_rd_count_concat;
 
 // AXI Master 00 signals.
@@ -143,6 +145,8 @@ Encoder_v1_0_S00_AXI_inst
     .q_mult_HL1(q_mult_HL1),
     .q_mult_LH1(q_mult_LH1),
     .q_mult_LL1(q_mult_LL1),
+    .debug_c_XX2_offset(debug_c_XX2_offset),
+    .debug_e_XX2_offset(debug_e_XX2_offset),
     .debug_fifo_rd_count_concat(debug_fifo_rd_count_concat),
 
     // AXI-Lite slave controller signals.
@@ -249,7 +253,8 @@ assign px_count_c_XX1_R1G2 = px_count - 24'sh000214;
 wire signed [23:0] px_count_c_XX1_G1B1;
 assign px_count_c_XX1_G1B1 = px_count - 24'sh000215;
 wire signed [23:0] px_count_c_XX2;
-assign px_count_c_XX2 = px_count - 24'sh000630;
+// assign px_count_c_XX2 = px_count - 24'sh000630;
+assign px_count_c_XX2 = px_count - debug_c_XX2_offset;
 
 // Pixel counters at the interface between the encoders and their output buffer.
 // These are offset for the known latency of the wavelet stage(s) + 6 for the encoder and quantizer:
@@ -261,7 +266,8 @@ assign px_count_e_XX1_R1G2 = px_count - 24'sh00021A;
 wire signed [23:0] px_count_e_XX1_G1B1;
 assign px_count_e_XX1_G1B1 = px_count - 24'sh00021B;
 wire signed [23:0] px_count_e_XX2;
-assign px_count_e_XX2 = px_count - 24'sh000636;
+// assign px_count_e_XX2 = px_count - 24'sh000636;
+assign px_count_e_XX2 = px_count - debug_e_XX2_offset;
 
 // Create a shared phase flag for px_clk_2x, px_clk_2x_phase:
 // 0: The previous px_clk_2x rising edge was aligned with a px_clk rising edge.
