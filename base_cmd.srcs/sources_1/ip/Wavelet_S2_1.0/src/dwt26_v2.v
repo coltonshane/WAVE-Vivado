@@ -132,7 +132,8 @@ end
 // Read state. Cycles through 8 states on px_clk. 
 // -------------------------------------------------------------------------------------------------
 wire [2:0] rd_state ;
-assign rd_state = px_count_v2[2:0];
+// assign rd_state = px_count_v2[2:0];
+assign rd_state = {px_count_v2[2:1], (px_count_v2[1] == px_count_v2_prev_LSB)};
 // -------------------------------------------------------------------------------------------------
 
 // Read address generation (combinational).
