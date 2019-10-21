@@ -35,10 +35,10 @@ module Wavelet_S2_v1_0 #
 	input wire signed [23:0] px_count,
 	input wire [1023:0] LL1_concat,
 		
-    output wire signed [511:0] HH2_concat,
-	output wire signed [511:0] HL2_concat,
-	output wire signed [511:0] LH2_concat,
-	output wire signed [511:0] LL2_concat,
+    output wire [511:0] HH2_concat,
+	output wire [511:0] HL2_concat,
+	output wire [511:0] LH2_concat,
+	output wire [511:0] LL2_concat,
 	
 	// User ports ends
 		

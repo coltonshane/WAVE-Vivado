@@ -16,11 +16,11 @@ All operations and operands are signed 16-bit unless otherwise noted.
 
 module dwt26_h2
 (
-    input wire px_clk,          // Pixel clock.
-    input wire [5:0] px_idx,    // 64 pixel pairs per column per row for w = 4096px.
-    input wire px_idx_updated,  // Flag indicating the px_idx has been updated.
-    input wire [15:0] X_even,   // 16b even pixel data.
-    input wire [15:0] X_odd,    // 16b odd pixel data.
+    input wire px_clk,                 // Pixel clock.
+    input wire [5:0] px_idx,           // 64 pixel pairs per column per row for w = 4096px.
+    input wire px_idx_updated,         // Flag indicating the px_idx has been updated.
+    input wire signed [15:0] X_even,   // 16b even pixel data.
+    input wire signed [15:0] X_odd,    // 16b odd pixel data.
     
     // Local sum and difference of pixel pairs 0 and 1 from the core "to the right".
     input wire signed [15:0] S_pp0_fromR,

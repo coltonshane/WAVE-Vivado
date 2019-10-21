@@ -35,10 +35,10 @@ module Wavelet_S1_v1_0 #
 	input wire [9:0] px_ctr,
 	input wire [639:0] px_chXX_concat,
 		
-    output wire signed [1023:0] HH1_concat,
-	output wire signed [1023:0] HL1_concat,
-	output wire signed [1023:0] LH1_concat,
-	output wire signed [1023:0] LL1_concat,
+    output wire [1023:0] HH1_concat,
+	output wire [1023:0] HL1_concat,
+	output wire [1023:0] LH1_concat,
+	output wire [1023:0] LL1_concat,
 	
 	// User ports ends
 		
