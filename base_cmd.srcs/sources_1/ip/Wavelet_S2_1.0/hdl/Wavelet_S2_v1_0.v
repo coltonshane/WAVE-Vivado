@@ -25,7 +25,7 @@ module Wavelet_S2_v1_0 #
 
 	// Parameters of Axi Slave Bus Interface S00_AXI
 	parameter integer C_S00_AXI_DATA_WIDTH	= 32,
-	parameter integer C_S00_AXI_ADDR_WIDTH	= 4
+	parameter integer C_S00_AXI_ADDR_WIDTH	= 5
 )
 (
 	// Users to add ports here
@@ -68,6 +68,14 @@ module Wavelet_S2_v1_0 #
 	input wire  s00_axi_rready
 );
 
+// Debug port for peeking at wavelet core data through AXI.
+wire signed [23:0] debug_px_count_trig;
+wire [31:0] debug_core_addr;
+reg [31:0] debug_core_HH2_data;
+reg [31:0] debug_core_HL2_data;
+reg [31:0] debug_core_LH2_data;
+reg [31:0] debug_core_LL2_data;
+
 // Instantiation of Axi Bus Interface S00_AXI
 Wavelet_S2_v1_0_S00_AXI 
 #( 
@@ -76,6 +84,12 @@ Wavelet_S2_v1_0_S00_AXI
 ) 
 Wavelet_S2_v1_0_S00_AXI_inst 
 (
+    .debug_px_count_trig(debug_px_count_trig),
+    .debug_core_addr(debug_core_addr),
+    .debug_core_HH2_data(debug_core_HH2_data),
+    .debug_core_HL2_data(debug_core_HL2_data),
+    .debug_core_LH2_data(debug_core_LH2_data),
+    .debug_core_LL2_data(debug_core_LL2_data),
 	.S_AXI_ACLK(s00_axi_aclk),
 	.S_AXI_ARESETN(s00_axi_aresetn),
 	.S_AXI_AWADDR(s00_axi_awaddr),
@@ -378,6 +392,44 @@ begin : dwt26_v2_array
     
 end : dwt26_v2_array
 endgenerate
+
+// Debug access to core output data.
+always @(posedge px_clk)
+begin
+if (px_count == debug_px_count_trig)
+begin
+    case (debug_core_addr[3:2])
+        `COLOR_R1:
+        begin 
+            debug_core_HH2_data <= HH2_R1[debug_core_addr[1:0]];
+            debug_core_HL2_data <= HL2_R1[debug_core_addr[1:0]];
+            debug_core_LH2_data <= LH2_R1[debug_core_addr[1:0]];
+            debug_core_LL2_data <= LL2_R1[debug_core_addr[1:0]];
+        end
+        `COLOR_G1:
+        begin 
+            debug_core_HH2_data <= HH2_G1[debug_core_addr[1:0]];
+            debug_core_HL2_data <= HL2_G1[debug_core_addr[1:0]];
+            debug_core_LH2_data <= LH2_G1[debug_core_addr[1:0]];
+            debug_core_LL2_data <= LL2_G1[debug_core_addr[1:0]];
+        end
+        `COLOR_G2:
+        begin 
+            debug_core_HH2_data <= HH2_G2[debug_core_addr[1:0]];
+            debug_core_HL2_data <= HL2_G2[debug_core_addr[1:0]];
+            debug_core_LH2_data <= LH2_G2[debug_core_addr[1:0]];
+            debug_core_LL2_data <= LL2_G2[debug_core_addr[1:0]];
+        end
+        `COLOR_B1:
+        begin 
+            debug_core_HH2_data <= HH2_B1[debug_core_addr[1:0]];
+            debug_core_HL2_data <= HL2_B1[debug_core_addr[1:0]];
+            debug_core_LH2_data <= LH2_B1[debug_core_addr[1:0]];
+            debug_core_LL2_data <= LL2_B1[debug_core_addr[1:0]];
+        end
+    endcase
+end
+end
 
 // User logic ends
 

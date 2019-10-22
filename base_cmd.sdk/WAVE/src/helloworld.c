@@ -100,13 +100,23 @@ u16 cmv_Vtfl = 84 * 128 + 104;
 u16 cmv_Number_slopes = 1;
 u16 cmv_Number_frames = 16;
 
-u32 * debug_px_count_trig = (u32 *)(0xA0001000);
-u32 * debug_core_addr  = (u32 *)(0xA0001004);
+// Wavelet S1
+u32 * debug_XX1_px_count_trig = (u32 *)(0xA0001000);
+u32 * debug_core_XX1_addr  = (u32 *)(0xA0001004);
 u32 * debug_core_HH1_data = (u32 *)(0xA0001010);
 u32 * debug_core_HL1_data = (u32 *)(0xA0001014);
 u32 * debug_core_LH1_data = (u32 *)(0xA0001018);
 u32 * debug_core_LL1_data = (u32 *)(0xA000101C);
 
+// Wavelet S2
+u32 * debug_XX2_px_count_trig = (u32 *)(0xA0002000);
+u32 * debug_core_XX2_addr  = (u32 *)(0xA0002004);
+u32 * debug_core_HH2_data = (u32 *)(0xA0002010);
+u32 * debug_core_HL2_data = (u32 *)(0xA0002014);
+u32 * debug_core_LH2_data = (u32 *)(0xA0002018);
+u32 * debug_core_LL2_data = (u32 *)(0xA000201C);
+
+// Encoder
 u32 * debug_m00_axi_arm = (u32 *)(0xA0004000);
 u32 * q_mult_HL1_HH1 = (u32 *)(0xA0004004);
 u32 * q_mult_LL1_LH1 = (u32 *)(0xA0004008);
@@ -191,15 +201,16 @@ int main()
     cmvRegInit(&Spi0);
     cmvRegSetMode(&Spi0);
     // cmvRegWrite(&Spi0, CMV_REG_ADDR_TEST_PATTERN, CMV_REG_VAL_TEST_PATTERN_ON);
+    // cmvRegWrite(&Spi0, CMV_REG_ADDR_DIG_GAIN, 16);
 
     usleep(1000);
 
     // ARM the AXI Master and configure encoder quantizers.
     *debug_m00_axi_arm = 0x00000001;
-    *q_mult_HL1_HH1 = 0x01000100;
-    *q_mult_LL1_LH1 = 0x01000100;
+    *q_mult_HL1_HH1 = 0x00200020;
+    *q_mult_LL1_LH1 = 0x00800020;
     *debug_c_XX2_offset = 1582;
-    *debug_e_XX2_offset = 1588;
+    *debug_e_XX2_offset = 1592;
 
     while(!triggerShutdown)
     {

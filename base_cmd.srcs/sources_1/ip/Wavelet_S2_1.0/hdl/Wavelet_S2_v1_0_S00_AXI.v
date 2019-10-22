@@ -18,10 +18,18 @@ module Wavelet_S2_v1_0_S00_AXI
 	// Width of S_AXI data bus
 	parameter integer C_S_AXI_DATA_WIDTH = 32,
 	// Width of S_AXI address bus
-	parameter integer C_S_AXI_ADDR_WIDTH = 4
+	parameter integer C_S_AXI_ADDR_WIDTH = 5
 )
 (
 	// Users to add ports here
+	
+	// Debug port for peeking at wavelet core data through AXI.
+	output wire signed [23:0] debug_px_count_trig,
+	output wire [31:0] debug_core_addr,
+	input wire [31:0] debug_core_HH2_data,
+	input wire [31:0] debug_core_HL2_data,
+	input wire [31:0] debug_core_LH2_data,
+	input wire [31:0] debug_core_LL2_data,
 	    
 	// User ports ends
 	// Do not modify the ports beyond this line
@@ -106,12 +114,12 @@ reg  	axi_rvalid;
 // ADDR_LSB = 2 for 32 bits (n downto 2)
 // ADDR_LSB = 3 for 64 bits (n downto 3)
 localparam integer ADDR_LSB = (C_S_AXI_DATA_WIDTH/32) + 1;
-localparam integer OPT_MEM_ADDR_BITS = 1;
+localparam integer OPT_MEM_ADDR_BITS = 2;
 //----------------------------------------------
 //-- Signals for user logic register space example
 //------------------------------------------------
-//-- Number of Slave Registers: 4 <= 2^(OPT_MEM_ADDR_BITS+1)
-reg [C_S_AXI_DATA_WIDTH-1:0] slv_reg [3:0];
+//-- Number of Slave Registers: 8 <= 2^(OPT_MEM_ADDR_BITS+1)
+reg [C_S_AXI_DATA_WIDTH-1:0] slv_reg [7:0];
 wire	 slv_reg_rden;
 wire	 slv_reg_wren;
 reg [C_S_AXI_DATA_WIDTH-1:0]	 reg_data_out;
@@ -222,7 +230,7 @@ begin
     if ( S_AXI_ARESETN == 1'b0 )
     begin : s_axi_areset_block
         integer i;
-        for(i = 0; i < 4; i = i + 1)
+        for(i = 0; i < 8; i = i + 1)
         begin
             slv_reg[i] <= 0;
         end
@@ -237,6 +245,11 @@ begin
 	    
 	    // Latch in read values from input ports.
 	    begin : in_latch
+	    
+	        slv_reg[4] <= debug_core_HH2_data[31:0];
+            slv_reg[5] <= debug_core_HL2_data[31:0];
+            slv_reg[6] <= debug_core_LH2_data[31:0];
+            slv_reg[7] <= debug_core_LL2_data[31:0];
             
 	    end : in_latch
 	    
@@ -367,6 +380,8 @@ begin
 end    
 
 // Add user logic here
+assign debug_px_count_trig = slv_reg[0][23:0];
+assign debug_core_addr = slv_reg[1];
 
 // User logic ends
 
