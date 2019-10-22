@@ -29,8 +29,8 @@ module Encoder_v1_0_S00_AXI
     output wire signed [9:0] q_mult_HL1,
     output wire signed [9:0] q_mult_LH1,
     output wire signed [9:0] q_mult_LL1,
-    output wire signed [23:0] debug_c_XX2_offset,
-    output wire signed [23:0] debug_e_XX2_offset,
+    output wire signed [23:0] debug_c_XX3_offset,
+    output wire signed [23:0] debug_e_XX3_offset,
     input wire [255:0] debug_fifo_rd_count_concat,
     
 	// User ports ends
@@ -388,8 +388,8 @@ assign q_mult_HH1 = slv_reg[1][0+:10];
 assign q_mult_HL1 = slv_reg[1][16+:10];
 assign q_mult_LH1 = slv_reg[2][0+:10];
 assign q_mult_LL1 = slv_reg[2][16+:10];
-assign debug_c_XX2_offset = slv_reg[3][23:0];
-assign debug_e_XX2_offset = slv_reg[4][23:0];
+assign debug_c_XX3_offset = slv_reg[3][23:0];
+assign debug_e_XX3_offset = slv_reg[4][23:0];
 
 // User logic ends
 
