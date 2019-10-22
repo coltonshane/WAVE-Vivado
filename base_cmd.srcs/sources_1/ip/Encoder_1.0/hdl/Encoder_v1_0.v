@@ -38,7 +38,10 @@ module Encoder_v1_0
 	input wire [511:0] HH2_concat,
 	input wire [511:0] HL2_concat,
 	input wire [511:0] LH2_concat,
-	input wire [511:0] LL2_concat,
+	input wire [255:0] HH3_concat,
+	input wire [255:0] HL3_concat,
+	input wire [255:0] LH3_concat,
+	input wire [255:0] LL3_concat,
 	
 	// User ports ends
 	// Do not modify the ports beyond this line
@@ -248,24 +251,30 @@ Encoder_v1_0_M00_AXI_inst
 // {HH1, HL1, LH1, LL1} R1 and G2 color field wavelet stage: 532 px_clk.
 // {HH1, HL1, LH1, LL1} G2 and B1 color field wavelet stage: 533 px_clk.
 // {HH2, HL2, LH2, LL2} All four color fields wavelet stage: 1582 px_clk.
+// {HH3, HL3, LH3, LL3} All four color fields wavelet stage:
 wire signed [23:0] px_count_c_XX1_R1G2;
 assign px_count_c_XX1_R1G2 = px_count - 24'sh000214;
 wire signed [23:0] px_count_c_XX1_G1B1;
 assign px_count_c_XX1_G1B1 = px_count - 24'sh000215;
 wire signed [23:0] px_count_c_XX2;
 assign px_count_c_XX2 = px_count - 24'sh00062E;
+wire signed [23:0] px_count_c_XX3;
+assign px_count_c_XX3 = px_count - debug_c_XX3_offset;
 
 // Pixel counters at the interface between the encoders and their output buffer.
 // These are offset for the known latency of the wavelet stage(s) + the encoder and quantizer:
-// {HH1, HL1, LH1, LL1} R1 and G2 color field wavelet stage: 538 px_clk. (+6 for compressor)
-// {HH1, HL1, LH1, LL1} G2 and B1 color field wavelet stage: 539 px_clk. (+6 for compressor)
-// {HH2, HL2, LH2, LL2} All four color fields wavelet stage: 1592 px_clk. (+10 for compressor_16in)
+// {HH1, HL1, LH1, LL1} R1 and G2 color field: 538 px_clk. (+6 for compressor)
+// {HH1, HL1, LH1, LL1} G2 and B1 color field: 539 px_clk. (+6 for compressor)
+// {HH2, HL2, LH2, LL2} All four color fields: 1592 px_clk. (+10 for compressor_16in)
+// {HH3, HL3, LH3, LL3} All four color fields:
 wire signed [23:0] px_count_e_XX1_R1G2;
 assign px_count_e_XX1_R1G2 = px_count - 24'sh00021A;
 wire signed [23:0] px_count_e_XX1_G1B1;
 assign px_count_e_XX1_G1B1 = px_count - 24'sh00021B;
 wire signed [23:0] px_count_e_XX2;
 assign px_count_e_XX2 = px_count - 24'sh000638;
+wire signed [23:0] px_count_e_XX3;
+assign px_count_c_XX3 = px_count - debug_e_XX3_offset;
 
 // Create a shared phase flag for px_clk_2x, px_clk_2x_phase:
 // 0: The previous px_clk_2x rising edge was aligned with a px_clk rising edge.
@@ -528,16 +537,22 @@ compressor_16in c_LH2     // Stream 14, handling LH2
     .fifo_rd_count(fifo_rd_count[14]),
     .fifo_rd_data(fifo_rd_data[14])
 );
-compressor_16in c_LL2     // Stream 15, handling LL2
+compressor_32in c_XX3     // Stream 15, handling HH3, HL3, LH3, and LL3
 (
     .px_clk(px_clk),
     .px_clk_2x(px_clk_2x),
     .px_clk_2x_phase(px_clk_2x_phase),
-    .px_count_c(px_count_c_XX2),
-    .px_count_e(px_count_e_XX2),
-    .q_mult(q_mult_LL1),    // TO-DO: Give this its own setting.
+    .px_count_c(px_count_c_XX3),
+    .px_count_e(px_count_e_XX3),
+    .q_mult_HH3(q_mult_HH1),    // TO-DO: Give these their own setting.
+    .q_mult_HL3(q_mult_HL1),
+    .q_mult_LH3(q_mult_LH1),
+    .q_mult_LL3(q_mult_LL1),
     
-    .in_2px_concat(LL2_concat),
+    .in_2px_HH3_concat(HH3_concat),
+    .in_2px_HL3_concat(HL3_concat),
+    .in_2px_LH3_concat(LH3_concat),
+    .in_2px_LL3_concat(LL3_concat),
     
     .m00_axi_aclk(m00_axi_aclk),
     .fifo_rd_next(fifo_rd_next[15]),
