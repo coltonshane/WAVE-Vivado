@@ -251,7 +251,7 @@ Encoder_v1_0_M00_AXI_inst
 // {HH1, HL1, LH1, LL1} R1 and G2 color field wavelet stage: 532 px_clk.
 // {HH1, HL1, LH1, LL1} G2 and B1 color field wavelet stage: 533 px_clk.
 // {HH2, HL2, LH2, LL2} All four color fields wavelet stage: 1582 px_clk.
-// {HH3, HL3, LH3, LL3} All four color fields wavelet stage:
+// {HH3, HL3, LH3, LL3} All four color fields wavelet stage: 3674 px_clk.
 wire signed [23:0] px_count_c_XX1_R1G2;
 assign px_count_c_XX1_R1G2 = px_count - 24'sh000214;
 wire signed [23:0] px_count_c_XX1_G1B1;
@@ -259,14 +259,14 @@ assign px_count_c_XX1_G1B1 = px_count - 24'sh000215;
 wire signed [23:0] px_count_c_XX2;
 assign px_count_c_XX2 = px_count - 24'sh00062E;
 wire signed [23:0] px_count_c_XX3;
-assign px_count_c_XX3 = px_count - debug_c_XX3_offset;
+assign px_count_c_XX3 = px_count - 24'sh000E5A;
 
 // Pixel counters at the interface between the encoders and their output buffer.
 // These are offset for the known latency of the wavelet stage(s) + the encoder and quantizer:
 // {HH1, HL1, LH1, LL1} R1 and G2 color field: 538 px_clk. (+6 for compressor)
 // {HH1, HL1, LH1, LL1} G2 and B1 color field: 539 px_clk. (+6 for compressor)
 // {HH2, HL2, LH2, LL2} All four color fields: 1592 px_clk. (+10 for compressor_16in)
-// {HH3, HL3, LH3, LL3} All four color fields:
+// {HH3, HL3, LH3, LL3} All four color fields: 3692 px_clk. (+18 for compressor_16in)
 wire signed [23:0] px_count_e_XX1_R1G2;
 assign px_count_e_XX1_R1G2 = px_count - 24'sh00021A;
 wire signed [23:0] px_count_e_XX1_G1B1;
@@ -274,7 +274,7 @@ assign px_count_e_XX1_G1B1 = px_count - 24'sh00021B;
 wire signed [23:0] px_count_e_XX2;
 assign px_count_e_XX2 = px_count - 24'sh000638;
 wire signed [23:0] px_count_e_XX3;
-assign px_count_c_XX3 = px_count - debug_e_XX3_offset;
+assign px_count_e_XX3 = px_count - 24'sh000E6C;
 
 // Create a shared phase flag for px_clk_2x, px_clk_2x_phase:
 // 0: The previous px_clk_2x rising edge was aligned with a px_clk rising edge.

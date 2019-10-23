@@ -96,7 +96,7 @@ assign q_mult_array[0] = q_mult_HH3;
 assign q_mult_array[1] = q_mult_HL3;
 assign q_mult_array[2] = q_mult_LH3;
 assign q_mult_array[3] = q_mult_LL3;
-wire signed q_mult;
+wire signed [9:0] q_mult;
 assign q_mult = q_mult_array[c_state[3:2]];
 
 // Instantiate two 4x16b quantizers for the high and low data.
