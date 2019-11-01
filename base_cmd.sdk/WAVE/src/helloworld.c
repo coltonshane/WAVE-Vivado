@@ -55,8 +55,60 @@
 #include "xgpiops.h"
 #include "xuartps.h"
 #include "xspips.h"
+#include "xusb_ch9_storage.h"
+#include "xusb_class_storage.h"
+#include "xusb_wrapper.h"
 
 #include "cmv12000.h"
+
+// USB Stuff
+// ========================================================================================
+#define MEMORY_SIZE (64U * 1024U)
+u8 Buffer[MEMORY_SIZE] ALIGNMENT_CACHELINE;
+
+// USB function prototypes.
+void BulkOutHandler(void *CallBackRef, u32 RequestedBytes,
+							u32 BytesTxed);
+void BulkInHandler(void *CallBackRef, u32 RequestedBytes,
+							u32 BytesTxed);
+
+struct Usb_DevData UsbInstance;
+Usb_Config *UsbConfigPtr;
+
+/* Buffer for virtual flash disk space. */
+u8 * VirtFlash = (u8 *)(0x20000000);
+USB_CBW CBW ALIGNMENT_CACHELINE;
+USB_CSW CSW ALIGNMENT_CACHELINE;
+
+u8	Phase;
+u32	rxBytesLeft;
+u8 * VirtFlashWritePointer = (u8 *)(0x20000000);
+
+/* Initialize a DFU data structure */
+static USBCH9_DATA storage_data = {
+		.ch9_func = {
+				/* Set the chapter9 hooks */
+				.Usb_Ch9SetupDevDescReply =
+						Usb_Ch9SetupDevDescReply,
+				.Usb_Ch9SetupCfgDescReply =
+						Usb_Ch9SetupCfgDescReply,
+				.Usb_Ch9SetupBosDescReply =
+						Usb_Ch9SetupBosDescReply,
+				.Usb_Ch9SetupStrDescReply =
+						Usb_Ch9SetupStrDescReply,
+				.Usb_SetConfiguration =
+						Usb_SetConfiguration,
+				.Usb_SetConfigurationApp =
+						Usb_SetConfigurationApp,
+				/* hook the set interface handler */
+				.Usb_SetInterfaceHandler = NULL,
+				/* hook up storage class handler */
+				.Usb_ClassReq = ClassReq,
+				.Usb_GetDescReply = NULL,
+		},
+		.data_ptr = (void *)NULL,
+};
+// ========================================================================================
 
 #define GPIO_DEVICE_ID XPAR_XGPIOPS_0_DEVICE_ID
 #define GPIO1_PIN 78		// Bank 3, Pin 0, EMIO 0
@@ -160,6 +212,25 @@ int main()
     XSpiPs_SetClkPrescaler(&Spi0, XSPIPS_CLK_PRESCALE_64);
     XSpiPs_SetSlaveSelect(&Spi0, 0x0F);
 
+    UsbConfigPtr = LookupConfig(USB_DEVICE_ID);
+
+    s32 Status;
+    Status = CfgInitialize(&UsbInstance, UsbConfigPtr, UsbConfigPtr->BaseAddress);
+
+    Set_Ch9Handler(UsbInstance.PrivateData, Ch9Handler);
+    Set_DrvData(UsbInstance.PrivateData, &storage_data);
+    EpConfigure(UsbInstance.PrivateData, 1U, USB_EP_DIR_OUT, USB_EP_TYPE_BULK);
+    EpConfigure(UsbInstance.PrivateData, 1U, USB_EP_DIR_IN, USB_EP_TYPE_BULK);
+    ConfigureDevice(UsbInstance.PrivateData, Buffer, MEMORY_SIZE);
+    SetEpHandler(UsbInstance.PrivateData, 1U, USB_EP_DIR_OUT, BulkOutHandler);
+    SetEpHandler(UsbInstance.PrivateData, 1U, USB_EP_DIR_IN, BulkInHandler);
+    UsbEnableEvent(UsbInstance.PrivateData, XUSBPSU_DEVTEN_EVNTOVERFLOWEN |
+    					 XUSBPSU_DEVTEN_WKUPEVTEN |
+    					 XUSBPSU_DEVTEN_ULSTCNGEN |
+    					 XUSBPSU_DEVTEN_CONNECTDONEEN |
+    					 XUSBPSU_DEVTEN_USBRSTEN |
+    					 XUSBPSU_DEVTEN_DISCONNEVTEN);
+
     // Set all EMIO GPIO to output low.
     for(u32 i = GPIO1_PIN; i <= T_EXP2_PIN; i++)
     {
@@ -218,8 +289,11 @@ int main()
     *q_mult_HL1_HH1 = 0x00200020;
     *q_mult_LL1_LH1 = 0x00800020;
 
+    Usb_Start(UsbInstance.PrivateData);
+
     while(!triggerShutdown)
     {
+    	UsbPollHandler(UsbInstance.PrivateData);
 
     	while(requestFrames)
     	{
@@ -251,3 +325,69 @@ int main()
     cleanup_platform();
     return 0;
 }
+
+/****************************************************************************/
+/**
+* This function is Bulk Out Endpoint handler/Callback called by driver when
+* data is received.
+*
+* @param	CallBackRef is pointer to Usb_DevData instance.
+* @param	RequestedBytes is number of bytes requested for reception.
+* @param	BytesTxed is actual number of bytes received from Host.
+*
+* @return	None
+*
+* @note		None.
+*
+*****************************************************************************/
+void BulkOutHandler(void *CallBackRef, u32 RequestedBytes,
+							u32 BytesTxed)
+{
+	struct Usb_DevData *InstancePtr = CallBackRef;
+
+	if (Phase == USB_EP_STATE_COMMAND) {
+		ParseCBW(InstancePtr);
+	} else if (Phase == USB_EP_STATE_DATA_OUT) {
+		/* WRITE command */
+		switch (CBW.CBWCB[0U]) {
+		case USB_RBC_WRITE:
+			VirtFlashWritePointer += BytesTxed;
+			rxBytesLeft -= BytesTxed;
+			break;
+		default:
+			break;
+		}
+		SendCSW(InstancePtr, 0U);
+	}
+}
+
+/****************************************************************************/
+/**
+* This function is Bulk In Endpoint handler/Callback called by driver when
+* data is sent.
+*
+* @param	CallBackRef is pointer to Usb_DevData instance.
+* @param	RequestedBytes is number of bytes requested to send.
+* @param	BytesTxed is actual number of bytes sent to Host.
+*
+* @return	None
+*
+* @note		None.
+*
+*****************************************************************************/
+void BulkInHandler(void *CallBackRef, u32 RequestedBytes,
+						   u32 BytesTxed)
+{
+	struct Usb_DevData *InstancePtr = CallBackRef;
+
+	if (Phase == USB_EP_STATE_DATA_IN) {
+		/* Send the status */
+		SendCSW(InstancePtr, 0U);
+	} else if (Phase == USB_EP_STATE_STATUS) {
+		Phase = USB_EP_STATE_COMMAND;
+		/* Receive next CBW */
+		EpBufferRecv(InstancePtr->PrivateData, 1U,
+							(u8*)&CBW, sizeof(CBW));
+	}
+}
+
