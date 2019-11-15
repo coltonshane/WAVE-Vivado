@@ -90,7 +90,7 @@ u8 cmvRegAddrMode[] =
 // 10-bit Normal (Mono)
 u16 cmvRegValModeNormal[] =
 {
-	3072,
+	2304,
 	0,
 	0,
 	1,

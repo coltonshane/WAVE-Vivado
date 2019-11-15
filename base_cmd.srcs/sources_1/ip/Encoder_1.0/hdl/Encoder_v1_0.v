@@ -116,15 +116,16 @@ module Encoder_v1_0
 	output wire  m00_axi_rready
 );
 
-// Debug signals mapped to AXI slave registers.
+// Control and debug signals mapped to AXI slave registers.
 wire debug_m00_axi_armed;
 wire [4:0] debug_c_state;
 wire signed [9:0] q_mult_HH1;
-wire signed [9:0] q_mult_HL1;
-wire signed [9:0] q_mult_LH1;
-wire signed [9:0] q_mult_LL1;
-wire signed [23:0] debug_c_XX3_offset;
-wire signed [23:0] debug_e_XX3_offset;
+wire signed [9:0] q_mult_HL1_LH1;
+wire signed [9:0] q_mult_HH2;
+wire signed [9:0] q_mult_HL2_LH2;
+wire signed [9:0] q_mult_HH3;
+wire signed [9:0] q_mult_HL3_LH3;
+wire signed [9:0] q_mult_LL3;
 wire [255:0] debug_fifo_rd_count_concat;
 
 // AXI Master 00 signals.
@@ -145,11 +146,12 @@ Encoder_v1_0_S00_AXI_inst
     .debug_m00_axi_armed(debug_m00_axi_armed),
     .debug_c_state(debug_c_state),
     .q_mult_HH1(q_mult_HH1),
-    .q_mult_HL1(q_mult_HL1),
-    .q_mult_LH1(q_mult_LH1),
-    .q_mult_LL1(q_mult_LL1),
-    .debug_c_XX3_offset(debug_c_XX3_offset),
-    .debug_e_XX3_offset(debug_e_XX3_offset),
+    .q_mult_HL1_LH1(q_mult_HL1_LH1),
+    .q_mult_HH2(q_mult_HH2),
+    .q_mult_HL2_LH2(q_mult_HL2_LH2),
+    .q_mult_HH3(q_mult_HH3),
+    .q_mult_HL3_LH3(q_mult_HL3_LH3),
+    .q_mult_LL3(q_mult_LL3),
     .debug_fifo_rd_count_concat(debug_fifo_rd_count_concat),
 
     // AXI-Lite slave controller signals.
@@ -368,7 +370,7 @@ compressor c_HL1_R1     // Stream 04, handling HL1.R1[7:0]
     .px_clk_2x_phase(px_clk_2x_phase),
     .px_count_c(px_count_c_XX1_R1G2),
     .px_count_e(px_count_e_XX1_R1G2),
-    .q_mult(q_mult_HL1),
+    .q_mult(q_mult_HL1_LH1),
     
     .in_2px_concat(HL1_concat[0+:256]),
     
@@ -384,7 +386,7 @@ compressor c_HL1_G1     // Stream 05, handling HL1.G1[7:0]
     .px_clk_2x_phase(px_clk_2x_phase),
     .px_count_c(px_count_c_XX1_G1B1),
     .px_count_e(px_count_e_XX1_G1B1),
-    .q_mult(q_mult_HL1),
+    .q_mult(q_mult_HL1_LH1),
     
     .in_2px_concat(HL1_concat[256+:256]),
     
@@ -400,7 +402,7 @@ compressor c_HL1_G2     // Stream 06, handling HL1.G2[7:0]
     .px_clk_2x_phase(px_clk_2x_phase),
     .px_count_c(px_count_c_XX1_R1G2),
     .px_count_e(px_count_e_XX1_R1G2),
-    .q_mult(q_mult_HL1),
+    .q_mult(q_mult_HL1_LH1),
     
     .in_2px_concat(HL1_concat[512+:256]),
     
@@ -416,7 +418,7 @@ compressor c_HL1_B1     // Stream 07, handling HL1.B1[7:0]
     .px_clk_2x_phase(px_clk_2x_phase),
     .px_count_c(px_count_c_XX1_G1B1),
     .px_count_e(px_count_e_XX1_G1B1),
-    .q_mult(q_mult_HL1),
+    .q_mult(q_mult_HL1_LH1),
     
     .in_2px_concat(HL1_concat[768+:256]),
     
@@ -432,7 +434,7 @@ compressor c_LH1_R1     // Stream 08, handling LH1.R1[7:0]
     .px_clk_2x_phase(px_clk_2x_phase),
     .px_count_c(px_count_c_XX1_R1G2),
     .px_count_e(px_count_e_XX1_R1G2),
-    .q_mult(q_mult_LH1),
+    .q_mult(q_mult_HL1_LH1),
     
     .in_2px_concat(LH1_concat[0+:256]),
     
@@ -448,7 +450,7 @@ compressor c_LH1_G1     // Stream 09, handling LH1.G1[7:0]
     .px_clk_2x_phase(px_clk_2x_phase),
     .px_count_c(px_count_c_XX1_G1B1),
     .px_count_e(px_count_e_XX1_G1B1),
-    .q_mult(q_mult_LH1),
+    .q_mult(q_mult_HL1_LH1),
     
     .in_2px_concat(LH1_concat[256+:256]),
     
@@ -464,7 +466,7 @@ compressor c_LH1_G2     // Stream 10, handling LH1.G2[7:0]
     .px_clk_2x_phase(px_clk_2x_phase),
     .px_count_c(px_count_c_XX1_R1G2),
     .px_count_e(px_count_e_XX1_R1G2),
-    .q_mult(q_mult_LH1),
+    .q_mult(q_mult_HL1_LH1),
     
     .in_2px_concat(LH1_concat[512+:256]),
     
@@ -480,7 +482,7 @@ compressor c_LH1_B1     // Stream 11, handling LH1.B1[7:0]
     .px_clk_2x_phase(px_clk_2x_phase),
     .px_count_c(px_count_c_XX1_G1B1),
     .px_count_e(px_count_e_XX1_G1B1),
-    .q_mult(q_mult_LH1),
+    .q_mult(q_mult_HL1_LH1),
     
     .in_2px_concat(LH1_concat[768+:256]),
     
@@ -496,7 +498,7 @@ compressor_16in c_HH2     // Stream 12, handling HH2
     .px_clk_2x_phase(px_clk_2x_phase),
     .px_count_c(px_count_c_XX2),
     .px_count_e(px_count_e_XX2),
-    .q_mult(q_mult_HH1),    // TO-DO: Give this its own setting.
+    .q_mult(q_mult_HH2),
     
     .in_2px_concat(HH2_concat),
     
@@ -512,7 +514,7 @@ compressor_16in c_HL2     // Stream 13, handling HL2
     .px_clk_2x_phase(px_clk_2x_phase),
     .px_count_c(px_count_c_XX2),
     .px_count_e(px_count_e_XX2),
-    .q_mult(q_mult_HL1),    // TO-DO: Give this its own setting.
+    .q_mult(q_mult_HL2_LH2),
     
     .in_2px_concat(HL2_concat),
     
@@ -528,7 +530,7 @@ compressor_16in c_LH2     // Stream 14, handling LH2
     .px_clk_2x_phase(px_clk_2x_phase),
     .px_count_c(px_count_c_XX2),
     .px_count_e(px_count_e_XX2),
-    .q_mult(q_mult_LH1),    // TO-DO: Give this its own setting.
+    .q_mult(q_mult_HL2_LH2),
     
     .in_2px_concat(LH2_concat),
     
@@ -544,10 +546,10 @@ compressor_32in c_XX3     // Stream 15, handling HH3, HL3, LH3, and LL3
     .px_clk_2x_phase(px_clk_2x_phase),
     .px_count_c(px_count_c_XX3),
     .px_count_e(px_count_e_XX3),
-    .q_mult_HH3(q_mult_HH1),    // TO-DO: Give these their own setting.
-    .q_mult_HL3(q_mult_HL1),
-    .q_mult_LH3(q_mult_LH1),
-    .q_mult_LL3(q_mult_LL1),
+    .q_mult_HH3(q_mult_HH3),
+    .q_mult_HL3(q_mult_HL3_LH3),
+    .q_mult_LH3(q_mult_HL3_LH3),
+    .q_mult_LL3(q_mult_LL3),
     
     .in_2px_HH3_concat(HH3_concat),
     .in_2px_HL3_concat(HL3_concat),

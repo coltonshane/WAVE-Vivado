@@ -178,10 +178,10 @@ u32 * debug_core_LL3_data = (u32 *)(0xA000301C);
 
 // Encoder
 u32 * debug_m00_axi_arm = (u32 *)(0xA0004000);
-u32 * q_mult_HL1_HH1 = (u32 *)(0xA0004004);
-u32 * q_mult_LL1_LH1 = (u32 *)(0xA0004008);
-u32 * debug_c_XX3_offset = (u32 *)(0xA000400C);
-u32 * debug_e_XX3_offset = (u32 *)(0xA0004010);
+u32 * q_mult_HH1_HL1_LH1 = (u32 *)(0xA0004004);
+u32 * q_mult_HH2_HL2_LH2 = (u32 *)(0xA0004008);
+u32 * q_mult_HH3_HL3_LH3 = (u32 *)(0xA000400C);
+u32 * q_mult_LL3 = (u32 *)(0xA0004010);
 
 int main()
 {
@@ -213,9 +213,7 @@ int main()
     XSpiPs_SetSlaveSelect(&Spi0, 0x0F);
 
     UsbConfigPtr = LookupConfig(USB_DEVICE_ID);
-
-    s32 Status;
-    Status = CfgInitialize(&UsbInstance, UsbConfigPtr, UsbConfigPtr->BaseAddress);
+    CfgInitialize(&UsbInstance, UsbConfigPtr, UsbConfigPtr->BaseAddress);
 
     Set_Ch9Handler(UsbInstance.PrivateData, Ch9Handler);
     Set_DrvData(UsbInstance.PrivateData, &storage_data);
@@ -286,8 +284,10 @@ int main()
 
     // ARM the AXI Master and configure encoder quantizers.
     *debug_m00_axi_arm = 0x00000001;
-    *q_mult_HL1_HH1 = 0x00200020;
-    *q_mult_LL1_LH1 = 0x00800020;
+    *q_mult_HH1_HL1_LH1 = 0x00100020;
+    *q_mult_HH2_HL2_LH2 = 0x00200020;
+    *q_mult_HH3_HL3_LH3 = 0x00200040;
+    *q_mult_LL3 = 0x00000100;
 
     Usb_Start(UsbInstance.PrivateData);
 
