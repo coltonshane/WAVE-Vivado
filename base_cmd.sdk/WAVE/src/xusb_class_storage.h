@@ -81,7 +81,7 @@ extern "C" {
 /* 16MB due to limited memory on AXIUSB platform. */
 #define VFLASH_SIZE			0x1000000	/* 16MB space */
 #else
-#define VFLASH_SIZE			0x10000000	/* 256MB space */
+#define VFLASH_SIZE			0x50000000	/* 1.25GiB space */
 #endif
 #define VFLASH_BLOCK_SIZE	0x200
 #define VFLASH_NUM_BLOCKS	(VFLASH_SIZE/VFLASH_BLOCK_SIZE)

@@ -76,13 +76,13 @@ struct Usb_DevData UsbInstance;
 Usb_Config *UsbConfigPtr;
 
 /* Buffer for virtual flash disk space. */
-u8 * VirtFlash = (u8 *)(0x20000000);
+u8 VirtFlash[VFLASH_SIZE] __attribute__((section(".virtflash")));
 USB_CBW CBW ALIGNMENT_CACHELINE;
 USB_CSW CSW ALIGNMENT_CACHELINE;
 
 u8	Phase;
 u32	rxBytesLeft;
-u8 * VirtFlashWritePointer = (u8 *)(0x20000000);
+u8	*VirtFlashWritePointer = VirtFlash;
 
 /* Initialize a DFU data structure */
 static USBCH9_DATA storage_data = {

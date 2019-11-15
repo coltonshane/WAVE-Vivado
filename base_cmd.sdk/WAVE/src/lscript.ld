@@ -21,7 +21,7 @@ _EL2_STACK_SIZE = DEFINED(_EL2_STACK_SIZE) ? _EL2_STACK_SIZE : 1024;
 
 MEMORY
 {
-   psu_ddr_0_MEM_0 : ORIGIN = 0x0, LENGTH = 0x7FF00000
+   psu_ddr_0_MEM_0 : ORIGIN = 0x20000000, LENGTH = 0x50000000
    psu_ocm_ram_0_MEM_0 : ORIGIN = 0xFFFC0000, LENGTH = 0x40000
    psu_qspi_linear_0_MEM_0 : ORIGIN = 0xC0000000, LENGTH = 0x20000000
 }
@@ -313,6 +313,10 @@ _SDA2_BASE_ = __sdata2_start + ((__sbss2_end - __sdata2_start) / 2 );
    . = ALIGN(64);
    __el0_stack = .;
 } > psu_ocm_ram_0_MEM_0
+
+.virtflash (NOLOAD) : {
+   . = ALIGN(64);
+} > psu_ddr_0_MEM_0
 
 _end = .;
 }
