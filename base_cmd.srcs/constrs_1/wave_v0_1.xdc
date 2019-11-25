@@ -3,7 +3,21 @@
 # Quad 224 GT Clock Input from clock generator (100MHz).
 set_property PACKAGE_PIN V6 [get_ports gt_clk_in_p]
 set_property PACKAGE_PIN V5 [get_ports gt_clk_in_n]
-create_clock -name gt_clk_in -period 10.000 [get_ports gt_clk_in_p] 
+create_clock -name gt_clk_in -period 10.000 [get_ports gt_clk_in_p]
+
+# SSD PCI Express reset B25_L4_N (perst)
+set_property PACKAGE_PIN H12 [get_ports {perst[0]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {perst[0]}]
+
+# MGT locations
+# SSD (PCIe lanes 0-3) are connected to MGT bank 224 (X0Y4-X0Y7)
+set_property LOC GTHE4_CHANNEL_X0Y4 [get_cells {*_i/xdma_0/inst/pcie4_ip_i/inst/gt_top_i/diablo_gt.diablo_gt_phy_wrapper/gt_wizard.gtwizard_top_i/*_xdma_0_0_pcie4_ip_gt_i/inst/gen_gtwizard_gthe4_top.*_xdma_0_0_pcie4_ip_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[3].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST}]
+set_property LOC GTHE4_CHANNEL_X0Y5 [get_cells {*_i/xdma_0/inst/pcie4_ip_i/inst/gt_top_i/diablo_gt.diablo_gt_phy_wrapper/gt_wizard.gtwizard_top_i/*_xdma_0_0_pcie4_ip_gt_i/inst/gen_gtwizard_gthe4_top.*_xdma_0_0_pcie4_ip_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[3].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[1].GTHE4_CHANNEL_PRIM_INST}]
+set_property LOC GTHE4_CHANNEL_X0Y6 [get_cells {*_i/xdma_0/inst/pcie4_ip_i/inst/gt_top_i/diablo_gt.diablo_gt_phy_wrapper/gt_wizard.gtwizard_top_i/*_xdma_0_0_pcie4_ip_gt_i/inst/gen_gtwizard_gthe4_top.*_xdma_0_0_pcie4_ip_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[3].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[2].GTHE4_CHANNEL_PRIM_INST}]
+set_property LOC GTHE4_CHANNEL_X0Y7 [get_cells {*_i/xdma_0/inst/pcie4_ip_i/inst/gt_top_i/diablo_gt.diablo_gt_phy_wrapper/gt_wizard.gtwizard_top_i/*_xdma_0_0_pcie4_ip_gt_i/inst/gen_gtwizard_gthe4_top.*_xdma_0_0_pcie4_ip_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[3].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[3].GTHE4_CHANNEL_PRIM_INST}]
+
+# Transceivers for SSD are best aligned with PCIE_X0Y1
+set_property LOC PCIE40E4_X0Y1 [get_cells *_i/xdma_0/inst/pcie4_ip_i/inst/pcie_4_0_pipe_inst/pcie_4_0_e4_inst] 
 
 # LVDS Clock Output to CMV12000 (600MHz).
 set_property PACKAGE_PIN AD5 [get_ports lvds_clk_out_p]

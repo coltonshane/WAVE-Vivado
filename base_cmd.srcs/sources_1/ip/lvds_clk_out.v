@@ -1,62 +1,42 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 07/16/2019 03:58:47 PM
-// Design Name: 
-// Module Name: lvds_clk_out
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
+/*
+=================================================================================
+lvds_clk_out.v
+
+Output buffer for LVDS clock.
+
+Copyright (C) 2019 by Shane W. Colton
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+=================================================================================
+*/
 
 module lvds_clk_out(
   input lvds_clk_en,
   input lvds_pll_locked,
-  input gt_clk_in_p,
-  input gt_clk_in_n,
   input pll2lvds_clk,
-  output gt2pll_clk,
   output lvds_clk_out_p,
   output lvds_clk_out_n
   );
   
   wire clk_out;
-  wire gt_refclk;
-  wire clk_in;
   wire oddr_en;
-  
-  IBUFDS_GTE4 #(
-    .REFCLK_EN_TX_PATH(1'b0),   // Refer to Transceiver User Guide
-    .REFCLK_HROW_CK_SEL(2'b00), // Refer to Transceiver User Guide
-    .REFCLK_ICNTL_RX(2'b00)     // Refer to Transceiver User Guide
-  )
-  IBUFDS_GTE4_inst (
-    .O(gt_refclk),      // 1-bit output: Refer to Transceiver User Guide
-    .ODIV2(clk_in),     // 1-bit output: Refer to Transceiver User Guide
-    .CEB(1'b0),         // 1-bit input: Refer to Transceiver User Guide
-    .I(gt_clk_in_p),    // 1-bit input: Refer to Transceiver User Guide
-    .IB(gt_clk_in_n)    // 1-bit input: Refer to Transceiver User Guide
-  );
-  
-  BUFG_GT BUFG_GT_inst (
-    .O(gt2pll_clk),    // 1-bit output: Buffer
-    .CE(1'b1),         // 1-bit input: Buffer enable
-    .CEMASK(1'b0),     // 1-bit input: CE Mask
-    .CLR(1'b0),        // 1-bit input: Asynchronous clear
-    .CLRMASK(1'b0),    // 1-bit input: CLR Mask
-    .DIV(3'b000),      // 3-bit input: Dynamic divide Value
-    .I(clk_in)         // 1-bit input: Buffer
-   ); 
 
   assign oddr_en = lvds_clk_en & lvds_pll_locked;
   
