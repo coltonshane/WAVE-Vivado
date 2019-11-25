@@ -149,8 +149,8 @@ u16 cmv_Exp_time = 768;
 u16 cmv_Exp_kp1 = 80;
 u16 cmv_Exp_kp2 = 8;
 u16 cmv_Vtfl = 84 * 128 + 104;
-u16 cmv_Number_slopes = 1;
-u16 cmv_Number_frames = 16;
+u16 cmv_Number_slopes = 3;
+u16 cmv_Number_frames = 400;
 
 // Wavelet S1
 u32 * debug_XX1_px_count_trig = (u32 *)(0xA0001000);
@@ -285,8 +285,8 @@ int main()
     // ARM the AXI Master and configure encoder quantizers.
     *debug_m00_axi_arm = 0x00000001;
     *q_mult_HH1_HL1_LH1 = 0x00100020;
-    *q_mult_HH2_HL2_LH2 = 0x00200020;
-    *q_mult_HH3_HL3_LH3 = 0x00200040;
+    *q_mult_HH2_HL2_LH2 = 0x00200040;
+    *q_mult_HH3_HL3_LH3 = 0x00400040;
     *q_mult_LL3 = 0x00000100;
 
     Usb_Start(UsbInstance.PrivateData);
