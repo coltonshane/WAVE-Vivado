@@ -468,7 +468,7 @@ u32 testRawWrite(u32 num, u32 size)
 		if(((nWrite - nComplete) < 16) && (nWrite < num))
 		{
 			destLBA = 0x00000000ULL + (u64) nWrite * (u64) numLBA;
-			*(u64 *)(srcAddress) = destLBA;	 // Marker for catching missing writes.
+			*(u64 *)(srcAddress) = destLBA;	// Indicator for write slip.
 			nvmeWrite((u8 *) srcAddress, destLBA, numLBA);
 			nWrite++;
 		}

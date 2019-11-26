@@ -28,9 +28,11 @@ THE SOFTWARE.
 // Include Headers -----------------------------------------------------------------------------------------------------
 
 #include <stdio.h>
+#include "xil_types.h"
 
 // Public Pre-Processor Definitions ------------------------------------------------------------------------------------
 
+#define NVME_NOINIT                        0xFFFFFFFF
 #define NVME_OK                            0x00000000
 #define NVME_ERROR_PHY                     0x00000001
 #define NVME_ERROR_DEV_CLASS               0x00000002
@@ -45,13 +47,17 @@ THE SOFTWARE.
 #define NVME_ERROR_POWER_STATE_TRANSITION  0x00000400
 #define NVME_ERROR_QUEUE_CREATION          0x00000800
 
+#define NVME_RW_OK                         0x00000000
+#define NVME_RW_BAD_ALIGNMENT              0x00000001
+
 // Public Type Definitions ---------------------------------------------------------------------------------------------
 
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
 int nvmeInit(void);
+int nvmeGetStatus(void);
 
-int nvmeWrite(u8 * srcByte, u64 destLBA, u32 numLBA);
+int nvmeWrite(const u8 * srcByte, u64 destLBA, u32 numLBA);
 int nvmeRead(u8 * destByte, u64 srcLBA, u32 numLBA);
 int nvmeServiceIOCompletions(u16 maxCompletions);
 

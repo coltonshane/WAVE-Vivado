@@ -115,6 +115,7 @@ u16 iosq_tail_local = 0;
 u16 iocq_head_local = 0;
 u8 iocq_phase = 0;
 
+int nvmeStatus = NVME_NOINIT;
 u32 nsid = 1;
 u8 lba_exp = 9;
 u8 ps_idle = 0;
@@ -131,7 +132,7 @@ u16 io_backlog;
 
 int nvmeInit(void)
 {
-	u32 nvmeStatus = NVME_OK;
+	nvmeStatus = NVME_OK;
 
 	nvmeStatus |= nvmeInitBridge();
 	if(nvmeStatus != NVME_OK) { return nvmeStatus; }
@@ -153,7 +154,127 @@ int nvmeInit(void)
 	nvmeStatus |= nvmeCreateIOQueues(10);
 	if(nvmeStatus != NVME_OK) { return nvmeStatus; }
 
-	return NVME_OK;
+	return nvmeStatus;
+}
+
+int nvmeGetStatus(void)
+{
+	return nvmeStatus;
+}
+
+int nvmeWrite(const u8 * srcByte, u64 destLBA, u32 numLBA)
+{
+	sqe_prp_type sqe;
+	int nLBA = numLBA;
+	int nPRP;
+	int offset;
+	u64 * prpList = prpListHeap + (u64)((io_cid & IOSQ_SIZE) * DDR_PAGE_SIZE);
+
+	if ((u64) srcByte & 0x3) { return 1; } 	// Must be DWORD-aligned!
+
+	memset(&sqe, 0, sizeof(sqe_prp_type));
+	sqe.CID = io_cid;
+	sqe.OPC = 0x01;
+	sqe.NSID = nsid;
+	sqe.PRP1 = (u64) srcByte;
+	sqe.CDW10 = destLBA & 0xFFFFFFFF;
+	sqe.CDW11 = (destLBA >> 32) & 0XFFFFFFFF;
+	sqe.CDW12 = numLBA - 1; // 0's Based
+
+	// Subtract off the integer number of LBAs covered by the first PRP.
+	offset = (u64) srcByte & DDR_PAGE_MASK;
+	nLBA -= (DDR_PAGE_SIZE - offset) >> lba_exp;
+
+	// If there is more data to transfer...
+	if(nLBA > 0)
+	{
+		// Move the source pointer to its page boundary.
+		srcByte -= (u64) offset;
+
+		nPRP = (nLBA >> (DDR_PAGE_EXP - lba_exp)) + 1;
+		if(nPRP > 1)
+		{
+			// 2 or more PRPs remaining, use a list.
+			sqe.PRP2 = (u64) prpList;
+			for(int p = 1; p < nPRP; p++)
+			{
+				prpList[p-1] = (u64)(srcByte + (p << DDR_PAGE_EXP));
+			}
+		}
+		else
+		{
+			// 1 PRP remaining, fits in the command itself.
+			sqe.PRP2 = (u64) (srcByte + (1 << DDR_PAGE_EXP));
+		}
+	}
+
+	nvmeSubmitIOCommand(&sqe);
+	io_cid++;
+
+	return 0;
+}
+
+int nvmeRead(u8 * destByte, u64 srcLBA, u32 numLBA)
+{
+	sqe_prp_type sqe;
+	int nLBA = numLBA;
+	int nPRP;
+	int offset;
+	u64 * prpList = prpListHeap + (u64)((io_cid & IOSQ_SIZE) * DDR_PAGE_SIZE);
+
+	if ((u64) destByte & 0x3) { return 1; } 	// Must be DWORD-aligned!
+
+	memset(&sqe, 0, sizeof(sqe_prp_type));
+	sqe.CID = io_cid;
+	sqe.OPC = 0x02;
+	sqe.NSID = nsid;
+	sqe.PRP1 = (u64) destByte;
+	sqe.CDW10 = srcLBA & 0xFFFFFFFF;
+	sqe.CDW11 = (srcLBA >> 32) & 0XFFFFFFFF;
+	sqe.CDW12 = numLBA - 1; // 0's Based
+
+	// Subtract off the integer number of LBAs covered by the first PRP.
+	offset = (u64) destByte & DDR_PAGE_MASK;
+	nLBA -= (DDR_PAGE_SIZE - offset) >> lba_exp;
+
+	// If there is more data to transfer...
+	if(nLBA > 0)
+	{
+		// Move the destination pointer to its page boundary.
+		destByte -= (u64) offset;
+
+		nPRP = (nLBA >> (DDR_PAGE_EXP - lba_exp)) + 1;
+		if(nPRP > 1)
+		{
+			// 2 or more PRPs remaining, use a list.
+			sqe.PRP2 = (u64) prpList;
+			for(int p = 1; p < nPRP; p++)
+			{
+				prpList[p-1] = (u64)(destByte + (p << DDR_PAGE_EXP));
+			}
+		}
+		else
+		{
+			// 1 PRP remaining, fits in the command itself.
+			sqe.PRP2 = (u64) (destByte + (1 << DDR_PAGE_EXP));
+		}
+	}
+
+	nvmeSubmitIOCommand(&sqe);
+	io_cid++;
+
+	return 0;
+}
+
+int nvmeServiceIOCompletions(u16 maxCompletions)
+{
+	u16 numCompletions;
+	cqe_type cqeLastCompleted;
+
+	numCompletions = nvmeCompleteIOCommands(&cqeLastCompleted, maxCompletions);
+	io_backlog = io_cid - io_cid_last_completed; // wrap-safe (all u16)
+
+	return numCompletions;
 }
 
 // Private Function Definitions ----------------------------------------------------------------------------------------
@@ -234,6 +355,7 @@ int nvmeIdentifyController(u32 tTimeout_ms)
 	sqe_prp_type sqe;
 	cqe_type cqe;
 
+	// Identify Controller
 	memset(&sqe, 0, sizeof(sqe_prp_type));
 	sqe.CID = admin_cid;
 	sqe.OPC = 0x06;
@@ -453,121 +575,6 @@ int nvmeCompleteAdminCommand(cqe_type * cqe, u32 tTimeout_ms)
 	*cqe = *cqeTemp;
 
 	return NVME_OK;
-}
-
-int nvmeWrite(u8 * srcByte, u64 destLBA, u32 numLBA)
-{
-	sqe_prp_type sqe;
-	int nLBA = numLBA;
-	int nPRP;
-	int offset;
-	u64 * prpList = prpListHeap + (u64)((io_cid & IOSQ_SIZE) * DDR_PAGE_SIZE);
-
-	if ((u64) srcByte & 0x3) { return 1; } 	// Must be DWORD-aligned!
-
-	memset(&sqe, 0, sizeof(sqe_prp_type));
-	sqe.CID = io_cid;
-	sqe.OPC = 0x01;
-	sqe.NSID = nsid;
-	sqe.PRP1 = (u64) srcByte;
-	sqe.CDW10 = destLBA & 0xFFFFFFFF;
-	sqe.CDW11 = (destLBA >> 32) & 0XFFFFFFFF;
-	sqe.CDW12 = numLBA - 1; // 0's Based
-
-	// Subtract off the integer number of LBAs covered by the first PRP.
-	offset = (u64) srcByte & DDR_PAGE_MASK;
-	nLBA -= (DDR_PAGE_SIZE - offset) >> lba_exp;
-
-	// If there is more data to transfer...
-	if(nLBA > 0)
-	{
-		// Move the source pointer to its page boundary.
-		srcByte -= (u64) offset;
-
-		nPRP = (nLBA >> (DDR_PAGE_EXP - lba_exp)) + 1;
-		if(nPRP > 1)
-		{
-			// 2 or more PRPs remaining, use a list.
-			sqe.PRP2 = (u64) prpList;
-			for(int p = 1; p < nPRP; p++)
-			{
-				prpList[p-1] = (u64)(srcByte + (p << DDR_PAGE_EXP));
-			}
-		}
-		else
-		{
-			// 1 PRP remaining, fits in the command itself.
-			sqe.PRP2 = (u64) (srcByte + (1 << DDR_PAGE_EXP));
-		}
-	}
-
-	nvmeSubmitIOCommand(&sqe);
-	io_cid++;
-
-	return 0;
-}
-
-int nvmeRead(u8 * destByte, u64 srcLBA, u32 numLBA)
-{
-	sqe_prp_type sqe;
-	int nLBA = numLBA;
-	int nPRP;
-	int offset;
-	u64 * prpList = prpListHeap + (u64)((io_cid & IOSQ_SIZE) * DDR_PAGE_SIZE);
-
-	if ((u64) destByte & 0x3) { return 1; } 	// Must be DWORD-aligned!
-
-	memset(&sqe, 0, sizeof(sqe_prp_type));
-	sqe.CID = io_cid;
-	sqe.OPC = 0x02;
-	sqe.NSID = nsid;
-	sqe.PRP1 = (u64) destByte;
-	sqe.CDW10 = srcLBA & 0xFFFFFFFF;
-	sqe.CDW11 = (srcLBA >> 32) & 0XFFFFFFFF;
-	sqe.CDW12 = numLBA - 1; // 0's Based
-
-	// Subtract off the integer number of LBAs covered by the first PRP.
-	offset = (u64) destByte & DDR_PAGE_MASK;
-	nLBA -= (DDR_PAGE_SIZE - offset) >> lba_exp;
-
-	// If there is more data to transfer...
-	if(nLBA > 0)
-	{
-		// Move the destination pointer to its page boundary.
-		destByte -= (u64) offset;
-
-		nPRP = (nLBA >> (DDR_PAGE_EXP - lba_exp)) + 1;
-		if(nPRP > 1)
-		{
-			// 2 or more PRPs remaining, use a list.
-			sqe.PRP2 = (u64) prpList;
-			for(int p = 1; p < nPRP; p++)
-			{
-				prpList[p-1] = (u64)(destByte + (p << DDR_PAGE_EXP));
-			}
-		}
-		else
-		{
-			// 1 PRP remaining, fits in the command itself.
-			sqe.PRP2 = (u64) (destByte + (1 << DDR_PAGE_EXP));
-		}
-	}
-
-	nvmeSubmitIOCommand(&sqe);
-	io_cid++;
-
-	return 0;
-}
-
-int nvmeServiceIOCompletions(u16 maxCompletions)
-{
-	u16 numCompletions;
-	cqe_type cqeLastCompleted;
-
-	numCompletions = nvmeCompleteIOCommands(&cqeLastCompleted, maxCompletions);
-	io_backlog = io_cid - io_cid_last_completed; // wrap-safe (all u16)
-
-	return numCompletions;
 }
 
 void nvmeSubmitIOCommand(const sqe_prp_type * sqe)
