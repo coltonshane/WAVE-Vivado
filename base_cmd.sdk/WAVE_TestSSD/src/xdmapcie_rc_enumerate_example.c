@@ -68,12 +68,44 @@
 
 #include "xparameters.h"	/* Defines for XPAR constants */
 #include "xdmapcie.h"		/* XDmaPcie level 1 interface */
+#include "xgpiops.h"
+#include "xuartps.h"
 #include "stdio.h"
 #include "xil_printf.h"
 #include "sleep.h"
-
+#include "nvme.h"
+#include "xtime_l.h"
 
 /************************** Constant Definitions ****************************/
+
+#define GPIO_DEVICE_ID XPAR_XGPIOPS_0_DEVICE_ID
+#define GPIO1_PIN 78		// Bank 3, Pin 0, EMIO 0
+#define GPIO2_PIN 79		// Bank 3, Pin 1, EMIO 1
+#define GPIO3_PIN 80		// Bank 3, Pin 2, EMIO 2
+#define GPIO4_PIN 81		// Bank 3, Pin 3, EMIO 3
+#define LVDS_CLK_EN_PIN 82	// Bank 3, Pin 4, EMIO 4
+#define PX_IN_RST_PIN 83	// Bank 3, Pin 5, EMIO 5
+// Unused 84				// Bank 3, Pin 6, EMIO 6
+// Unused 85				// Bank 3, Pin 7, EMIO 7
+#define CMV_NRST_PIN 86		// Bank 3, Pin 8, EMIO 8
+#define FRAME_REQ_PIN 87	// Bank 3, Pin 9, EMIO 9
+#define T_EXP1_PIN 88		// Bank 3, Pin 10, EMIO 10
+#define T_EXP2_PIN 89		// Bank 3, Pin 11, EMIO 11
+
+#define UART0_DEVICE_ID XPAR_XUARTPS_0_DEVICE_ID
+
+#define UART1_DEVICE_ID XPAR_XUARTPS_1_DEVICE_ID
+#define UART1_PREFIX_MASK 0xF0
+#define UART1_PREFIX_COMMAND 0xC0
+#define UART1_PREFIX_REPLY 0xA0
+#define UART1_COMMAND_EN_3V3SSD 0x01
+#define UART1_COMMAND_EN_CMV 0x02
+#define UART1_REPLY_ENPG_CMV 0x0E
+#define UART1_REPLY_ENPG_SSD 0x01
+
+XGpioPs Gpio;
+XUartPs Uart0;
+XUartPs Uart1;
 
 /* Parameters for the waiting for link up routine */
 #define XDMAPCIE_LINK_WAIT_MAX_RETRIES 		10
@@ -132,7 +164,8 @@
 /************************** Function Prototypes *****************************/
 
 int PcieInitRootComplex(XDmaPcie *XdmaPciePtr, u16 DeviceId);
-
+u32 testRawWrite(u32 num, u32 size);
+u32 testRawRead(u32 num, u32 size);
 
 /************************** Variable Definitions ****************************/
 
@@ -154,21 +187,105 @@ XDmaPcie XdmaPcieInstance;
 *****************************************************************************/
 int main(void)
 {
+	XGpioPs_Config *gpioConfig;
+	XUartPs_Config *uart0Config;
+	XUartPs_Config *uart1Config;
+	u8 uart1Reply = 0x00;
+	u8 ssdPowerReady = 0x00;
+	u32 pcieStatus;
+	u32 nvmeStatus;
 
-	int Status;
+	u32 size;
+	u32 num;
+	u32 intResult;
+	char strResult[128];
+
+	/* WAVE v0.1 Board-Specific GPIO, UART, and Power Supply Initialization */
+	gpioConfig = XGpioPs_LookupConfig(GPIO_DEVICE_ID);
+	XGpioPs_CfgInitialize(&Gpio, gpioConfig, gpioConfig->BaseAddr);
+
+	uart0Config = XUartPs_LookupConfig(UART0_DEVICE_ID);
+	XUartPs_CfgInitialize(&Uart0, uart0Config, uart0Config->BaseAddress);
+	XUartPs_SetBaudRate(&Uart0, 115200);
+
+	uart1Config = XUartPs_LookupConfig(UART1_DEVICE_ID);
+	XUartPs_CfgInitialize(&Uart1, uart1Config, uart1Config->BaseAddress);
+	XUartPs_SetBaudRate(&Uart1, 115200);
+
+	// Set all EMIO GPIO to output low.
+	for(u32 i = GPIO1_PIN; i <= T_EXP2_PIN; i++)
+	{
+	 	XGpioPs_SetDirectionPin(&Gpio, i, 1);
+	   	XGpioPs_SetOutputEnablePin(&Gpio, i, 1);
+	   	XGpioPs_WritePin(&Gpio, i, 0);
+	}
+
+	// Hold the pixel input blocks in reset until the LVDS clock is available.
+	XGpioPs_WritePin(&Gpio, PX_IN_RST_PIN, 1);
+
+	// Tell the supervisor to enable the SSD power supply.
+	while(!ssdPowerReady)
+	{
+	   	XUartPs_SendByte(uart1Config->BaseAddress, UART1_PREFIX_COMMAND | UART1_COMMAND_EN_3V3SSD);
+	   	usleep(10000);
+	   	uart1Reply = XUartPs_RecvByte(uart1Config->BaseAddress);
+	   	if((uart1Reply & UART1_PREFIX_MASK) == UART1_PREFIX_REPLY)
+	  	{
+	   		// Reply prefix is valid, check EN and PG flags.
+	   		if((uart1Reply & UART1_REPLY_ENPG_SSD) == UART1_REPLY_ENPG_SSD)
+	   		{
+	   			// EN_SSD is set, no PG flags to check. Okay to proceed.
+	   			ssdPowerReady = 0x01;
+	   		}
+	   	}
+	}
+	usleep(1000);
 
 	/* Initialize Root Complex */
-	Status = PcieInitRootComplex(&XdmaPcieInstance, XDMAPCIE_DEVICE_ID);
-
-	if (Status != XST_SUCCESS) {
+	pcieStatus = PcieInitRootComplex(&XdmaPcieInstance, XDMAPCIE_DEVICE_ID);
+	if (pcieStatus != XST_SUCCESS) {
 		xil_printf("XdmaPcie rc enumerate Example Failed\r\n");
 		return XST_FAILURE;
 	}
 
 	/* Scan PCIe Fabric */
 	XDmaPcie_EnumerateFabric(&XdmaPcieInstance);
-
 	xil_printf("Successfully ran XdmaPcie rc enumerate Example\r\n");
+
+	/* NVMe Initialize */
+	nvmeStatus = nvmeInit();
+	if (nvmeStatus == NVME_OK) {
+		xil_printf("NVMe initialization successful. PCIe link is Gen3 x4.\r\n");
+	} else {
+		sprintf(strResult, "NVMe driver failed to initialize. Error Code: %8x\r\n", nvmeStatus);
+		xil_printf(strResult);
+		if(nvmeStatus == NVME_ERROR_PHY) {
+			xil_printf("PCIe link must be Gen3 x4 for this example.\r\n");
+		}
+		return XST_FAILURE;
+	}
+	xil_printf("10s delay for SSD...\r\n");
+	usleep(10000000);
+
+	/* NVMe Raw R/W Test */
+	num = 0x10000;		// Number of blocks to read/write.
+	size = 0x100000;	// Block size in [B] (max 1MiB).
+
+	sprintf(strResult, "Writing %d blocks of %d bytes...\r\n", num, size);
+	xil_printf(strResult);
+	intResult = testRawWrite(num, size);
+	sprintf(strResult, "Write Time [ms]: %d\r\n", intResult);
+	xil_printf(strResult);
+
+	xil_printf("10s delay for SSD...\r\n");
+	usleep(10000000);
+
+	sprintf(strResult, "Reading %d blocks of %d bytes...\r\n", num, size);
+	xil_printf(strResult);
+	intResult = testRawRead(num, size);
+	sprintf(strResult, "Read Time [ms]: %d\r\n", intResult);
+	xil_printf(strResult);
+
 	return XST_SUCCESS;
 }
 
@@ -324,4 +441,93 @@ int PcieInitRootComplex(XDmaPcie *XdmaPciePtr, u16 DeviceId)
 							" initialized\r\n");
 
 	return XST_SUCCESS;
+}
+
+u32 testRawWrite(u32 num, u32 size)
+{
+	u32 nWrite = 0;
+	u32 nComplete = 0;
+	u64 srcAddress = 0x20000000;
+	u64 destLBA = 0;
+	u32 numLBA = size >> lba_exp;
+	XTime tStart, tEnd;
+	u32 tElapsed_ms;
+
+	if(size > 0x100000) { return 0; }	// Max 1MiB. TO-DO: Set via MDTS.
+
+	// Put sequential data (byte addresses) into RAM.
+	for(int i = 0; i < size; i += 4)
+	{
+		*(u32 *)(srcAddress + i) = i;
+	}
+
+	XTime_GetTime(&tStart);
+	while(1)
+	{
+		// Write one block at a time when the IOCQ is below its threshold.
+		if(((nWrite - nComplete) < 16) && (nWrite < num))
+		{
+			destLBA = 0x00000000ULL + (u64) nWrite * (u64) numLBA;
+			*(u64 *)(srcAddress) = destLBA;	 // Marker for catching missing writes.
+			nvmeWrite((u8 *) srcAddress, destLBA, numLBA);
+			nWrite++;
+		}
+
+		// Service IOCQ.
+		nComplete += nvmeServiceIOCompletions(16);
+		if(nComplete == num)
+		{
+			XTime_GetTime(&tEnd);
+			tElapsed_ms = (tEnd - tStart) / (COUNTS_PER_SECOND / 1000);
+			return tElapsed_ms;
+		}
+
+		usleep(10);
+	}
+
+	return 0;
+}
+
+u32 testRawRead(u32 num, u32 size)
+{
+	u32 nRead = 0;
+	u32 nComplete = 0;
+	u64 srcLBA = 0;
+	u64 destAddress = 0x20000000;
+	u32 numLBA = size >> lba_exp;
+	XTime tStart, tEnd;
+	u32 tElapsed_ms;
+
+	if(size > 0x100000) { return 0; }	// Max 1MiB. TO-DO: Set via MDTS.
+
+	// Clear the RAM buffer. (Helps with seeing if reads have actually occurred.)
+	for(int i = 0; i < size; i += 4)
+	{
+		*(u32 *)(destAddress + i) = 0x00000000;
+	}
+
+	XTime_GetTime(&tStart);
+	while(1)
+	{
+		// Read one block at a time when the IOCQ is below its threshold.
+		if(((nRead - nComplete) < 16) && (nRead < num))
+		{
+			srcLBA = 0x00000000ULL + (u64) nRead * (u64) numLBA;
+			nvmeRead((u8 *) destAddress, srcLBA, numLBA);
+			nRead++;
+		}
+
+		// Service IOCQ.
+		nComplete += nvmeServiceIOCompletions(16);
+		if(nComplete == num)
+		{
+			XTime_GetTime(&tEnd);
+			tElapsed_ms = (tEnd - tStart) / (COUNTS_PER_SECOND / 1000);
+			return tElapsed_ms;
+		}
+
+		usleep(10);
+	}
+
+	return 0;
 }
