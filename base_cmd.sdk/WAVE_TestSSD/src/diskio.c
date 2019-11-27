@@ -126,7 +126,7 @@ DRESULT disk_ioctl (
 		}
 		else
 		{
-			*(LBA_t *) buff = *(LBA_t*) numLBA;
+			*(LBA_t *) buff = numLBA;
 			return RES_OK;
 		}
 	case GET_SECTOR_SIZE:

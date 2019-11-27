@@ -269,8 +269,8 @@ int main(void)
 
 	/* NVMe Raw R/W Test */
 	/*
-	u32 num = 0x10000;		// Number of blocks to read/write.
-	u32 size = 0x100000;	// Block size in [B] (max 1MiB).;
+	u32 num = 0x20000;			// Number of blocks to read/write.
+	u32 size = 0x10000;			// Block size in [B] (max 1MiB).;
 
 	sprintf(strResult, "Writing %d blocks of %d bytes...\r\n", num, size);
 	xil_printf(strResult);
@@ -289,8 +289,9 @@ int main(void)
 	*/
 
 	/* NVMe FatFs Write Test */
-	u32 numFiles = 8;
-	u32 numBlocksPerFile = 1024;
+
+	u32 numFiles = 512;
+	u32 numBlocksPerFile = 16;
 	u32 numBytesPerBlock = 0x100000;
 	sprintf(strResult, "Writing %d files of %d blocks of %d bytes through FatFs...\r\n", numFiles, numBlocksPerFile, numBytesPerBlock);
 	xil_printf(strResult);
@@ -304,6 +305,7 @@ int main(void)
 		sprintf(strResult, "Write Time [ms]: %d\r\n", intResult);
 		xil_printf(strResult);
 	}
+
 
 	return XST_SUCCESS;
 }
@@ -500,8 +502,6 @@ u32 testRawWrite(u32 num, u32 size)
 			tElapsed_ms = (tEnd - tStart) / (COUNTS_PER_SECOND / 1000);
 			return tElapsed_ms;
 		}
-
-		usleep(10);
 	}
 
 	return 0;
@@ -544,8 +544,6 @@ u32 testRawRead(u32 num, u32 size)
 			tElapsed_ms = (tEnd - tStart) / (COUNTS_PER_SECOND / 1000);
 			return tElapsed_ms;
 		}
-
-		usleep(10);
 	}
 
 	return 0;
@@ -608,6 +606,7 @@ u32 testFatFsWrite(u32 numFiles, u32 numBlocksPerFile, u32 numBytesPerBlock)
 		// Write blocks to the file.
 		for(u32 b = 0; b < numBlocksPerFile; b++)
 		{
+			*(u64 *)(srcAddress) = ((u64)f << 32) + b;	// Indicator for write slip.
 			res = f_write(&fil, (u8 *) srcAddress, numBytesPerBlock, &bw);
 		}
 
