@@ -167,6 +167,7 @@ XUartPs Uart1;
 int PcieInitRootComplex(XDmaPcie *XdmaPciePtr, u16 DeviceId);
 u32 testRawWrite(u32 num, u32 size);
 u32 testRawRead(u32 num, u32 size);
+u32 testFatFsWrite(u32 numFiles, u32 numBlocksPerFile, u32 numBytesPerBlock);
 
 /************************** Variable Definitions ****************************/
 
@@ -288,47 +289,22 @@ int main(void)
 	*/
 
 	/* NVMe FatFs Write Test */
-	FATFS fs;
-	FIL fil;
-	FRESULT res;
-	UINT bw;
-	BYTE work[FF_MAX_SS];
-
-	// Set up the file system.
-	res = f_mkfs("", 0, work, sizeof work);
-	if(res)
+	u32 numFiles = 8;
+	u32 numBlocksPerFile = 1024;
+	u32 numBytesPerBlock = 0x100000;
+	sprintf(strResult, "Writing %d files of %d blocks of %d bytes through FatFs...\r\n", numFiles, numBlocksPerFile, numBytesPerBlock);
+	xil_printf(strResult);
+	intResult =	testFatFsWrite(numFiles, numBlocksPerFile, numBytesPerBlock);
+	if(intResult == 0)
 	{
-		xil_printf("Failed to create file system on disk.");
-		return XST_FAILURE;
+		xil_printf("FatFs Write Test failed.");
+	}
+	else
+	{
+		sprintf(strResult, "Write Time [ms]: %d\r\n", intResult);
+		xil_printf(strResult);
 	}
 
-	usleep(1000000);
-	Xil_DCacheInvalidate();
-
-	// Mount the drive.
-	f_mount(&fs, "", 0);
-
-	// Create a file.
-	res = f_open(&fil, "hello.txt", FA_CREATE_NEW | FA_WRITE);
-	if(res)
-	{
-		xil_printf("Failed to create a file for writing.");
-		return XST_FAILURE;
-	}
-
-	// WRite a message.
-	f_write(&fil, "Hello, World!\r\n", 15, &bw);
-	if (bw != 15)
-	{
-		xil_printf("Failed to write to the file.");
-		return XST_FAILURE;
-	}
-
-	// Close the file and unmount the drive.
-	f_close(&fil);
-	f_mount(0, "", 0);
-
-	xil_printf("Successfully wrote to a file on disk.");
 	return XST_SUCCESS;
 }
 
@@ -573,4 +549,76 @@ u32 testRawRead(u32 num, u32 size)
 	}
 
 	return 0;
+}
+
+u32 testFatFsWrite(u32 numFiles, u32 numBlocksPerFile, u32 numBytesPerBlock)
+{
+	FATFS fs;
+	MKFS_PARM opt;
+	FIL fil;
+	FRESULT res;
+	UINT bw;
+	BYTE work[FF_MAX_SS];
+	XTime tStart, tEnd;
+	u32 tElapsed_ms;
+	char strWorking[128];
+	u32 d = 0;
+	u32 f = 0;
+	u64 srcAddress = 0x20000000;
+
+	// Put sequential data (byte addresses) into RAM.
+	for(int i = 0; i < numBytesPerBlock; i += 4)
+	{
+		*(u32 *)(srcAddress + i) = i;
+	}
+
+	// Set up the file system.
+	opt.fmt = FM_FAT32;
+	opt.au_size = 0x10000;
+	opt.align = 1;
+	opt.n_fat = 1;
+	opt.n_root = 512;
+	res = f_mkfs("", &opt, work, sizeof work);
+	if(res)
+	{
+		xil_printf("Failed to create file system on disk.\r\n");
+		return 0;
+	}
+
+	// Mount the drive.
+	f_mount(&fs, "", 0);
+
+	XTime_GetTime(&tStart);
+
+	for(f = 0; f < numFiles; f++)
+	{
+		// Create a new directory every 512 files to keep chain lengths small.
+		if((f % 512) == 0)
+		{
+			d = f >> 9;
+			sprintf(strWorking, "c%04d\n", d);
+			res = f_mkdir(strWorking);
+		}
+
+		// Create a file.
+		sprintf(strWorking, "/c%04d/f%06d.bin\n", d, f);
+		res = f_open(&fil, strWorking, FA_CREATE_NEW | FA_WRITE);
+		res = f_expand(&fil, numBlocksPerFile * numBytesPerBlock, 1);
+
+		// Write blocks to the file.
+		for(u32 b = 0; b < numBlocksPerFile; b++)
+		{
+			res = f_write(&fil, (u8 *) srcAddress, numBytesPerBlock, &bw);
+		}
+
+		res = f_truncate(&fil);
+		res = f_close(&fil);
+	}
+
+	// Unmount the drive;
+	f_mount(0, "", 0);
+
+	XTime_GetTime(&tEnd);
+	tElapsed_ms = (tEnd - tStart) / (COUNTS_PER_SECOND / 1000);
+	return tElapsed_ms;
 }

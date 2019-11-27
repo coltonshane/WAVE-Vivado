@@ -61,7 +61,7 @@ DRESULT disk_read (
 	int nvmeRWStatus = nvmeRead(buff, (u64) sector, count);
 	if(nvmeRWStatus != NVME_RW_OK) { return RES_ERROR; }
 
-	// No slip allowed for testing.
+	// No command slip allows for reading. TO-DO: What about fast reading?
 	while(nvmeGetIOSlip() > 1)
 	{
 		nvmeServiceIOCompletions(16);
@@ -86,8 +86,8 @@ DRESULT disk_write (
 	int nvmeRWStatus = nvmeWrite(buff, (u64) sector, count);
 	if(nvmeRWStatus != NVME_RW_OK) { return RES_ERROR; }
 
-	// No slip allowed for testing.
-	while(nvmeGetIOSlip() > 1)
+	// Allow command slip up to 1/4 queue size during writing.
+	while(nvmeGetIOSlip() > 16)
 	{
 		nvmeServiceIOCompletions(16);
 	}
@@ -112,7 +112,11 @@ DRESULT disk_ioctl (
 	switch(cmd)
 	{
 	case CTRL_SYNC:
-		// TO-DO: Implement IO queue flush and possibly also NVMe flush command.
+		// Make sure all IO commands have been completed, i.e. no outstanding writes.
+		while(nvmeGetIOSlip() > 1)
+		{
+			nvmeServiceIOCompletions(16);
+		}
 		return RES_OK;
 	case GET_SECTOR_COUNT:
 		numLBA = nvmeGetLBACount();
