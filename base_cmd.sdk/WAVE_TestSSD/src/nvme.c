@@ -124,7 +124,6 @@ u16 admin_cid = 0;
 u16 io_cid = 0;
 u8 iocq_empty = 1;
 u16 io_cid_last_completed = 0;
-u16 io_backlog;
 
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 
@@ -160,6 +159,22 @@ int nvmeInit(void)
 int nvmeGetStatus(void)
 {
 	return nvmeStatus;
+}
+
+u64 nvmeGetLBACount(void)
+{
+	if(nvmeStatus == NVME_OK)
+	{ return idNamespace->NSZE; }
+	else
+	{ return 0; }
+}
+
+u16 nvmeGetLBASize(void)
+{
+	if(nvmeStatus == NVME_OK)
+	{ return (1 << lba_exp); }
+	else
+	{ return 0; }
 }
 
 int nvmeWrite(const u8 * srcByte, u64 destLBA, u32 numLBA)
@@ -209,7 +224,6 @@ int nvmeWrite(const u8 * srcByte, u64 destLBA, u32 numLBA)
 	}
 
 	nvmeSubmitIOCommand(&sqe);
-	io_cid++;
 
 	return 0;
 }
@@ -261,7 +275,6 @@ int nvmeRead(u8 * destByte, u64 srcLBA, u32 numLBA)
 	}
 
 	nvmeSubmitIOCommand(&sqe);
-	io_cid++;
 
 	return 0;
 }
@@ -272,9 +285,13 @@ int nvmeServiceIOCompletions(u16 maxCompletions)
 	cqe_type cqeLastCompleted;
 
 	numCompletions = nvmeCompleteIOCommands(&cqeLastCompleted, maxCompletions);
-	io_backlog = io_cid - io_cid_last_completed; // wrap-safe (all u16)
 
 	return numCompletions;
+}
+
+u16 nvmeGetIOSlip(void)
+{
+	return (u16)(io_cid - io_cid_last_completed);
 }
 
 // Private Function Definitions ----------------------------------------------------------------------------------------
@@ -582,6 +599,7 @@ void nvmeSubmitIOCommand(const sqe_prp_type * sqe)
 	u64 iosq_offset = iosq_tail_local * sizeof(sqe_prp_type);
 	memcpy((void *)((u64)iosq + iosq_offset), sqe, sizeof(sqe_prp_type));
 	iosq_tail_local = (iosq_tail_local + 1) & IOSQ_SIZE;
+	io_cid++;
 
 	Xil_DCacheFlush();
 	*regSQ1TDBL = iosq_tail_local;

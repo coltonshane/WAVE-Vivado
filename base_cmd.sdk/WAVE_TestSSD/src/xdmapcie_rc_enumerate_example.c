@@ -75,6 +75,7 @@
 #include "sleep.h"
 #include "nvme.h"
 #include "xtime_l.h"
+#include "ff.h"
 
 /************************** Constant Definitions ****************************/
 
@@ -195,8 +196,6 @@ int main(void)
 	u32 pcieStatus;
 	u32 nvmeStatus;
 
-	u32 size;
-	u32 num;
 	u32 intResult;
 	char strResult[128];
 
@@ -268,8 +267,9 @@ int main(void)
 	usleep(10000000);
 
 	/* NVMe Raw R/W Test */
-	num = 0x10000;		// Number of blocks to read/write.
-	size = 0x100000;	// Block size in [B] (max 1MiB).
+	/*
+	u32 num = 0x10000;		// Number of blocks to read/write.
+	u32 size = 0x100000;	// Block size in [B] (max 1MiB).;
 
 	sprintf(strResult, "Writing %d blocks of %d bytes...\r\n", num, size);
 	xil_printf(strResult);
@@ -285,7 +285,50 @@ int main(void)
 	intResult = testRawRead(num, size);
 	sprintf(strResult, "Read Time [ms]: %d\r\n", intResult);
 	xil_printf(strResult);
+	*/
 
+	/* NVMe FatFs Write Test */
+	FATFS fs;
+	FIL fil;
+	FRESULT res;
+	UINT bw;
+	BYTE work[FF_MAX_SS];
+
+	// Set up the file system.
+	res = f_mkfs("", 0, work, sizeof work);
+	if(res)
+	{
+		xil_printf("Failed to create file system on disk.");
+		return XST_FAILURE;
+	}
+
+	usleep(1000000);
+	Xil_DCacheInvalidate();
+
+	// Mount the drive.
+	f_mount(&fs, "", 0);
+
+	// Create a file.
+	res = f_open(&fil, "hello.txt", FA_CREATE_NEW | FA_WRITE);
+	if(res)
+	{
+		xil_printf("Failed to create a file for writing.");
+		return XST_FAILURE;
+	}
+
+	// WRite a message.
+	f_write(&fil, "Hello, World!\r\n", 15, &bw);
+	if (bw != 15)
+	{
+		xil_printf("Failed to write to the file.");
+		return XST_FAILURE;
+	}
+
+	// Close the file and unmount the drive.
+	f_close(&fil);
+	f_mount(0, "", 0);
+
+	xil_printf("Successfully wrote to a file on disk.");
 	return XST_SUCCESS;
 }
 

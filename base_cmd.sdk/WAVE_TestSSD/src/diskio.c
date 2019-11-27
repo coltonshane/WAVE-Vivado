@@ -35,7 +35,11 @@ DSTATUS disk_initialize (
 	BYTE pdrv				/* Physical drive nmuber to identify the drive */
 )
 {
-	int nvmeStatus = nvmeInit();
+	int nvmeStatus = nvmeGetStatus();
+	if(nvmeStatus == NVME_NOINIT)
+	{
+		nvmeStatus = nvmeInit();
+	}
 	if(nvmeStatus == NVME_OK) { return 0; }
 
 	return STA_NOINIT;
@@ -55,9 +59,15 @@ DRESULT disk_read (
 )
 {
 	int nvmeRWStatus = nvmeRead(buff, (u64) sector, count);
-	if(nvmeRWStatus == NVME_RW_OK) { return 0; }
+	if(nvmeRWStatus != NVME_RW_OK) { return RES_ERROR; }
 
-	return RES_PARERR;
+	// No slip allowed for testing.
+	while(nvmeGetIOSlip() > 1)
+	{
+		nvmeServiceIOCompletions(16);
+	}
+
+	return RES_OK;
 }
 
 
@@ -74,9 +84,15 @@ DRESULT disk_write (
 )
 {
 	int nvmeRWStatus = nvmeWrite(buff, (u64) sector, count);
-	if(nvmeRWStatus == NVME_RW_OK) { return 0; }
+	if(nvmeRWStatus != NVME_RW_OK) { return RES_ERROR; }
 
-	return RES_PARERR;
+	// No slip allowed for testing.
+	while(nvmeGetIOSlip() > 1)
+	{
+		nvmeServiceIOCompletions(16);
+	}
+
+	return RES_OK;
 }
 
 
@@ -90,8 +106,41 @@ DRESULT disk_ioctl (
 	void *buff		/* Buffer to send/receive control data */
 )
 {
-	DRESULT res;
-	int result;
+	QWORD numLBA;
+	WORD sizeLBA;
+
+	switch(cmd)
+	{
+	case CTRL_SYNC:
+		// TO-DO: Implement IO queue flush and possibly also NVMe flush command.
+		return RES_OK;
+	case GET_SECTOR_COUNT:
+		numLBA = nvmeGetLBACount();
+		if((numLBA == 0) || (numLBA > 0x100000000))
+		{
+			return RES_ERROR;
+		}
+		else
+		{
+			*(LBA_t *) buff = *(LBA_t*) numLBA;
+			return RES_OK;
+		}
+	case GET_SECTOR_SIZE:
+		sizeLBA = nvmeGetLBASize();
+		if((sizeLBA != 512) && (sizeLBA != 4096))
+		{
+			return RES_ERROR;
+		}
+		else
+		{
+			*(WORD *) buff = sizeLBA;
+			return RES_OK;
+		}
+	case GET_BLOCK_SIZE:
+		// Unknown block size, return 1.
+		*(DWORD *) buff = 1;
+		return RES_OK;
+	}
 
 	return RES_PARERR;
 }

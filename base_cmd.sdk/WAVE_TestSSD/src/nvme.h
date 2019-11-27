@@ -56,10 +56,13 @@ THE SOFTWARE.
 
 int nvmeInit(void);
 int nvmeGetStatus(void);
+u64 nvmeGetLBACount(void);
+u16 nvmeGetLBASize(void);
 
 int nvmeWrite(const u8 * srcByte, u64 destLBA, u32 numLBA);
 int nvmeRead(u8 * destByte, u64 srcLBA, u32 numLBA);
 int nvmeServiceIOCompletions(u16 maxCompletions);
+u16 nvmeGetIOSlip(void);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
 
