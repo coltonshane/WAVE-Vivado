@@ -252,6 +252,8 @@ int main(void)
 	XDmaPcie_EnumerateFabric(&XdmaPcieInstance);
 	xil_printf("Successfully ran XdmaPcie rc enumerate Example\r\n");
 
+	Xil_DCacheDisable();
+
 	/* NVMe Initialize */
 	nvmeStatus = nvmeInit();
 	if (nvmeStatus == NVME_OK) {
@@ -479,7 +481,7 @@ u32 testRawWrite(u32 num, u32 size)
 	// Put sequential data (byte addresses) into RAM.
 	for(int i = 0; i < size; i += 4)
 	{
-		*(u32 *)(srcAddress + i) = i;
+		*(u32 *)(srcAddress + i) = 0; // i;
 	}
 
 	XTime_GetTime(&tStart);
@@ -489,7 +491,7 @@ u32 testRawWrite(u32 num, u32 size)
 		if(((nWrite - nComplete) < 16) && (nWrite < num))
 		{
 			destLBA = 0x00000000ULL + (u64) nWrite * (u64) numLBA;
-			*(u64 *)(srcAddress) = destLBA;	// Indicator for write slip.
+			// *(u64 *)(srcAddress) = destLBA;	// Indicator for write slip.
 			nvmeWrite((u8 *) srcAddress, destLBA, numLBA);
 			nWrite++;
 		}

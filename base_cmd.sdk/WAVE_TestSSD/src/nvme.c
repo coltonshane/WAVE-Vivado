@@ -228,6 +228,22 @@ int nvmeWrite(const u8 * srcByte, u64 destLBA, u32 numLBA)
 	return 0;
 }
 
+int nvmeFlush()
+{
+	sqe_prp_type sqe;
+	XTime tStart;
+	XTime_GetTime(&tStart);
+
+	memset(&sqe, 0, sizeof(sqe_prp_type));
+	sqe.CID = io_cid;
+	sqe.OPC = 0x00;
+	sqe.NSID = nsid;
+
+	nvmeSubmitIOCommand(&sqe);
+
+	return 0;
+}
+
 int nvmeRead(u8 * destByte, u64 srcLBA, u32 numLBA)
 {
 	sqe_prp_type sqe;
@@ -540,6 +556,7 @@ void nvmeParsePowerStates(void)
 
 int nvmeAdminCommand(const sqe_prp_type * sqe, cqe_type * cqe, u32 tTimeout_ms)
 {
+	u16 admin_cid_wait = admin_cid;
 	u32 nvmeStatus = NVME_OK;
 	XTime tStart;
 	XTime_GetTime(&tStart);
@@ -551,8 +568,8 @@ int nvmeAdminCommand(const sqe_prp_type * sqe, cqe_type * cqe, u32 tTimeout_ms)
 		if(nvmeStatus != NVME_OK) { return nvmeStatus; }
 
 		if(nvmeCheckTimeout(tStart, tTimeout_ms)) { return NVME_ERROR_ADMIN_COMMAND_TIMEOUT; }
-	} while (cqe->CID != admin_cid);
-	admin_cid++;
+	} while (cqe->CID != admin_cid_wait);
+
 
 	return NVME_OK;
 }
@@ -562,8 +579,9 @@ void nvmeSubmitAdminCommand(const sqe_prp_type * sqe)
 	u64 asq_offset = asq_tail_local * sizeof(sqe_prp_type);
 	memcpy((void *)((u64)asq + asq_offset), sqe, sizeof(sqe_prp_type));
 	asq_tail_local = (asq_tail_local + 1) & ASQ_SIZE;
+	admin_cid++;
 
-	Xil_DCacheFlush();
+	// Xil_DCacheFlush();
 	*regSQ0TDBL = asq_tail_local;
 }
 
@@ -577,7 +595,7 @@ int nvmeCompleteAdminCommand(cqe_type * cqe, u32 tTimeout_ms)
 	XTime_GetTime(&tStart);
 	do
 	{
-		Xil_DCacheInvalidate();
+		// Xil_DCacheInvalidate();
 		cqeTemp = (cqe_type *)((u64)acq + acq_offset);
 
 		if(nvmeCheckTimeout(tStart, tTimeout_ms)) { return NVME_ERROR_ACQ_TIMEOUT; }
@@ -586,7 +604,7 @@ int nvmeCompleteAdminCommand(cqe_type * cqe, u32 tTimeout_ms)
 	acq_head_local = (acq_head_local + 1) & ACQ_SIZE;
 	if(acq_head_local == 0) { acq_phase ^= 0x01; }
 
-	Xil_DCacheFlush();
+	// Xil_DCacheFlush();
 	*regCQ0HDBL = acq_head_local;
 
 	*cqe = *cqeTemp;
@@ -601,7 +619,7 @@ void nvmeSubmitIOCommand(const sqe_prp_type * sqe)
 	iosq_tail_local = (iosq_tail_local + 1) & IOSQ_SIZE;
 	io_cid++;
 
-	Xil_DCacheFlush();
+	// Xil_DCacheFlush();
 	*regSQ1TDBL = iosq_tail_local;
 }
 
@@ -616,7 +634,7 @@ int nvmeCompleteIOCommands(cqe_type * cqe, u16 nCompletionsMax)
 	{
 		iocq_offset = iocq_head_local * sizeof(cqe_type);
 
-		Xil_DCacheInvalidate();
+		// Xil_DCacheInvalidate();
 		cqeTemp = (cqe_type *)((u64)iocq + iocq_offset);
 
 		if((cqeTemp->SF_P & 0x0001) == iocq_phase) { break; }
@@ -629,7 +647,7 @@ int nvmeCompleteIOCommands(cqe_type * cqe, u16 nCompletionsMax)
 
 	if(nCompletions > 0)
 	{
-		Xil_DCacheFlush();
+		// Xil_DCacheFlush();
 		*regCQ1HDBL = iocq_head_local;
 	}
 
