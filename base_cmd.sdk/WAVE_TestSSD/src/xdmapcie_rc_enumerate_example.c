@@ -266,13 +266,14 @@ int main(void)
 		}
 		return XST_FAILURE;
 	}
-	xil_printf("10s delay for SSD...\r\n");
-	usleep(10000000);
 
 	/* NVMe Raw R/W Test */
-	/*
-	u32 num = 0x20000;			// Number of blocks to read/write.
+
+	u32 num = 131072;			// Number of blocks to read/write.
 	u32 size = 0x10000;			// Block size in [B] (max 1MiB).;
+
+	xil_printf("10s delay for SSD...\r\n");
+	usleep(10000000);
 
 	sprintf(strResult, "Writing %d blocks of %d bytes...\r\n", num, size);
 	xil_printf(strResult);
@@ -288,13 +289,17 @@ int main(void)
 	intResult = testRawRead(num, size);
 	sprintf(strResult, "Read Time [ms]: %d\r\n", intResult);
 	xil_printf(strResult);
-	*/
+
 
 	/* NVMe FatFs Write Test */
 
 	u32 numFiles = 512;
 	u32 numBlocksPerFile = 16;
 	u32 numBytesPerBlock = 0x100000;
+
+	xil_printf("10s delay for SSD...\r\n");
+	usleep(10000000);
+
 	sprintf(strResult, "Writing %d files of %d blocks of %d bytes through FatFs...\r\n", numFiles, numBlocksPerFile, numBytesPerBlock);
 	xil_printf(strResult);
 	intResult =	testFatFsWrite(numFiles, numBlocksPerFile, numBytesPerBlock);
@@ -481,7 +486,7 @@ u32 testRawWrite(u32 num, u32 size)
 	// Put sequential data (byte addresses) into RAM.
 	for(int i = 0; i < size; i += 4)
 	{
-		*(u32 *)(srcAddress + i) = 0; // i;
+		*(u32 *)(srcAddress + i) = i;
 	}
 
 	XTime_GetTime(&tStart);
@@ -491,7 +496,7 @@ u32 testRawWrite(u32 num, u32 size)
 		if(((nWrite - nComplete) < 16) && (nWrite < num))
 		{
 			destLBA = 0x00000000ULL + (u64) nWrite * (u64) numLBA;
-			// *(u64 *)(srcAddress) = destLBA;	// Indicator for write slip.
+			*(u64 *)(srcAddress) = destLBA;	// Indicator for write slip.
 			nvmeWrite((u8 *) srcAddress, destLBA, numLBA);
 			nWrite++;
 		}
