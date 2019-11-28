@@ -58,6 +58,12 @@ DRESULT disk_read (
 	UINT count		/* Number of sectors to read */
 )
 {
+	// Finish all slipped writes before switching to read.
+	while(nvmeGetIOSlip() > 1)
+	{
+		nvmeServiceIOCompletions(16);
+	}
+
 	int nvmeRWStatus = nvmeRead(buff, (u64) sector, count);
 	if(nvmeRWStatus != NVME_RW_OK) { return RES_ERROR; }
 
@@ -83,11 +89,19 @@ DRESULT disk_write (
 	UINT count			/* Number of sectors to write */
 )
 {
+	u8 nSlipAllowed = 1;
+
 	int nvmeRWStatus = nvmeWrite(buff, (u64) sector, count);
 	if(nvmeRWStatus != NVME_RW_OK) { return RES_ERROR; }
 
-	// Allow command slip up to 1/4 queue size during writing.
-	while(nvmeGetIOSlip() > 16)
+	// APPLICATION SPECIFIC: If we're writing from DDR4, allow write slip
+	// of up to 1/4 of the IO queue depth for high-speed transfer.
+	if(buff < 0x80000000)
+	{
+		nSlipAllowed = 16;
+	}
+
+	while(nvmeGetIOSlip() > nSlipAllowed)
 	{
 		nvmeServiceIOCompletions(16);
 	}
