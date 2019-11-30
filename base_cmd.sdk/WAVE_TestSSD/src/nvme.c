@@ -122,7 +122,6 @@ u8 ps_idle = 0;
 u32 lba_size = 512;
 u16 admin_cid = 0;
 u16 io_cid = 0;
-u8 iocq_empty = 1;
 u16 io_cid_last_completed = 0;
 
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
@@ -307,7 +306,7 @@ int nvmeServiceIOCompletions(u16 maxCompletions)
 
 u16 nvmeGetIOSlip(void)
 {
-	return (u16)(io_cid - io_cid_last_completed);
+	return (u16)(io_cid - io_cid_last_completed - 1);
 }
 
 // Private Function Definitions ----------------------------------------------------------------------------------------

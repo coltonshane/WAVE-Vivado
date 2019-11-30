@@ -59,7 +59,7 @@ DRESULT disk_read (
 )
 {
 	// Finish all slipped writes before switching to read.
-	while(nvmeGetIOSlip() > 1)
+	while(nvmeGetIOSlip() > 0)
 	{
 		nvmeServiceIOCompletions(16);
 	}
@@ -68,7 +68,7 @@ DRESULT disk_read (
 	if(nvmeRWStatus != NVME_RW_OK) { return RES_ERROR; }
 
 	// No command slip allowed for reading. TO-DO: What about fast reading?
-	while(nvmeGetIOSlip() > 1)
+	while(nvmeGetIOSlip() > 0)
 	{
 		nvmeServiceIOCompletions(16);
 	}
@@ -89,14 +89,14 @@ DRESULT disk_write (
 	UINT count			/* Number of sectors to write */
 )
 {
-	u8 nSlipAllowed = 1;
+	u8 nSlipAllowed = 0;
 
 	int nvmeRWStatus = nvmeWrite(buff, (u64) sector, count);
 	if(nvmeRWStatus != NVME_RW_OK) { return RES_ERROR; }
 
 	// APPLICATION SPECIFIC: If we're writing from DDR4, allow write slip
 	// of up to 1/4 of the IO queue depth for high-speed transfer.
-	if(buff < 0x80000000)
+	if((u64)buff < 0x80000000)
 	{
 		nSlipAllowed = 16;
 	}
@@ -129,7 +129,7 @@ DRESULT disk_ioctl (
 		nvmeFlush();
 
 		// No command slip allowed for flushing.
-		while(nvmeGetIOSlip() > 1)
+		while(nvmeGetIOSlip() > 0)
 		{
 			nvmeServiceIOCompletions(16);
 		}
