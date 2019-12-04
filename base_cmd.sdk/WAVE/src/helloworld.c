@@ -149,8 +149,8 @@ u16 cmv_Exp_time = 768;
 u16 cmv_Exp_kp1 = 80;
 u16 cmv_Exp_kp2 = 8;
 u16 cmv_Vtfl = 84 * 128 + 104;
-u16 cmv_Number_slopes = 3;
-u16 cmv_Number_frames = 400;
+u16 cmv_Number_slopes = 1;
+u16 cmv_Number_frames = 10;
 
 // Wavelet S1
 u32 * debug_XX1_px_count_trig = (u32 *)(0xA0001000);

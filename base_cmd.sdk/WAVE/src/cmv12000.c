@@ -22,7 +22,7 @@
 #define CMV_WR_REG 0x80
 #define CMV_ADDR_MASK 0x7F
 
-#define CMV_REG_COUNT_INIT 9
+#define CMV_REG_COUNT_INIT 10
 #define CMV_REG_COUNT_MODE 17
 
 // Bit patterns for link training.
@@ -43,6 +43,7 @@ CMV_Input_s * CMV_Input = (CMV_Input_s *) 0xA0000000;
 u8 cmvRegAddrInit[] =
 {
 	69,
+	89,
 	99,
 	102,
 	108,
@@ -55,6 +56,7 @@ u8 cmvRegAddrInit[] =
 u16 cmvRegValInit[] =
 {
 	2,
+	32853,
 	34956,
 	8302,
 	12381,
@@ -87,14 +89,14 @@ u8 cmvRegAddrMode[] =
 	114
 };
 
-// 10-bit Normal (Mono)
+// 10-bit Normal (Color)
 u16 cmvRegValModeNormal[] =
 {
-	2304,
+	3072,
 	0,
 	0,
 	1,
-	9,
+	0,		// 9 for Monochrome
 	3099,
 	5893,
 	128,
