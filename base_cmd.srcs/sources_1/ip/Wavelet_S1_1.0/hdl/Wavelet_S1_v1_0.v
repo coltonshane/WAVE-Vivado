@@ -198,7 +198,7 @@ generate
 for (i = 0; i < 32; i = i + 1)
 begin : dwt26_h1_array
 
-    // Bottom channel pixels drive the R1 and G1 color fields.
+    // Top channel pixels drive the R1 and G1 color fields.
     dwt26_h1
     #(
          .COLOR(`COLOR_R1)
@@ -208,7 +208,7 @@ begin : dwt26_h1_array
         .px_clk(px_clk),
         .px_dval(px_dval),
         .px_idx(px_idx),
-        .px_data(px_data[i]),
+        .px_data(px_data[i+32]),
         .S_pp0_fromR(S_pp0_fromR_R1[i]),
         .D_pp0_fromR(D_pp0_fromR_R1[i]),
         .S_pp1_fromR(S_pp1_fromR_R1[i]),
@@ -228,7 +228,7 @@ begin : dwt26_h1_array
         .px_clk(px_clk),
         .px_dval(px_dval),
         .px_idx(px_idx),
-        .px_data(px_data[i]),
+        .px_data(px_data[i+32]),
         .S_pp0_fromR(S_pp0_fromR_G1[i]),
         .D_pp0_fromR(D_pp0_fromR_G1[i]),
         .S_pp1_fromR(S_pp1_fromR_G1[i]),
@@ -239,7 +239,7 @@ begin : dwt26_h1_array
         .D_out(D_out_G1[i])
     );
     
-    // Top channel pixels drive the G2 and B1 color fields.
+    // Bottom channel pixels drive the G2 and B1 color fields.
     dwt26_h1
     #(
         .COLOR(`COLOR_G2)
@@ -249,7 +249,7 @@ begin : dwt26_h1_array
         .px_clk(px_clk),
         .px_dval(px_dval),
         .px_idx(px_idx),
-        .px_data(px_data[i+32]),
+        .px_data(px_data[i]),
         .S_pp0_fromR(S_pp0_fromR_G2[i]),
         .D_pp0_fromR(D_pp0_fromR_G2[i]),
         .S_pp1_fromR(S_pp1_fromR_G2[i]),
@@ -269,7 +269,7 @@ begin : dwt26_h1_array
         .px_clk(px_clk),
         .px_dval(px_dval),
         .px_idx(px_idx),
-        .px_data(px_data[i+32]),
+        .px_data(px_data[i]),
         .S_pp0_fromR(S_pp0_fromR_B1[i]),
         .D_pp0_fromR(D_pp0_fromR_B1[i]),
         .S_pp1_fromR(S_pp1_fromR_B1[i]),
