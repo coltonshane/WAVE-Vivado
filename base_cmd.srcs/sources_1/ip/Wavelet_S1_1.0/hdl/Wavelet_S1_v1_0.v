@@ -422,6 +422,7 @@ end : dwt26_v1_array
 endgenerate
 
 // Debug access to core output data.
+/*
 always @(posedge px_clk)
 begin
 if (px_count == debug_px_count_trig)
@@ -458,7 +459,7 @@ begin
     endcase
 end
 end
-
+*/
 // User logic ends
 
 endmodule
