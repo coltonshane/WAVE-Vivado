@@ -21,6 +21,7 @@ All operations and operands are signed 16-bit unless otherwise noted.
 
 module dwt26_h1
 #(
+    parameter integer PX_MATH_WIDTH = 16,
     parameter [1:0] COLOR = `COLOR_R1
 )
 (
@@ -30,31 +31,31 @@ module dwt26_h1
     input wire [15:0] px_data,  // 16b pixel data.
     
     // Local sum and difference of pixel pairs 0 and 1 from the core "to the right".
-    input wire signed [15:0] S_pp0_fromR,
-    input wire signed [15:0] D_pp0_fromR,
-    input wire signed [15:0] S_pp1_fromR,
+    input wire signed [(PX_MATH_WIDTH-1):0] S_pp0_fromR,
+    input wire signed [(PX_MATH_WIDTH-1):0] D_pp0_fromR,
+    input wire signed [(PX_MATH_WIDTH-1):0] S_pp1_fromR,
     
     // Local sum and difference of pixel pairs 0 and 1 to the core "to the left".
-    output reg signed [15:0] S_pp0_toL,
-    output reg signed [15:0] D_pp0_toL,
-    output reg signed [15:0] S_pp1_toL,
+    output reg signed [(PX_MATH_WIDTH-1):0] S_pp0_toL,
+    output reg signed [(PX_MATH_WIDTH-1):0] D_pp0_toL,
+    output reg signed [(PX_MATH_WIDTH-1):0] S_pp1_toL,
     
     // Output sum and difference for the immediate pixel pair.
-    output reg signed [15:0] S_out,
-    output reg signed [15:0] D_out
+    output reg signed [(PX_MATH_WIDTH-1):0] S_out,
+    output reg signed [(PX_MATH_WIDTH-1):0] D_out
 );
 
 // Additional internal storage elements.
-reg signed [15:0] X_even;   // Latest even input pixel.
-reg signed [15:0] S_0;      // Local sum of pixel pair N.
-reg signed [15:0] D_0;      // Local difference of pixel pair N.
-reg signed [15:0] S_1;      // Local sum of pixel pair N-1.
-reg signed [15:0] D_1;      // Local difference of pixel pair N-1.
-reg signed [15:0] S_2;      // Local sum of pixel pair N-2.
+reg signed [(PX_MATH_WIDTH-1):0] X_even;   // Latest even input pixel.
+reg signed [(PX_MATH_WIDTH-1):0] S_0;      // Local sum of pixel pair N.
+reg signed [(PX_MATH_WIDTH-1):0] D_0;      // Local difference of pixel pair N.
+reg signed [(PX_MATH_WIDTH-1):0] S_1;      // Local sum of pixel pair N-1.
+reg signed [(PX_MATH_WIDTH-1):0] D_1;      // Local difference of pixel pair N-1.
+reg signed [(PX_MATH_WIDTH-1):0] S_2;      // Local sum of pixel pair N-2.
 
 // Total Storage: 11 x 16b = 176b.
 
-wire signed [15:0] X_odd;    // Latest odd input pixel.
+wire signed [(PX_MATH_WIDTH-1):0] X_odd;    // Latest odd input pixel.
 assign X_odd = px_data;
 
 // Create an enable signal based on this core's color and the current pixel index.
@@ -77,19 +78,19 @@ wire first_out;
 assign first_out = (px_idx[6:2] == 5'b00010);
 
 // Combinational logic for local sum/difference.
-wire signed [15:0] D_0_next;
+wire signed [(PX_MATH_WIDTH-1):0] D_0_next;
 assign D_0_next = X_odd - X_even;
-wire signed [15:0] S_0_next;
+wire signed [(PX_MATH_WIDTH-1):0] S_0_next;
 assign S_0_next = X_even + (D_0_next >>> 1);
 
 // Combinational logic for output sum/difference.
-wire signed [15:0] S_0_temp;
+wire signed [(PX_MATH_WIDTH-1):0] S_0_temp;
 assign S_0_temp = first_out ? S_pp1_fromR : (last_out ? S_pp0_fromR : S_0);
-wire signed [15:0] D_1_temp;
+wire signed [(PX_MATH_WIDTH-1):0] D_1_temp;
 assign D_1_temp = first_out ? D_pp0_fromR : D_1;
-wire signed [15:0] S_out_next;
+wire signed [(PX_MATH_WIDTH-1):0] S_out_next;
 assign S_out_next = first_out ? S_pp0_fromR : S_1;
-wire signed [15:0] D_out_next;
+wire signed [(PX_MATH_WIDTH-1):0] D_out_next;
 assign D_out_next = D_1_temp + ((S_2 - S_0_temp + 16'sh0002) >>> 2);
 
 // Sequential logic.

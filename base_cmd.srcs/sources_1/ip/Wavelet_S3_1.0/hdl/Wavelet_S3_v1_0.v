@@ -19,7 +19,7 @@ configuration is done through an AXI-Lite slave.
 module Wavelet_S3_v1_0 #
 (
 	// Users to add parameters here
-
+    parameter integer PX_MATH_WIDTH = 12,
 	// User parameters ends
 	// Do not modify the parameters beyond this line
 
@@ -200,6 +200,9 @@ for (i = 0; i < 4; i = i + 1)
 begin : dwt26_h3_array
 
     dwt26_h3
+    #(
+        .PX_MATH_WIDTH(PX_MATH_WIDTH)
+    )
     R1
     (
         .px_clk(px_clk),
@@ -218,6 +221,9 @@ begin : dwt26_h3_array
     );
     
     dwt26_h3
+    #(
+        .PX_MATH_WIDTH(PX_MATH_WIDTH)
+    )
     G1
     (
         .px_clk(px_clk),
@@ -236,6 +242,9 @@ begin : dwt26_h3_array
     );
     
     dwt26_h3
+    #(
+        .PX_MATH_WIDTH(PX_MATH_WIDTH)
+    )
     G2
     (
         .px_clk(px_clk),
@@ -254,6 +263,9 @@ begin : dwt26_h3_array
     );
     
     dwt26_h3
+    #(
+        .PX_MATH_WIDTH(PX_MATH_WIDTH)
+    )
     B1
     (
         .px_clk(px_clk),
@@ -325,7 +337,11 @@ generate
 for (i = 0; i < 2; i = i + 1)
 begin : dwt26_v3_array
 
-    dwt26_v3 R1
+    dwt26_v3 
+    #(
+        .PX_MATH_WIDTH(PX_MATH_WIDTH)
+    )
+    R1
     (
         .px_clk(px_clk),
         .px_count_v3(px_count_v3),
@@ -340,7 +356,11 @@ begin : dwt26_v3_array
         .LL3_out(LL3_R1[i])
     );
     
-    dwt26_v3 G1
+    dwt26_v3 
+    #(
+        .PX_MATH_WIDTH(PX_MATH_WIDTH)
+    )
+    G1
     (
         .px_clk(px_clk),
         .px_count_v3(px_count_v3),
@@ -355,7 +375,11 @@ begin : dwt26_v3_array
         .LL3_out(LL3_G1[i])
     );
     
-    dwt26_v3 G2
+    dwt26_v3 
+    #(
+        .PX_MATH_WIDTH(PX_MATH_WIDTH)
+    )
+    G2
     (
         .px_clk(px_clk),
         .px_count_v3(px_count_v3),
@@ -370,7 +394,11 @@ begin : dwt26_v3_array
         .LL3_out(LL3_G2[i])
     );
     
-    dwt26_v3 B1
+    dwt26_v3 
+    #(
+        .PX_MATH_WIDTH(PX_MATH_WIDTH)
+    )
+    B1
     (
         .px_clk(px_clk),
         .px_count_v3(px_count_v3),

@@ -28,6 +28,9 @@ All operations and operands are signed 16-bit unless otherwise noted.
 ================================================================================================= */
 
 module dwt26_v1
+#(
+    parameter integer PX_MATH_WIDTH = 16
+)
 (
     input wire px_clk,
     input wire px_clk_2x,
@@ -105,12 +108,12 @@ reg [63:0] S_above_concat;
 reg [63:0] S_below_concat;
 
 // Combinational logic for 2/6 DWT Steps.
-wire signed [15:0] X_even [3:0];
-wire signed [15:0] X_odd [3:0];
-wire signed [15:0] S_above [3:0];
-wire signed [15:0] S_below [3:0];
-wire signed [15:0] S_local [3:0];
-wire signed [15:0] D_local [3:0];
+wire signed [(PX_MATH_WIDTH-1):0] X_even [3:0];
+wire signed [(PX_MATH_WIDTH-1):0] X_odd [3:0];
+wire signed [(PX_MATH_WIDTH-1):0] S_above [3:0];
+wire signed [(PX_MATH_WIDTH-1):0] S_below [3:0];
+wire signed [(PX_MATH_WIDTH-1):0] S_local [3:0];
+wire signed [(PX_MATH_WIDTH-1):0] D_local [3:0];
 wire signed [15:0] S_out [3:0];
 wire signed [15:0] D_out [3:0];
 wire [63:0] S_local_concat;
@@ -118,18 +121,18 @@ wire [63:0] D_local_concat;
 genvar i;
 for (i = 0; i < 4; i = i + 1)
 begin
-    assign X_even[i] = X_even_concat[16*i+:16];
-    assign X_odd[i] = X_odd_concat[16*i+:16];
-    assign S_above[i] = S_above_concat[16*i+:16];
-    assign S_below[i] = S_below_concat[16*i+:16];
+    assign X_even[i] = X_even_concat[16*i+:PX_MATH_WIDTH];
+    assign X_odd[i] = X_odd_concat[16*i+:PX_MATH_WIDTH];
+    assign S_above[i] = S_above_concat[16*i+:PX_MATH_WIDTH];
+    assign S_below[i] = S_below_concat[16*i+:PX_MATH_WIDTH];
     
     assign D_local[i] = X_odd[i] - X_even[i];
     assign S_local[i] = X_even[i] + (D_local[i] >>> 1);
     assign S_out[i] = X_even[i];
     assign D_out[i] = X_odd[i] + ((S_above[i] - S_below[i] + 16'sh0002) >>> 2);
     
-    assign S_local_concat[16*i+:16] = S_local[i];
-    assign D_local_concat[16*i+:16] = D_local[i];
+    assign S_local_concat[16*i+:PX_MATH_WIDTH] = S_local[i];
+    assign D_local_concat[16*i+:PX_MATH_WIDTH] = D_local[i];
 end
 // -------------------------------------------------------------------------------------------------
 

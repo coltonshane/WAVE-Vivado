@@ -18,7 +18,7 @@ wavelet stage (LL1). Control and configuration is done through an AXI-Lite slave
 module Wavelet_S1_v1_0 #
 (
 	// Users to add parameters here
-
+    parameter integer PX_MATH_WIDTH = 12,
 	// User parameters ends
 	// Do not modify the parameters beyond this line
 
@@ -201,7 +201,8 @@ begin : dwt26_h1_array
     // Top channel pixels drive the R1 and G1 color fields.
     dwt26_h1
     #(
-         .COLOR(`COLOR_R1)
+        .PX_MATH_WIDTH(PX_MATH_WIDTH),
+        .COLOR(`COLOR_R1)
     ) 
     R1
     (
@@ -221,6 +222,7 @@ begin : dwt26_h1_array
     
     dwt26_h1
     #(
+        .PX_MATH_WIDTH(PX_MATH_WIDTH),
         .COLOR(`COLOR_G1)
     )
     G1
@@ -242,6 +244,7 @@ begin : dwt26_h1_array
     // Bottom channel pixels drive the G2 and B1 color fields.
     dwt26_h1
     #(
+        .PX_MATH_WIDTH(PX_MATH_WIDTH),
         .COLOR(`COLOR_G2)
     )
     G2
@@ -262,10 +265,11 @@ begin : dwt26_h1_array
     
     dwt26_h1
     #(
+        .PX_MATH_WIDTH(PX_MATH_WIDTH),
         .COLOR(`COLOR_B1)
-     )
-     B1
-     (
+    )
+    B1
+    (
         .px_clk(px_clk),
         .px_dval(px_dval),
         .px_idx(px_idx),
@@ -338,7 +342,11 @@ generate
 for (i = 0; i < 8; i = i + 1)
 begin : dwt26_v1_array
 
-    dwt26_v1 R1
+    dwt26_v1
+    #(
+        .PX_MATH_WIDTH(PX_MATH_WIDTH)
+    )
+    R1
     (
         .px_clk(px_clk),
         .px_clk_2x(px_clk_2x),
@@ -358,7 +366,11 @@ begin : dwt26_v1_array
         .LL1_out(LL1_R1[i])
     );
     
-    dwt26_v1 G1
+    dwt26_v1
+    #(
+        .PX_MATH_WIDTH(PX_MATH_WIDTH)
+    )
+    G1
     (
         .px_clk(px_clk),
         .px_clk_2x(px_clk_2x),
@@ -378,7 +390,11 @@ begin : dwt26_v1_array
         .LL1_out(LL1_G1[i])
     );
     
-    dwt26_v1 G2
+    dwt26_v1
+    #(
+        .PX_MATH_WIDTH(PX_MATH_WIDTH)
+    )
+    G2
     (
         .px_clk(px_clk),
         .px_clk_2x(px_clk_2x),
@@ -398,7 +414,11 @@ begin : dwt26_v1_array
         .LL1_out(LL1_G2[i])
     );
     
-    dwt26_v1 B1
+    dwt26_v1 
+    #(
+        .PX_MATH_WIDTH(PX_MATH_WIDTH)
+    )
+    B1
     (
         .px_clk(px_clk),
         .px_clk_2x(px_clk_2x),
