@@ -565,18 +565,46 @@ compressor_32in c_XX3     // Stream 15, handling HH3, HL3, LH3, and LL3
 
 // Round-robin RAM writer.
 // --------------------------------------------------------------------------------
+genvar i;
+
 // RAM writer state, cycles through the 16 compressors.
 reg [3:0] c_state;
 
-// Data switch.
-assign axi_wdata = fifo_rd_data[c_state];
+// Prefetch logic to read ahead one entry in the FIFO.
+reg [5:0] fifo_reads_remaining;
+wire fifo_rd_en;
+assign fifo_rd_en = (fifo_reads_remaining == 6'd16) 
+                 || ((fifo_reads_remaining > 0) && axi_wnext);
 
-// Read next data switch.
-genvar i;
+// Route the read enable only to the selected compressor FIFO.
 for (i = 0; i < 16; i = i + 1)
 begin
-    assign fifo_rd_next[i] = axi_wnext & (c_state == i);
+    assign fifo_rd_next[i] = fifo_rd_en & (c_state == i);
 end
+
+// Reads remaining counter for prefetch. Reloads on axi_init_txn.
+always @(posedge m00_axi_aclk)
+begin
+    if(axi_init_txn && (fifo_reads_remaining == 0))
+    begin
+        fifo_reads_remaining <= 6'd16;
+    end
+    else if(fifo_rd_en)
+    begin
+        fifo_reads_remaining <= fifo_reads_remaining - 6'd1;
+    end
+end
+
+// Data switch and register.
+reg [127:0] axi_wdata_reg;
+always @(posedge m00_axi_aclk)
+begin
+    if(fifo_rd_en)
+    begin
+        axi_wdata_reg <= fifo_rd_data[c_state];
+    end
+end
+assign axi_wdata = axi_wdata_reg;
 
 // Address generation.
 reg [31:0] c_RAM_offset [15:0];
