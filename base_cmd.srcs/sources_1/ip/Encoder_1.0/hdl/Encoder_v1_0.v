@@ -289,9 +289,6 @@ begin
 end
 assign px_clk_2x_phase = (px_count[0] == px_count_prev_LSB_2x);
 
-// Shared FIFO read enable signal, controlled by the AXI Master round-robin.
-wire fifo_rd_en;
-
 // Independent compressor FIFO controls and data.
 wire fifo_rd_next[15:0];
 wire [9:0] fifo_rd_count[15:0];
@@ -585,7 +582,11 @@ end
 // Reads remaining counter for prefetch. Reloads on axi_init_txn.
 always @(posedge m00_axi_aclk)
 begin
-    if(axi_init_txn && (fifo_reads_remaining == 0))
+    if (~debug_m00_axi_armed)
+    begin
+        fifo_reads_remaining <= 6'd0;
+    end
+    else if(axi_init_txn && (fifo_reads_remaining == 0))
     begin
         fifo_reads_remaining <= 6'd16;
     end
