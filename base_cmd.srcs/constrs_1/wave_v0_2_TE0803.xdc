@@ -586,3 +586,8 @@ set_property DIFF_TERM TRUE [get_ports cmv_ch_p[63]]
 set_property PACKAGE_PIN V8 [get_ports cmv_ch_n[63]]
 set_property IOSTANDARD LVDS [get_ports cmv_ch_n[63]]
 set_property DIFF_TERM TRUE [get_ports cmv_ch_n[63]]
+
+# Floorplanning
+create_pblock pblock_Encoder_0
+add_cells_to_pblock [get_pblocks pblock_Encoder_0] [get_cells -quiet [list BoardSetupTest_i/Encoder_0]]
+resize_pblock [get_pblocks pblock_Encoder_0] -add {RAMB36_X0Y0:RAMB36_X1Y23}
