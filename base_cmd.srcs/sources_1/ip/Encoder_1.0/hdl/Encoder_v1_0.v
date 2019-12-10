@@ -570,7 +570,7 @@ reg [3:0] c_state;
 // Prefetch logic to read ahead one entry in the FIFO.
 reg [5:0] fifo_reads_remaining;
 wire fifo_rd_en;
-assign fifo_rd_en = (fifo_reads_remaining == 6'd16) 
+assign fifo_rd_en = (fifo_reads_remaining == 6'd32) 
                  || ((fifo_reads_remaining > 0) && axi_wnext);
 
 // Route the read enable only to the selected compressor FIFO.
@@ -588,7 +588,7 @@ begin
     end
     else if(axi_init_txn && (fifo_reads_remaining == 0))
     begin
-        fifo_reads_remaining <= 6'd16;
+        fifo_reads_remaining <= 6'd32;
     end
     else if(fifo_rd_en)
     begin
@@ -662,9 +662,9 @@ begin
         else if (axi_busy_wait & ~axi_busy)
         begin
             // Transaction complete, end the busy wait. 
-            // Increment the write offset by 256B and increment the state.
+            // Increment the write offset by 512B and increment the state.
             axi_busy_wait <= 1'b0;
-            c_RAM_offset[c_state] <= c_RAM_offset[c_state] + 32'h100;
+            c_RAM_offset[c_state] <= c_RAM_offset[c_state] + 32'h200;
             c_state <= c_state + 4'h1;
         end
         else if(~fifo_trigger & ~axi_init_txn & ~axi_busy_wait)

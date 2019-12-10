@@ -191,7 +191,7 @@ localparam integer C_TRANSACTIONS_NUM = clogb2(C_M_AXI_BURST_LEN-1);
 
 // Burst length for transactions, in C_M_AXI_DATA_WIDTHs.
 // Non-2^n lengths will eventually cause bursts across 4K address boundaries.
-localparam integer C_MASTER_LENGTH	= 8;
+localparam integer C_MASTER_LENGTH	= 9;
 // total number of burst transfers is master length divided by burst length and burst size
 localparam integer C_NO_BURSTS_REQ = C_MASTER_LENGTH-clogb2((C_M_AXI_BURST_LEN*C_M_AXI_DATA_WIDTH/8)-1);
 // Example State machine to initialize counter, initialize write transactions, 
