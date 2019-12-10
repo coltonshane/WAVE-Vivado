@@ -145,12 +145,12 @@ u32 triggerShutdown = 0;
 u32 requestFrames = 0;
 u32 invalidateDCache = 0;
 u32 updateCMVRegs = 0;
-u16 cmv_Exp_time = 768;
+u16 cmv_Exp_time = 1152;
 u16 cmv_Exp_kp1 = 80;
 u16 cmv_Exp_kp2 = 8;
 u16 cmv_Vtfl = 84 * 128 + 104;
 u16 cmv_Number_slopes = 1;
-u16 cmv_Number_frames = 10;
+u16 cmv_Number_frames = 100;
 
 // Wavelet S1
 u32 * debug_XX1_px_count_trig = (u32 *)(0xA0001000);
@@ -177,11 +177,20 @@ u32 * debug_core_LH3_data = (u32 *)(0xA0003018);
 u32 * debug_core_LL3_data = (u32 *)(0xA000301C);
 
 // Encoder
-u32 * debug_m00_axi_arm = (u32 *)(0xA0004000);
-u32 * q_mult_HH1_HL1_LH1 = (u32 *)(0xA0004004);
-u32 * q_mult_HH2_HL2_LH2 = (u32 *)(0xA0004008);
-u32 * q_mult_HH3_HL3_LH3 = (u32 *)(0xA000400C);
-u32 * q_mult_LL3 = (u32 *)(0xA0004010);
+#define ENC_CTRL_M00_AXI_ARM                0x10000000
+#define ENC_CTRL_C_RAM_ADDR_UPDATE_REQUEST  0x01000000
+#define ENC_CTRL_C_RAM_ADDR_UPDATE_COMPLET  0x02000000
+typedef struct __attribute__((packed))
+{
+	u32 c_RAM_addr[16];
+	u32 c_RAM_addr_update[16];
+	u32 q_mult_HH1_HL1_LH1;
+	u32 q_mult_HH2_HL2_LH2;
+	u32 q_mult_HH3_HL3_LH3;
+	u32 control_q_mult_LL3;
+	u16 debug_fifo_rd_count[16];
+} Encoder_s;
+Encoder_s * Encoder = (Encoder_s *)(0xA0004000);
 
 int main()
 {
@@ -282,12 +291,27 @@ int main()
 
     usleep(1000);
 
-    // ARM the AXI Master and configure encoder quantizers.
-    *debug_m00_axi_arm = 0x00000001;
-    *q_mult_HH1_HL1_LH1 = 0x00100020;
-    *q_mult_HH2_HL2_LH2 = 0x00200040;
-    *q_mult_HH3_HL3_LH3 = 0x00400040;
-    *q_mult_LL3 = 0x00000100;
+    // Configure the Encoder and arm the AXI Master.
+    Encoder->q_mult_HH1_HL1_LH1 = 0x00100020;
+    Encoder->q_mult_HH2_HL2_LH2 = 0x00200040;
+    Encoder->q_mult_HH3_HL3_LH3 = 0x00400040;
+    Encoder->c_RAM_addr_update[0] = 0x20000000;  // HH1.R1
+    Encoder->c_RAM_addr_update[1] = 0x24000000;  // HH1.G1
+    Encoder->c_RAM_addr_update[2] = 0x28000000;  // HH1.G2
+    Encoder->c_RAM_addr_update[3] = 0x2C000000;  // HH1.B1
+    Encoder->c_RAM_addr_update[4] = 0x30000000;  // HL1.R1
+    Encoder->c_RAM_addr_update[5] = 0x34000000;  // HL1.G1
+    Encoder->c_RAM_addr_update[6] = 0x38000000;  // HL1.G2
+    Encoder->c_RAM_addr_update[7] = 0x3C000000;  // HL1.B1
+    Encoder->c_RAM_addr_update[8] = 0x40000000;  // LH1.R1
+    Encoder->c_RAM_addr_update[9] = 0x44000000;  // LH1.G1
+    Encoder->c_RAM_addr_update[10] = 0x48000000; // LH1.G2
+    Encoder->c_RAM_addr_update[11] = 0x4C000000; // LH1.B1
+    Encoder->c_RAM_addr_update[12] = 0x50000000; // HH2
+    Encoder->c_RAM_addr_update[13] = 0x58000000; // HL2
+    Encoder->c_RAM_addr_update[14] = 0x60000000; // LH2
+    Encoder->c_RAM_addr_update[15] = 0x68000000; // XX3
+    Encoder->control_q_mult_LL3 = ENC_CTRL_M00_AXI_ARM | 0x00000100;
 
     Usb_Start(UsbInstance.PrivateData);
 

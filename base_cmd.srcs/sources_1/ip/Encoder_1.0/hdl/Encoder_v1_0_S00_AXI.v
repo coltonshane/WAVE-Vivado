@@ -18,13 +18,13 @@ module Encoder_v1_0_S00_AXI
 	// Width of S_AXI data bus
 	parameter integer C_S_AXI_DATA_WIDTH = 32,
 	// Width of S_AXI address bus
-	parameter integer C_S_AXI_ADDR_WIDTH = 6
+	parameter integer C_S_AXI_ADDR_WIDTH = 8
 )
 (
 	// Users to add ports here
+    input wire [511:0] c_RAM_addr_concat,
+    output wire [511:0] c_RAM_addr_update_concat,
     
-    output wire debug_m00_axi_armed,
-    output wire [4:0] debug_c_state,
     output wire signed [9:0] q_mult_HH1,
     output wire signed [9:0] q_mult_HL1_LH1,
     output wire signed [9:0] q_mult_HH2,
@@ -32,6 +32,12 @@ module Encoder_v1_0_S00_AXI
     output wire signed [9:0] q_mult_HH3,
     output wire signed [9:0] q_mult_HL3_LH3,
     output wire signed [9:0] q_mult_LL3,
+    
+    output wire c_RAM_addr_update_request,
+    input wire c_RAM_addr_update_complete,
+    output wire m00_axi_armed,
+    output wire [4:0] debug_c_state,
+
     input wire [255:0] debug_fifo_rd_count_concat,
     
 	// User ports ends
@@ -117,12 +123,12 @@ reg  	axi_rvalid;
 // ADDR_LSB = 2 for 32 bits (n downto 2)
 // ADDR_LSB = 3 for 64 bits (n downto 3)
 localparam integer ADDR_LSB = (C_S_AXI_DATA_WIDTH/32) + 1;
-localparam integer OPT_MEM_ADDR_BITS = 3;
+localparam integer OPT_MEM_ADDR_BITS = 5;
 //----------------------------------------------
 //-- Signals for user logic register space example
 //------------------------------------------------
-//-- Number of Slave Registers: 16 <= 2^(OPT_MEM_ADDR_BITS+1)
-reg [C_S_AXI_DATA_WIDTH-1:0] slv_reg [15:0];
+//-- Number of Slave Registers: 44 <= 2^(OPT_MEM_ADDR_BITS+1)
+reg [C_S_AXI_DATA_WIDTH-1:0] slv_reg [43:0];
 wire	 slv_reg_rden;
 wire	 slv_reg_wren;
 reg [C_S_AXI_DATA_WIDTH-1:0]	 reg_data_out;
@@ -249,10 +255,22 @@ begin
 	    // Latch in read values from input ports.
 	    begin : in_latch
 	        integer i;
+	        
+	        // Slave Registers 0-15: Compressor RAM Addresses
+	        for(i = 0; i < 16; i = i + 1)
+	        begin
+	           slv_reg[i] <= c_RAM_addr_concat[32*i+:32];
+	        end
+	        
+	        // Slave Register 35: Control
+	        slv_reg[35][25] <= c_RAM_addr_update_complete;
+	        
+	        // Slave Registers 36-43: FIFO read counts.
 	        for(i = 0; i < 8; i = i + 1)
 	        begin
-                slv_reg[8 + i] <= debug_fifo_rd_count_concat[32*i+:32];
+                slv_reg[36 + i] <= debug_fifo_rd_count_concat[32*i+:32];
             end
+	   
 	    end : in_latch
 	    
 	end
@@ -382,16 +400,31 @@ begin
 end    
 
 // Add user logic here
+genvar i;
 
-assign debug_m00_axi_armed = slv_reg[0][0];
-assign debug_c_state = slv_reg[0][8:4];
-assign q_mult_HH1 = slv_reg[1][16+:10];
-assign q_mult_HL1_LH1 = slv_reg[1][0+:10];
-assign q_mult_HH2 = slv_reg[2][16+:10];
-assign q_mult_HL2_LH2 = slv_reg[2][0+:10];
-assign q_mult_HH3 = slv_reg[3][16+:10];
-assign q_mult_HL3_LH3 = slv_reg[3][0+:10];
-assign q_mult_LL3 = slv_reg[4][0+:10];
+// Slave Registers 16-31: Compressor RAM Address Updates
+for(i = 0; i < 16; i = i + 1)
+begin
+    assign c_RAM_addr_update_concat[32*i+:32] = slv_reg[i+16];
+end
+
+// Slave Register 32: State 1 Quantizer Settings
+assign q_mult_HH1 = slv_reg[32][16+:10];
+assign q_mult_HL1_LH1 = slv_reg[32][0+:10];
+
+// Slave Register 33: Stage 2 Quantizer Settings
+assign q_mult_HH2 = slv_reg[33][16+:10];
+assign q_mult_HL2_LH2 = slv_reg[33][0+:10];
+
+// Slave Register 34: Stage 3 Quantizer Settings
+assign q_mult_HH3 = slv_reg[34][16+:10];
+assign q_mult_HL3_LH3 = slv_reg[34][0+:10];
+
+// Slave Register 35: Control + Stage 3 LPF Quantizer Setting
+assign m00_axi_armed = slv_reg[35][28];
+assign c_RAM_addr_update_request = slv_reg[35][24];
+assign debug_c_state = slv_reg[35][20:16];
+assign q_mult_LL3 = slv_reg[35][0+:10];
 
 // User logic ends
 

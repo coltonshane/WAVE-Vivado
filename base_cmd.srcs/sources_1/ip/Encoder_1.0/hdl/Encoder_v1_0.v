@@ -12,7 +12,7 @@ module Encoder_v1_0
 #(
 	// Parameters for AXI-Lite Slave.
 	parameter integer C_S00_AXI_DATA_WIDTH = 32,
-	parameter integer C_S00_AXI_ADDR_WIDTH = 6,
+	parameter integer C_S00_AXI_ADDR_WIDTH = 8,
 
 	// Parameters for AXI Master 00.
     parameter C_M00_AXI_TARGET_SLAVE_BASE_ADDR	= 32'h00000000,
@@ -117,8 +117,9 @@ module Encoder_v1_0
 );
 
 // Control and debug signals mapped to AXI slave registers.
-wire debug_m00_axi_armed;
-wire [4:0] debug_c_state;
+wire [511:0] c_RAM_addr_concat;
+wire [511:0] c_RAM_addr_update_concat;
+    
 wire signed [9:0] q_mult_HH1;
 wire signed [9:0] q_mult_HL1_LH1;
 wire signed [9:0] q_mult_HH2;
@@ -126,6 +127,12 @@ wire signed [9:0] q_mult_HL2_LH2;
 wire signed [9:0] q_mult_HH3;
 wire signed [9:0] q_mult_HL3_LH3;
 wire signed [9:0] q_mult_LL3;
+    
+wire c_RAM_addr_update_request;
+reg c_RAM_addr_update_complete;
+wire m00_axi_armed;
+wire [4:0] debug_c_state;
+
 wire [255:0] debug_fifo_rd_count_concat;
 
 // AXI Master 00 signals.
@@ -143,8 +150,9 @@ Encoder_v1_0_S00_AXI
 ) 
 Encoder_v1_0_S00_AXI_inst 
 (
-    .debug_m00_axi_armed(debug_m00_axi_armed),
-    .debug_c_state(debug_c_state),
+    .c_RAM_addr_concat(c_RAM_addr_concat),
+    .c_RAM_addr_update_concat(c_RAM_addr_update_concat),
+    
     .q_mult_HH1(q_mult_HH1),
     .q_mult_HL1_LH1(q_mult_HL1_LH1),
     .q_mult_HH2(q_mult_HH2),
@@ -152,6 +160,12 @@ Encoder_v1_0_S00_AXI_inst
     .q_mult_HH3(q_mult_HH3),
     .q_mult_HL3_LH3(q_mult_HL3_LH3),
     .q_mult_LL3(q_mult_LL3),
+    
+    .c_RAM_addr_update_request(c_RAM_addr_update_request),
+    .c_RAM_addr_update_complete(c_RAM_addr_update_complete),
+    .m00_axi_armed(m00_axi_armed),
+    .debug_c_state(debug_c_state),
+
     .debug_fifo_rd_count_concat(debug_fifo_rd_count_concat),
 
     // AXI-Lite slave controller signals.
@@ -582,7 +596,7 @@ end
 // Reads remaining counter for prefetch. Reloads on axi_init_txn.
 always @(posedge m00_axi_aclk)
 begin
-    if (~debug_m00_axi_armed)
+    if (~m00_axi_armed)
     begin
         fifo_reads_remaining <= 6'd0;
     end
@@ -607,50 +621,71 @@ begin
 end
 assign axi_wdata = axi_wdata_reg;
 
-// Address generation.
-reg [31:0] c_RAM_offset [15:0];
-localparam [511:0] c_RAM_base_concat = 
-{32'h68000000, 32'h60000000, 32'h58000000, 32'h50000000,    // LL1
- 32'h4C000000, 32'h48000000, 32'h44000000, 32'h40000000,    // LH1
- 32'h3C000000, 32'h38000000, 32'h34000000, 32'h30000000,    // HL1
- 32'h2C000000, 32'h28000000, 32'h24000000, 32'h20000000};   // HH1
-localparam [511:0] c_RAM_mask = 
-{32'h07FFFFFF, 32'h07FFFFFF, 32'h07FFFFFF, 32'h07FFFFFF,    // LL1
- 32'h03FFFFFF, 32'h03FFFFFF, 32'h03FFFFFF, 32'h03FFFFFF,    // LH1
- 32'h03FFFFFF, 32'h03FFFFFF, 32'h03FFFFFF, 32'h03FFFFFF,    // HL1
- 32'h03FFFFFF, 32'h03FFFFFF, 32'h03FFFFFF, 32'h03FFFFFF};   // HH1
-wire [31:0] c_RAM_base;
-wire [31:0] c_RAM_offset_masked;
-assign c_RAM_base = c_RAM_base_concat[32*c_state+:32];
-assign c_RAM_offset_masked = c_RAM_offset[c_state] & c_RAM_mask[32*c_state+:32];
+reg axi_busy_wait;
+wire axi_txn_done;
+assign axi_txn_done = axi_busy_wait & ~axi_busy;
 
+// Address generation.
+reg [31:0] c_RAM_addr [15:0];
+always @(posedge m00_axi_aclk)
+begin
+    if (~m00_axi_armed)
+    begin : axi_rst
+        // Reset.
+        integer j;
+        for(j = 0; j < 16; j = j + 1)
+        begin
+            c_RAM_addr[j] <= 32'h0;
+            c_RAM_addr_update_complete <= 1'b0;
+        end
+    end : axi_rst
+    else
+    begin
+        if(c_RAM_addr_update_request)
+        begin : axi_addr_update
+            // Address update.
+            integer j;
+            for(j = 0; j < 16; j = j + 1)
+            begin
+                c_RAM_addr[j] <= c_RAM_addr_update_concat[32*j+:32];
+                c_RAM_addr_update_complete <= 1'b1;
+            end
+        end : axi_addr_update
+        else 
+            // Running.
+            if(axi_txn_done)
+            begin
+                c_RAM_addr[c_state] <= c_RAM_addr[c_state] + 32'h200;
+            end
+            c_RAM_addr_update_complete <= 1'b0;
+    end
+end
+for(i = 0; i < 16; i = i + 1)
+begin
+    assign c_RAM_addr_concat[32*i+:32] = c_RAM_addr[i];
+end
+    
 // Trigger on FIFO fill level.
 wire fifo_trigger;
 assign fifo_trigger = (fifo_rd_count[c_state] > 10'h80);
 
 // Fun times state machine.
-reg axi_busy_wait;
 always @(posedge m00_axi_aclk)
 begin
-    if (~debug_m00_axi_armed)
-    begin : axi_rst
+    if (~m00_axi_armed)
+    begin
         // Synchronous reset of the RAM writer.
-        integer j;
-        for(j = 0; j < 16; j = j + 1)
-        begin
-            c_RAM_offset[j] <= 32'h0;
-        end
         c_state <= 4'h0;
         axi_awaddr_init <= 1'b0;
         axi_init_txn <= 1'b0;
         axi_busy_wait <= 1'b0;
-    end : axi_rst
+    end
     else
     begin
         if (fifo_trigger & ~axi_init_txn & ~axi_busy_wait)
         begin
             // FIFO threshold is met, start a transcation.
-            axi_awaddr_init <= c_RAM_base + c_RAM_offset_masked;
+            axi_awaddr_init <= c_RAM_addr[c_state];
             axi_init_txn <= 1'b1;
         end
         else if (axi_init_txn & axi_busy)
@@ -659,12 +694,11 @@ begin
             axi_init_txn <= 1'b0;
             axi_busy_wait <= 1'b1;
         end
-        else if (axi_busy_wait & ~axi_busy)
+        else if (axi_txn_done)
         begin
             // Transaction complete, end the busy wait. 
             // Increment the write offset by 512B and increment the state.
             axi_busy_wait <= 1'b0;
-            c_RAM_offset[c_state] <= c_RAM_offset[c_state] + 32'h200;
             c_state <= c_state + 4'h1;
         end
         else if(~fifo_trigger & ~axi_init_txn & ~axi_busy_wait)
