@@ -273,6 +273,9 @@ void cmvLinkTrain(void)
 
     // Disable px_count_limit by setting it to max.
     CMV_Input->px_count_limit = 0x7FFFFF;
+
+    // Make sure the FOT interrupt flag is cleared.
+    CMV_Input->FOT_int = 0;
 }
 
 void cmvRegInit(XSpiPs * spiDevice)

@@ -43,6 +43,7 @@ typedef struct
 	u32 ch[65];				// [63:0] are pixel channels, [64] is the control channel
 	u32 px_count_limit;		// Limit for pixel counter, to stop capture in mid-frame for debugging.
 	u32 px_count;			// Master pixel count, in increments of 64px.
+	u32 FOT_int;			// Frame Overhead Time (FOT) interrupt flag.
 } CMV_Input_s;
 
 // Public Function Prototypes ------------------------------------------------------------------------------------------

@@ -5,6 +5,26 @@ CMV_Input_v1_0.v
 Top module of CMV12000 read-in IP. Reads the LVDS channels (64 data + 1 control)
 at 600Mb/s and presents a pixel clock and 10-bit pixel data to the wavelet core.
 Configuration and control (link training) are done via an AXI-Lite slave.
+
+Copyright (C) 2019 by Shane W. Colton
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
 =================================================================================
 */
 
@@ -38,6 +58,9 @@ module CMV_Input_v1_0
     
     // Concatenation of 10-bit pixel channel outputs.
     output wire [639:0] px_chXX_concat,
+    
+    // FOT interrupt output to PS.
+    output wire FOT_int,
 
 	// User ports ends
 	// Do not modify the ports beyond this line
@@ -82,6 +105,10 @@ wire [15:0] cmv_ctr_px_data;
 // Pixel counter limit, used to stop pixel capture in mid-frame for debugging.
 wire [23:0] px_count_limit;
 
+// FOT interrupt flag.
+wire FOT_IF_reg;     // Registered value, drives the interrupt line.
+wire FOT_IF_mod;     // Module input for setting FOT interrupt flag.
+
 // Instantiation of AXI-Lite Slave.
 CMV_Input_v1_0_S00_AXI 
 #( 
@@ -108,6 +135,10 @@ CMV_Input_v1_0_S00_AXI_inst
     
     // Maser pixel counter.
     .px_count(px_count),
+    
+    // FOT interrupt flag.
+    .FOT_IF_reg(FOT_IF_reg),
+    .FOT_IF_mod(FOT_IF_mod),
 
     // AXI-Lite slave controller signals.
 	.S_AXI_ACLK(s00_axi_aclk),
@@ -251,6 +282,16 @@ begin
         px_count <= px_count + 24'sh000001;
     end
 end
+
+// Handle FOT interrupt: Set once per FOT rising edge, 
+// otherwise use registered value (allows software reset).
+reg CMV_FOT_prev;
+always @(posedge px_clk)
+begin
+    CMV_FOT_prev <= CMV_FOT;
+end
+assign FOT_IF_mod = (CMV_FOT && (~CMV_FOT_prev)) ? 1'b1 : FOT_IF_reg;
+assign FOT_int = FOT_IF_reg;
 
 // User logic ends
 

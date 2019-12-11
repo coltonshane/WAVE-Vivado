@@ -5,6 +5,26 @@ CMV_Input_v1_0_S00_AXI.v
 AXI slave controller for controlling and configuring the CMV12000 read-in.. The 
 slave registers are mapped to PS memory, so the ARM cores have access to the CMV
 input block as a peripheral, for configuration and control (link training).
+
+Copyright (C) 2019 by Shane W. Colton
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
 =================================================================================
 */
 
@@ -41,6 +61,10 @@ module CMV_Input_v1_0_S00_AXI #
     
     // Master pixel counter.
     input wire signed [23:0] px_count,
+    
+    // FOT interrupt flag.
+    output wire FOT_IF_reg,     // Registered value, drives the interrupt line.
+    input wire FOT_IF_mod,      // Module input for setting FOT interrupt flag.
     
 	// User ports ends
 	// Do not modify the ports beyond this line
@@ -129,8 +153,8 @@ localparam integer OPT_MEM_ADDR_BITS = 6;
 //----------------------------------------------
 //-- Signals for user logic register space example
 //------------------------------------------------
-//-- Number of Slave Registers: 67 <= 2^(OPT_MEM_ADDR_BITS+1)
-reg [C_S_AXI_DATA_WIDTH-1:0] slv_reg [66:0];
+//-- Number of Slave Registers: 68 <= 2^(OPT_MEM_ADDR_BITS+1)
+reg [C_S_AXI_DATA_WIDTH-1:0] slv_reg [67:0];
 
 // Make array views of the CMV12000 pixel channel I/O ports.
 wire [8:0] cmv_chXX_delay_target [63:0];
@@ -256,7 +280,7 @@ begin
     if ( S_AXI_ARESETN == 1'b0 )
     begin : s_axi_areset_block
         integer i;
-        for(i = 0; i < 67; i = i + 1)
+        for(i = 0; i < 68; i = i + 1)
         begin
             slv_reg[i] <= 0;
         end
@@ -283,6 +307,9 @@ begin
             
             // Master pixel counter.
             slv_reg[66][23:0] <= px_count;
+            
+            // Interrupt flag.
+            slv_reg[67][0] <= FOT_IF_mod;
 
 	    end : in_latch
 	    
@@ -430,6 +457,9 @@ assign cmv_ctr_delay_target = {slv_reg [64] [23:16], 1'b0}; // << 1 for 9-bit de
 
 // Pixel counter limit.
 assign px_count_limit = slv_reg[65][23:0];
+
+// FOT interrupt flag registered value.
+assign FOT_IF_reg = slv_reg[67][0];
 
 // User logic ends
 
