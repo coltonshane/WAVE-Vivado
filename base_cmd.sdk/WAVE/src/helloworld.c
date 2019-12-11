@@ -55,6 +55,7 @@
 #include "xgpiops.h"
 #include "xuartps.h"
 #include "xspips.h"
+#include "xscugic.h"
 #include "xusb_ch9_storage.h"
 #include "xusb_class_storage.h"
 #include "xusb_wrapper.h"
@@ -65,6 +66,8 @@
 // ========================================================================================
 #define MEMORY_SIZE (64U * 1024U)
 u8 Buffer[MEMORY_SIZE] ALIGNMENT_CACHELINE;
+
+void isrFOT(void * CallbackRef);
 
 // USB function prototypes.
 void BulkOutHandler(void *CallBackRef, u32 RequestedBytes,
@@ -136,10 +139,13 @@ static USBCH9_DATA storage_data = {
 
 #define SPI0_DEVICE_ID XPAR_XSPIPS_0_DEVICE_ID
 
+#define INTC_DEVICE_ID XPAR_SCUGIC_0_DEVICE_ID
+
 XGpioPs Gpio;
 XUartPs Uart0;
 XUartPs Uart1;
 XSpiPs Spi0;
+XScuGic Gic;
 
 u32 triggerShutdown = 0;
 u32 requestFrames = 0;
@@ -150,7 +156,7 @@ u16 cmv_Exp_kp1 = 80;
 u16 cmv_Exp_kp2 = 8;
 u16 cmv_Vtfl = 84 * 128 + 104;
 u16 cmv_Number_slopes = 1;
-u16 cmv_Number_frames = 1;
+u16 cmv_Number_frames = 13;
 
 // Wavelet S1
 u32 * debug_XX1_px_count_trig = (u32 *)(0xA0001000);
@@ -192,12 +198,21 @@ typedef struct __attribute__((packed))
 } Encoder_s;
 Encoder_s * Encoder = (Encoder_s *)(0xA0004000);
 
+u32 nFOT = 0;
+void isrFOT(void * CallbackRef)
+{
+	nFOT++;
+	CMV_Input->FOT_int = 0x00000000;
+}
+
 int main()
 {
 	XGpioPs_Config *gpioConfig;
 	XUartPs_Config *uart0Config;
 	XUartPs_Config *uart1Config;
 	XSpiPs_Config *spi0Config;
+	XScuGic_Config *gicConfig;
+
 	u8 uart1Reply = 0x00;
 	u8 cmvPowerReady = 0x00;
 
@@ -220,6 +235,14 @@ int main()
     XSpiPs_SetOptions(&Spi0, XSPIPS_MASTER_OPTION | XSPIPS_FORCE_SSELECT_OPTION);
     XSpiPs_SetClkPrescaler(&Spi0, XSPIPS_CLK_PRESCALE_64);
     XSpiPs_SetSlaveSelect(&Spi0, 0x0F);
+
+    gicConfig = XScuGic_LookupConfig(INTC_DEVICE_ID);
+    XScuGic_CfgInitialize(&Gic, gicConfig, gicConfig->CpuBaseAddress);
+
+    XScuGic_SelfTest(&Gic);
+    Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_INT, (Xil_ExceptionHandler) XScuGic_InterruptHandler, &Gic);
+    Xil_ExceptionEnable();
+    XScuGic_Connect(&Gic, 124, (Xil_ExceptionHandler) isrFOT, (void *) &Gic);
 
     UsbConfigPtr = LookupConfig(USB_DEVICE_ID);
     CfgInitialize(&UsbInstance, UsbConfigPtr, UsbConfigPtr->BaseAddress);
@@ -288,6 +311,8 @@ int main()
     cmvRegSetMode(&Spi0);
     // cmvRegWrite(&Spi0, CMV_REG_ADDR_TEST_PATTERN, CMV_REG_VAL_TEST_PATTERN_ON);
     // cmvRegWrite(&Spi0, CMV_REG_ADDR_DIG_GAIN, 16);
+
+    XScuGic_Enable(&Gic, 124);
 
     usleep(1000);
 
