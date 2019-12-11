@@ -1,13 +1,36 @@
 /*
- * CMV12000 Driver
+CMV12000 Driver
+
+Copyright (C) 2019 by Shane W. Colton
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
 */
 
 // Include Headers -----------------------------------------------------------------------------------------------------
 
 #include "cmv12000.h"
-#include "sleep.h"
+#include "supervisor.h"
+#include "gpio.h"
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
+
+#define SPI0_DEVICE_ID XPAR_XSPIPS_0_DEVICE_ID
 
 // Channel control and data masks.
 #define PX_DATA_MASK  0x0000FFFF
@@ -33,11 +56,23 @@
 
 // Private Function Prototypes -----------------------------------------------------------------------------------------
 
+void cmvLinkTrain(void);
+
+void cmvRegInit(XSpiPs * spiDevice);
+void cmvRegSetMode(XSpiPs * spiDevice);
+
+u16 cmvRegRead(XSpiPs * spiDevice, u8 addr);
+void cmvRegWrite(XSpiPs * spiDevice, u8 addr, u16 val);
+
 // Public Global Variables ---------------------------------------------------------------------------------------------
 
 CMV_Input_s * CMV_Input = (CMV_Input_s *) 0xA0000000;
+CMV_Settings_s CMV_Settings;
 
 // Private Global Variables --------------------------------------------------------------------------------------------
+
+XSpiPs Spi0;
+XSpiPs_Config *spi0Config;
 
 // Registers that are initialized to constant but non-default values.
 u8 cmvRegAddrInit[] =
@@ -114,6 +149,66 @@ u16 cmvRegValModeNormal[] =
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 
 // Public Function Definitions -----------------------------------------------------------------------------------------
+
+void cmvInit(void)
+{
+    // Set up SPI0 for CMV12000 serial control.
+	spi0Config = XSpiPs_LookupConfig(SPI0_DEVICE_ID);
+    XSpiPs_CfgInitialize(&Spi0, spi0Config, spi0Config->BaseAddress);
+    XSpiPs_SetOptions(&Spi0, XSPIPS_MASTER_OPTION | XSPIPS_FORCE_SSELECT_OPTION);
+    XSpiPs_SetClkPrescaler(&Spi0, XSPIPS_CLK_PRESCALE_64);
+    XSpiPs_SetSlaveSelect(&Spi0, 0x0F);
+
+	// Hold the pixel input blocks in reset until the LVDS clock is available.
+	XGpioPs_WritePin(&Gpio, PX_IN_RST_PIN, 1);
+
+	// Tell the supervisor to enable the CMV12000 power supplies. Wait for power good signals.
+	supervisorEnableCMVPower();
+	usleep(1000);
+
+	// Start the 600MHz LVDS clock.
+	XGpioPs_WritePin(&Gpio, LVDS_CLK_EN_PIN, 1);
+	usleep(10);
+
+	// Take the CMV12000 out of reset.
+	XGpioPs_WritePin(&Gpio, CMV_NRST_PIN, 1);
+	usleep(10);
+
+	// Take the pixel input blocks out of reset.
+	XGpioPs_WritePin(&Gpio, PX_IN_RST_PIN, 0);
+	usleep(1000);
+
+	// Run link training on the CMV12000.
+	cmvLinkTrain();
+
+	usleep(1000);
+
+	cmvRegInit(&Spi0);
+	cmvRegSetMode(&Spi0);
+
+	CMV_Settings.Exp_time = 1152;
+	CMV_Settings.Exp_kp1 = 80;
+	CMV_Settings.Exp_kp2 = 8;
+	CMV_Settings.Vtfl = 84 * 128 + 104;
+	CMV_Settings.Number_slopes = 1;
+	CMV_Settings.Number_frames = 13;
+	cmvUpdateSettings();
+
+	// cmvRegWrite(&Spi0, CMV_REG_ADDR_TEST_PATTERN, CMV_REG_VAL_TEST_PATTERN_ON);
+	// cmvRegWrite(&Spi0, CMV_REG_ADDR_DIG_GAIN, 16);
+}
+
+void cmvUpdateSettings(void)
+{
+	cmvRegWrite(&Spi0, CMV_REG_ADDR_EXP_TIME_L, CMV_Settings.Exp_time);
+	cmvRegWrite(&Spi0, CMV_REG_ADDR_EXP_KP1_L, CMV_Settings.Exp_kp1);
+	cmvRegWrite(&Spi0, CMV_REG_ADDR_EXP_KP2_L, CMV_Settings.Exp_kp2);
+	cmvRegWrite(&Spi0, CMV_REG_ADDR_VTFL, CMV_Settings.Vtfl);
+	cmvRegWrite(&Spi0, CMV_REG_ADDR_NUMBER_SLOPES, CMV_Settings.Number_slopes);
+	cmvRegWrite(&Spi0, CMV_REG_ADDR_NUMBER_FRAMES, CMV_Settings.Number_frames);
+}
+
+// Private Function Definitions ----------------------------------------------------------------------------------------
 
 // CMV12000 Link Training Routine
 void cmvLinkTrain(void)
@@ -327,5 +422,3 @@ void cmvRegWrite(XSpiPs * spiDevice, u8 addr, u16 val)
 	usleep(1);
 	XSpiPs_SetSlaveSelect(spiDevice, 0x0F);
 }
-
-// Private Function Definitions ----------------------------------------------------------------------------------------
