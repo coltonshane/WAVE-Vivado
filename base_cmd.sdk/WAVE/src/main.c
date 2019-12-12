@@ -49,13 +49,6 @@ u32 triggerShutdown = 0;
 u32 requestFrames = 0;
 u32 updateCMVRegs = 0;
 
-u32 nFOT = 0;
-void isrFOT(void * CallbackRef)
-{
-	nFOT++;
-	CMV_Input->FOT_int = 0x00000000;
-}
-
 int main()
 {
 	XScuGic_Config *gicConfig;
