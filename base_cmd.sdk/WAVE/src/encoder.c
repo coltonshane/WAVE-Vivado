@@ -36,11 +36,30 @@ THE SOFTWARE.
 
 // Private Function Prototypes -----------------------------------------------------------------------------------------
 
+void encoderResetRAMAddr(u16 csFlags);
+
 // Public Global Variables ---------------------------------------------------------------------------------------------
 
 Encoder_s * Encoder = (Encoder_s *)(0xA0004000);
 
 // Private Global Variables --------------------------------------------------------------------------------------------
+
+u32 csBaseAddr[16] = {0x20000000, 0x24000000, 0x28000000, 0x2C000000,
+                      0x30000000, 0x34000000, 0x38000000, 0x3C000000,
+                      0x40000000, 0x44000000, 0x48000000, 0x4C000000,
+                      0x50000000, 0x58000000, 0x60000000, 0x68000000};
+
+u32 csFullAddr[16] = {0x20100000, 0x24100000, 0x28100000, 0x2C100000,
+                      0x30100000, 0x34100000, 0x38100000, 0x3C100000,
+                      0x40100000, 0x44100000, 0x48100000, 0x4C100000,
+                      0x50100000, 0x58100000, 0x60100000, 0x68100000};
+
+/*
+u32 csFullAddr[16] = {0x23F00000, 0x27F00000, 0x2BF00000, 0x2FF00000,
+                      0x33F00000, 0x37F00000, 0x3BF00000, 0x3FF00000,
+                      0x43F00000, 0x47F00000, 0x4BF00000, 0x4FF00000,
+                      0x57F00000, 0x5FF00000, 0x67F00000, 0x6FF00000};
+*/
 
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 
@@ -54,31 +73,44 @@ void encoderInit(void)
 	Encoder->q_mult_HH3_HL3_LH3 = 0x00400040;
 	Encoder->control_q_mult_LL3 = ENC_CTRL_M00_AXI_ARM | 0x00000100;
 
-	encoderResetRAMAddr();
+	encoderResetRAMAddr(0xFFFF);
 }
 
-void encoderResetRAMAddr(void)
+void encoderCheckRAMAddr(void)
 {
-	Encoder->c_RAM_addr_update[0] = 0x20000000;  // HH1.R1
-	Encoder->c_RAM_addr_update[1] = 0x24000000;  // HH1.G1
-	Encoder->c_RAM_addr_update[2] = 0x28000000;  // HH1.G2
-	Encoder->c_RAM_addr_update[3] = 0x2C000000;  // HH1.B1
-	Encoder->c_RAM_addr_update[4] = 0x30000000;  // HL1.R1
-	Encoder->c_RAM_addr_update[5] = 0x34000000;  // HL1.G1
-	Encoder->c_RAM_addr_update[6] = 0x38000000;  // HL1.G2
-	Encoder->c_RAM_addr_update[7] = 0x3C000000;  // HL1.B1
-	Encoder->c_RAM_addr_update[8] = 0x40000000;  // LH1.R1
-	Encoder->c_RAM_addr_update[9] = 0x44000000;  // LH1.G1
-	Encoder->c_RAM_addr_update[10] = 0x48000000; // LH1.G2
-	Encoder->c_RAM_addr_update[11] = 0x4C000000; // LH1.B1
-	Encoder->c_RAM_addr_update[12] = 0x50000000; // HH2
-	Encoder->c_RAM_addr_update[13] = 0x58000000; // HL2
-	Encoder->c_RAM_addr_update[14] = 0x60000000; // LH2
-	Encoder->c_RAM_addr_update[15] = 0x68000000; // XX3
+	u16 csFlags = 0x0000;
+
+	for(int iCS = 0; iCS < 16; iCS++)
+	{
+		if(Encoder->c_RAM_addr[iCS] > csFullAddr[iCS])
+		{
+			csFlags |= (1 << iCS);
+		}
+	}
+
+	if(csFlags)
+	{
+		encoderResetRAMAddr(csFlags);
+	}
+}
+
+// Private Function Definitions ----------------------------------------------------------------------------------------
+
+void encoderResetRAMAddr(u16 csFlags)
+{
+	for(int iCS = 0; iCS < 16; iCS++)
+	{
+		if(csFlags & (1 << iCS))
+		{
+			Encoder->c_RAM_addr_update[iCS] = csBaseAddr[iCS];
+		}
+		else
+		{
+			Encoder->c_RAM_addr_update[iCS] = Encoder->c_RAM_addr[iCS];
+		}
+	}
 
 	Encoder->control_q_mult_LL3 |= ENC_CTRL_C_RAM_ADDR_UPDATE_REQUEST;
 	while((Encoder->control_q_mult_LL3 & ENC_CTRL_C_RAM_ADDR_UPDATE_COMPLETE) == 0);
 	Encoder->control_q_mult_LL3 &= ~ENC_CTRL_C_RAM_ADDR_UPDATE_REQUEST;
 }
-
-// Private Function Definitions ----------------------------------------------------------------------------------------

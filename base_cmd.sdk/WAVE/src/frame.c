@@ -115,7 +115,7 @@ void isrFOT(void * CallbackRef)
 		fhBuffer[iFramePrev].szCodeStream[iCS] = Encoder->c_RAM_addr[iCS] - fhBuffer[iFramePrev].addrCodeStream[iCS];
 	}
 
-	// TO-DO: Right here is where a code stream address reset should be issued!
+	encoderCheckRAMAddr();	// Roll over Encoder RAM write addresses for any code streams that are full.
 
 	nFramesIn++;
 
