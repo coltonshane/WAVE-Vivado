@@ -37,6 +37,8 @@
 #include "usb.h"
 #include "pcie.h"
 #include "nvme.h"
+#include "fs.h"
+#include "frame.h"
 #include "encoder.h"
 
 #include "xscugic.h"
@@ -67,7 +69,6 @@ int main()
     xil_printf("WAVE HELLO!\r\n");
     cmvInit();
     encoderInit();
-    usbInit();
     pcieInit();
 
     // NVMe initialize and status check.
@@ -86,6 +87,10 @@ int main()
     	}
     }
 
+    usleep(1000);
+    fsFormat();
+    fsCreateClip();
+
     // Configure and enable FOT interrupt.
     gicConfig = XScuGic_LookupConfig(INTC_DEVICE_ID);
     XScuGic_CfgInitialize(&Gic, gicConfig, gicConfig->CpuBaseAddress);
@@ -95,11 +100,14 @@ int main()
     XScuGic_Enable(&Gic, 124);
 
     usleep(1000);
+    usbInit();
 
     // Main loop.
     while(!triggerShutdown)
     {
     	usbPoll();
+    	frameRecord();
+
     	while(requestFrames)
     	{
     		// Toggle the frame request pin.
@@ -116,6 +124,7 @@ int main()
     	}
     }
 
+    fsDeinit();
     cleanup_platform();
     return 0;
 }

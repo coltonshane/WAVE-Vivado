@@ -191,7 +191,7 @@ void cmvInit(void)
 	CMV_Settings.Exp_kp2 = 8;
 	CMV_Settings.Vtfl = 84 * 128 + 104;
 	CMV_Settings.Number_slopes = 1;
-	CMV_Settings.Number_frames = 128;
+	CMV_Settings.Number_frames = 16;
 	cmvUpdateSettings();
 
 	// cmvRegWrite(&Spi0, CMV_REG_ADDR_TEST_PATTERN, CMV_REG_VAL_TEST_PATTERN_ON);

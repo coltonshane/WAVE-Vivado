@@ -1,5 +1,5 @@
 /*
-WAVE Frame Management Include
+WAVE File System Wrapper Include
 
 Copyright (C) 2019 by Shane W. Colton
 
@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef __FRAME_INCLUDE__
-#define __FRAME_INCLUDE__
+#ifndef __FS_INCLUDE__
+#define __FS_INCLUDE__
 
 // Include Headers -----------------------------------------------------------------------------------------------------
 
@@ -35,7 +35,12 @@ THE SOFTWARE.
 
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
-void frameRecord(void);
+void fsInit(void);
+void fsFormat(void);
+void fsCreateClip(void);
+void fsCreateFile(void);
+void fsWriteFile(u64 srcAddress, u32 size);
+void fsDeinit(void);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
 
