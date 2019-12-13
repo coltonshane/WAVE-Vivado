@@ -76,7 +76,7 @@ void encoderInit(void)
 	encoderResetRAMAddr(0xFFFF);
 }
 
-void encoderCheckRAMAddr(void)
+void encoderServiceRAMAddr(void)
 {
 	u16 csFlags = 0x0000;
 

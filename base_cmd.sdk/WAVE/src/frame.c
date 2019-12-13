@@ -57,8 +57,8 @@ typedef struct __attribute__((packed))
 	u32 q_mult_LL3;				// Stage 3 LPF quantizer setting.
 
 	// Code Stream Address and Size [128B]
-	u32 addrCodeStream[16];		// Code Stream addresses in [B].
-	u32 szCodeStream[16];		// Code Stream sizes [B].
+	u32 csAddr[16];				// Codestream addresses in [B].
+	u32 csSize[16];				// Codestream sizes [B].
 
 	// Padding [320B]
 	u8 reserved1[320];
@@ -72,52 +72,71 @@ typedef struct __attribute__((packed))
 
 // Frame header circular buffer in external DDR4 RAM.
 FrameHeader_s * fhBuffer = (FrameHeader_s *) (0x10000000);
-u32 nFramesIn = 0;
-u32 nFramesOut = 0;
+s32 nFramesIn = -1;
+s32 nFramesOut = 0;
 
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 
+/*
+Frame Overhead Time (FOT) Interrupt Service Routine
+- Interrupt flag set by rising edge of FOT bit signal on the CMV12000 control channel.
+- Interrupt flag cleared by software.
+- Constructs frame headers in an external DDR4 buffer. DDR4 access does not compete with frame read-in if
+  the ISR returns before the end of the FOT period, which lasts about 20-30us.
+*/
 void isrFOT(void * CallbackRef)
 {
 	XTime tFrameIn;
-	u32 iFrameIn = nFramesIn % FH_BUFFER_SIZE;
-	u32 iFramePrev = (nFramesIn - 1) % FH_BUFFER_SIZE;
+	u32 iFrameIn;
 
 	XGpioPs_WritePin(&Gpio, T_EXP1_PIN, 1);		// Mark ISR entry.
 	CMV_Input->FOT_int = 0x00000000;			// Clear the FOT interrupt flag.
 
+	// Record codestream size for the just-captured frame (if one exists).
+	if(nFramesIn >= 0)
+	{
+		iFrameIn = nFramesIn % FH_BUFFER_SIZE;
+		for(int iCS = 0; iCS < 16; iCS++)
+		{
+			fhBuffer[iFrameIn].csSize[iCS] = Encoder->c_RAM_addr[iCS] - fhBuffer[iFrameIn].csAddr[iCS];
+		}
+	}
+
+	// Check codestream RAM addresses for full threshold and roll over as necessary.
+	// - Must be called AFTER recording codestream size for the just-captured frame.
+	// - Must be called BEFORE recording codestream start addresses for the upcoming frame.
+	// - Must return BEFORE the end of the FOT period and the start of frame read-in.
+	encoderServiceRAMAddr();
+
+	// Increment the input frame counter.
+	nFramesIn++;
+	iFrameIn = nFramesIn % FH_BUFFER_SIZE;
+
 	// Wipe old data.
 	memset(&fhBuffer[iFrameIn], 0, 512);
 
-	// Time and index stamp the frame.
+	// Time and index stamp the upcoming frame.
 	XTime_GetTime(&tFrameIn);
 	fhBuffer[iFrameIn].tFrameRead_us = tFrameIn / (COUNTS_PER_SECOND / 1000000);
 	fhBuffer[iFrameIn].nFrame = nFramesIn;
 
-	// Frame delimeter and info.
+	// Frame delimeter and info for the upcoming frame.
 	memcpy(fhBuffer[iFrameIn].delimeter, "WAVE HELLO!\n",12);
 	fhBuffer[iFrameIn].wFrame = 4096;
 	fhBuffer[iFrameIn].hFrame = 3072;
 
-	// Quantizer settings.
+	// Quantizer settings for the upcoming frame.
 	// TO-DO: Right here is where the quantizer settings should be modified to hit bit rate target!
 	fhBuffer[iFrameIn].q_mult_HH1_HL1_LH1 = Encoder->q_mult_HH1_HL1_LH1;
 	fhBuffer[iFrameIn].q_mult_HH2_HL2_LH2 = Encoder->q_mult_HH2_HL2_LH2;
 	fhBuffer[iFrameIn].q_mult_HH3_HL3_LH3 = Encoder->q_mult_HH3_HL3_LH3;
 	fhBuffer[iFrameIn].q_mult_LL3 = (Encoder->control_q_mult_LL3) & 0xFFFF;
 
+	// Codestream start addresses for the upcoming frame.
 	for(int iCS = 0; iCS < 16; iCS++)
 	{
-		// Code stream start addresses for this frame from the encoder.
-		fhBuffer[iFrameIn].addrCodeStream[iCS] = Encoder->c_RAM_addr[iCS];
-
-		// Code stream size for previous frame.
-		fhBuffer[iFramePrev].szCodeStream[iCS] = Encoder->c_RAM_addr[iCS] - fhBuffer[iFramePrev].addrCodeStream[iCS];
+		fhBuffer[iFrameIn].csAddr[iCS] = Encoder->c_RAM_addr[iCS];
 	}
-
-	encoderCheckRAMAddr();	// Roll over Encoder RAM write addresses for any code streams that are full.
-
-	nFramesIn++;
 
 	XGpioPs_WritePin(&Gpio, T_EXP1_PIN, 0);		// Mark ISR exit.
 }
