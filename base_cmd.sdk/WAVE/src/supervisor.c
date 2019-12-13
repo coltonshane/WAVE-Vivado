@@ -39,6 +39,7 @@ THE SOFTWARE.
 #define SUPERVISOR_COMMAND_EN_3V3SSD 0x01
 #define SUPERVISOR_COMMAND_EN_CMV 0x02
 #define SUPERVISOR_REPLY_ENPG_CMV 0x0E
+#define SUPERVISOR_REPLY_ENPG_SSD 0x01
 
 // Private Type Definitions --------------------------------------------------------------------------------------------
 
@@ -53,6 +54,8 @@ XUartPs Uart1;
 
 XUartPs_Config *uart0Config;
 XUartPs_Config *uart1Config;
+
+u8 supervisor_command_en = 0;
 
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 
@@ -71,14 +74,16 @@ void supervisorInit()
 	XUartPs_SetBaudRate(&Uart1, 115200);
 }
 
-int supervisorEnableCMVPower()
+int supervisorEnableCMVPower(void)
 {
 	u8 cmvPowerReady = 0x00;
 	u8 uart1Reply = 0x00;
 
+	supervisor_command_en |= SUPERVISOR_COMMAND_EN_CMV;
+
 	while(!cmvPowerReady)
 	{
-	   	XUartPs_SendByte(uart1Config->BaseAddress, SUPERVISOR_PREFIX_COMMAND | SUPERVISOR_COMMAND_EN_CMV);
+	   	XUartPs_SendByte(uart1Config->BaseAddress, SUPERVISOR_PREFIX_COMMAND | supervisor_command_en);
 	   	usleep(10000);
 	   	uart1Reply = XUartPs_RecvByte(uart1Config->BaseAddress);
 	   	if((uart1Reply & SUPERVISOR_PREFIX_MASK) == SUPERVISOR_PREFIX_REPLY)
@@ -88,6 +93,32 @@ int supervisorEnableCMVPower()
 	   		{
 	   			// EN_CMV, PG_3V9, and PG_VDD18 are all set. Okay to proceed.
 	   			cmvPowerReady = 0x01;
+	   		}
+	   	}
+	}
+
+	return SUPERVISOR_OK;
+}
+
+int supervisorEnableSSDPower(void)
+{
+	u8 ssdPowerReady = 0x00;
+	u8 uart1Reply = 0x00;
+
+	supervisor_command_en |= SUPERVISOR_COMMAND_EN_3V3SSD;
+
+	while(!ssdPowerReady)
+	{
+	   	XUartPs_SendByte(uart1Config->BaseAddress, SUPERVISOR_PREFIX_COMMAND | supervisor_command_en);
+	   	usleep(10000);
+	   	uart1Reply = XUartPs_RecvByte(uart1Config->BaseAddress);
+	   	if((uart1Reply & SUPERVISOR_PREFIX_MASK) == SUPERVISOR_PREFIX_REPLY)
+	   	{
+	   		// Reply prefix is valid, check EN and PG flags.
+	   		if((uart1Reply & SUPERVISOR_REPLY_ENPG_SSD) == SUPERVISOR_REPLY_ENPG_SSD)
+	   		{
+	   			// EN_CMV, PG_3V9, and PG_VDD18 are all set. Okay to proceed.
+	   			ssdPowerReady = 0x01;
 	   		}
 	   	}
 	}

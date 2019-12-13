@@ -31,7 +31,9 @@ THE SOFTWARE.
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
-#define MEMORY_SIZE (64U * 1024U)
+// TO-DO: What even is this? It gets passed to a dead-end function. Redefining to minimal size.
+// #define MEMORY_SIZE (64U * 1024U)
+#define MEMORY_SIZE 64U
 
 // Private Type Definitions --------------------------------------------------------------------------------------------
 

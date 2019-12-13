@@ -35,9 +35,12 @@
 #include "supervisor.h"
 #include "cmv12000.h"
 #include "usb.h"
+#include "pcie.h"
+#include "nvme.h"
 #include "encoder.h"
 
 #include "xscugic.h"
+#include "xil_cache.h"
 
 #define INTC_DEVICE_ID XPAR_SCUGIC_0_DEVICE_ID
 
@@ -52,16 +55,36 @@ u32 updateCMVRegs = 0;
 int main()
 {
 	XScuGic_Config *gicConfig;
+	u32 nvmeStatus;
+	char strResult[128];
 
     init_platform();
-    print("Hello World\n\r");
+    Xil_DCacheDisable();
 
     // Configure peripherals.
     gpioInit();
     supervisorInit();
+    xil_printf("WAVE HELLO!\r\n");
     cmvInit();
     encoderInit();
     usbInit();
+    pcieInit();
+
+    // NVMe initialize and status check.
+    nvmeStatus = nvmeInit();
+    if (nvmeStatus == NVME_OK)
+    {
+    	xil_printf("NVMe initialization successful. PCIe link is Gen3 x4.\r\n");
+    }
+    else
+    {
+    	sprintf(strResult, "NVMe driver failed to initialize. Error Code: %8x\r\n", nvmeStatus);
+    	xil_printf(strResult);
+    	if(nvmeStatus == NVME_ERROR_PHY)
+    	{
+    		xil_printf("PCIe link must be Gen3 x4.\r\n");
+    	}
+    }
 
     // Configure and enable FOT interrupt.
     gicConfig = XScuGic_LookupConfig(INTC_DEVICE_ID);

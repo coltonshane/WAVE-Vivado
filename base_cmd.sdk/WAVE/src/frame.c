@@ -71,7 +71,7 @@ typedef struct __attribute__((packed))
 // Private Global Variables --------------------------------------------------------------------------------------------
 
 // Frame header circular buffer in external DDR4 RAM.
-FrameHeader_s * fhBuffer = (FrameHeader_s *) (0x10000000);
+FrameHeader_s * fhBuffer = (FrameHeader_s *) (0x18000000);
 s32 nFramesIn = -1;
 s32 nFramesOut = 0;
 

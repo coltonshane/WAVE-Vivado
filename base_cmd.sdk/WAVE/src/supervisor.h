@@ -40,6 +40,7 @@ THE SOFTWARE.
 
 void supervisorInit(void);
 int supervisorEnableCMVPower(void);
+int supervisorEnableSSDPower(void);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
 
