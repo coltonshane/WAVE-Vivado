@@ -182,7 +182,7 @@ int nvmeWrite(const u8 * srcByte, u64 destLBA, u32 numLBA)
 	int nLBA = numLBA;
 	int nPRP;
 	int offset;
-	u64 * prpList = prpListHeap + (u64)((io_cid & IOSQ_SIZE) * DDR_PAGE_SIZE);
+	u64 * prpList = prpListHeap + ((io_cid & IOSQ_SIZE) * (DDR_PAGE_SIZE >> 3));
 
 	if ((u64) srcByte & 0x3) { return 1; } 	// Must be DWORD-aligned!
 
@@ -210,7 +210,7 @@ int nvmeWrite(const u8 * srcByte, u64 destLBA, u32 numLBA)
 		{
 			// 2 or more PRPs remaining, use a list.
 			sqe.PRP2 = (u64) prpList;
-			for(int p = 1; p < nPRP; p++)
+			for(int p = 1; p <= nPRP; p++)
 			{
 				prpList[p-1] = (u64)(srcByte + (p << DDR_PAGE_EXP));
 			}
@@ -249,7 +249,7 @@ int nvmeRead(u8 * destByte, u64 srcLBA, u32 numLBA)
 	int nLBA = numLBA;
 	int nPRP;
 	int offset;
-	u64 * prpList = prpListHeap + (u64)((io_cid & IOSQ_SIZE) * DDR_PAGE_SIZE);
+	u64 * prpList = prpListHeap + ((io_cid & IOSQ_SIZE) * (DDR_PAGE_SIZE >> 3));
 
 	if ((u64) destByte & 0x3) { return 1; } 	// Must be DWORD-aligned!
 
@@ -277,7 +277,7 @@ int nvmeRead(u8 * destByte, u64 srcLBA, u32 numLBA)
 		{
 			// 2 or more PRPs remaining, use a list.
 			sqe.PRP2 = (u64) prpList;
-			for(int p = 1; p < nPRP; p++)
+			for(int p = 1; p <= nPRP; p++)
 			{
 				prpList[p-1] = (u64)(destByte + (p << DDR_PAGE_EXP));
 			}
