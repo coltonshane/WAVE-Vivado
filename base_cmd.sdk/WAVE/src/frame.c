@@ -156,7 +156,7 @@ void frameRecord()
 
 	if(nFramesOut + 3 < nFramesIn)
 	{
-		// XGpioPs_WritePin(&Gpio, T_EXP1_PIN, 1);		// Mark frame recorder entry.
+		XGpioPs_WritePin(&Gpio, T_EXP1_PIN, 1);		// Mark frame recorder entry.
 
 		// Fill in write-time frame header data.
 		XTime_GetTime(&tFrameOut);
@@ -171,21 +171,17 @@ void frameRecord()
 		if((nFramesOut % FRAMES_PER_FILE) == 0) { fsCreateFile(); }
 
 		// Write frame header.
-		XGpioPs_WritePin(&Gpio, T_EXP1_PIN, 1);
 		fsWriteFile((u64)(&fhBuffer[iFrameOut]), 512);
-		XGpioPs_WritePin(&Gpio, T_EXP1_PIN, 0);
 
 		// Write codestream data.
 		for(int iCS = 0; iCS < 16; iCS++)
 		{
-			// XGpioPs_WritePin(&Gpio, T_EXP1_PIN, 1);
-			// fsWriteFile((u64) csAddrBuffer[iCS], csSizeBuffer[iCS]);
-			// XGpioPs_WritePin(&Gpio, T_EXP1_PIN, 0);
+			fsWriteFile((u64) csAddrBuffer[iCS], csSizeBuffer[iCS]);
 		}
 
 		nFramesOut++;
 
-		// XGpioPs_WritePin(&Gpio, T_EXP1_PIN, 0);		// Mark frame recorder exit.
+		XGpioPs_WritePin(&Gpio, T_EXP1_PIN, 0);		// Mark frame recorder exit.
 	}
 }
 
