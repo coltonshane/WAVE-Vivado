@@ -35,7 +35,7 @@ THE SOFTWARE.
 
 #define FH_BUFFER_SIZE 1024
 #define FRAME_LB_EXP 9
-#define FRAMES_PER_FILE 32
+#define FRAMES_PER_FILE 240
 
 // Private Type Definitions --------------------------------------------------------------------------------------------
 

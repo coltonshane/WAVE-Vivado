@@ -53,6 +53,8 @@ XScuGic Gic;
 u32 triggerShutdown = 0;
 u32 requestFrames = 0;
 u32 updateCMVRegs = 0;
+u32 formatFileSystem = 0;
+u32 closeFileSystem = 0;
 
 int main()
 {
@@ -88,8 +90,6 @@ int main()
     }
 
     usleep(1000);
-    fsFormat();
-    fsCreateClip();
 
     // Configure and enable FOT interrupt.
     gicConfig = XScuGic_LookupConfig(INTC_DEVICE_ID);
@@ -121,6 +121,19 @@ int main()
     	{
     		updateCMVRegs = 0;
     	    cmvUpdateSettings();
+    	}
+
+    	if(formatFileSystem)
+    	{
+    		formatFileSystem = 0;
+    		fsFormat();
+    		fsCreateClip();
+    	}
+
+    	if(closeFileSystem)
+    	{
+    		closeFileSystem = 0;
+    		fsDeinit();
     	}
     }
 
