@@ -84,7 +84,7 @@ extern "C" {
 #define VFLASH_SIZE			0x60000000	/* 1.5GiB space */
 #endif
 #define VFLASH_BLOCK_SIZE	0x200
-#define VFLASH_NUM_BLOCKS	(VFLASH_SIZE/VFLASH_BLOCK_SIZE)
+#define VFLASH_NUM_BLOCKS	1953405824 // (VFLASH_SIZE/VFLASH_BLOCK_SIZE)
 
 /* Class request opcodes.
  */

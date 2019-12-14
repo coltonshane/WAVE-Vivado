@@ -54,6 +54,7 @@
 #include "xusb_class_storage.h"
 #include "xparameters.h"
 #include "xusb_ch9_storage.h"
+#include "nvme.h"
 
 /************************** Constant Definitions *****************************/
 
@@ -95,7 +96,7 @@ const static SCSI_INQUIRY scsiInquiry[] ALIGNMENT_CACHELINE = {
 	},
 	{
 		0x00,
-		0x80,
+		0x00, // 0x80,
 		0x02,
 		0x02,
 		0x1F,
@@ -245,9 +246,20 @@ void ParseCBW(struct Usb_DevData *InstancePtr)
 		printf("SCSI: READ Offset 0x%08x\r\n", Offset);
 #endif
 
+		// NVMe Bridge Read Test
+		// ----------------------------------------------------------------------------
+		u32 Length = htons(((SCSI_READ_WRITE *) &CBW.CBWCB)->length) * VFLASH_BLOCK_SIZE;
+		nvmeRead((u8 *) 0x70000000, Offset >> 9, Length >> 9);
+		while(nvmeGetIOSlip() > 0)
+		{
+			nvmeServiceIOCompletions(16);
+		}
+		// ----------------------------------------------------------------------------
+
 		Phase = USB_EP_STATE_DATA_IN;
 		u32 RetVal = EpBufferSend(InstancePtr->PrivateData, 1,
-						&VirtFlash[Offset],
+						// &VirtFlash[Offset],
+						(u8 *)(0x70000000),
 						htons(((SCSI_READ_WRITE *) &CBW.CBWCB)->
 							 length) * VFLASH_BLOCK_SIZE);
 		if (RetVal != XST_SUCCESS) {
