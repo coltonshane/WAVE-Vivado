@@ -205,7 +205,7 @@ int nvmeWrite(const u8 * srcByte, u64 destLBA, u32 numLBA)
 		// Move the source pointer to its page boundary.
 		srcByte -= (u64) offset;
 
-		nPRP = (nLBA >> (DDR_PAGE_EXP - lba_exp)) + 1;
+		nPRP = ((nLBA - 1) >> (DDR_PAGE_EXP - lba_exp)) + 1;
 		if(nPRP > 1)
 		{
 			// 2 or more PRPs remaining, use a list.
@@ -272,7 +272,7 @@ int nvmeRead(u8 * destByte, u64 srcLBA, u32 numLBA)
 		// Move the destination pointer to its page boundary.
 		destByte -= (u64) offset;
 
-		nPRP = (nLBA >> (DDR_PAGE_EXP - lba_exp)) + 1;
+		nPRP = ((nLBA - 1) >> (DDR_PAGE_EXP - lba_exp)) + 1;
 		if(nPRP > 1)
 		{
 			// 2 or more PRPs remaining, use a list.
