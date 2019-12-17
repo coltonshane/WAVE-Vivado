@@ -37,6 +37,8 @@ THE SOFTWARE.
 #define FRAME_LB_EXP 9
 #define FRAMES_PER_FILE 240
 
+#define US_PER_COUNT 1000 / (COUNTS_PER_SECOND / 1000)
+
 // Private Type Definitions --------------------------------------------------------------------------------------------
 
 // 512B Frame Header Structure
@@ -60,7 +62,7 @@ typedef struct __attribute__((packed))
 	u32 q_mult_HH3_HL3_LH3;		// Stage 3 quantizer settings.
 	u32 q_mult_LL3;				// Stage 3 LPF quantizer setting.
 
-	// Code Stream Address and Size [128B]
+	// Codestream Address and Size [128B]
 	u32 csAddr[16];				// Codestream addresses in [B].
 	u32 csSize[16];				// Codestream sizes [B].
 
@@ -69,6 +71,8 @@ typedef struct __attribute__((packed))
 } FrameHeader_s;
 
 // Private Function Prototypes -----------------------------------------------------------------------------------------
+
+void frameRecord(void);
 
 // Public Global Variables ---------------------------------------------------------------------------------------------
 
@@ -90,27 +94,29 @@ Frame Overhead Time (FOT) Interrupt Service Routine
 */
 void isrFOT(void * CallbackRef)
 {
+	Encoder_s Encoder_prev, Encoder_next;
 	XTime tFrameIn;
 	u32 iFrameIn;
 
-	// XGpioPs_WritePin(&Gpio, T_EXP1_PIN, 1);		// Mark ISR entry.
+	XGpioPs_WritePin(&Gpio, T_EXP1_PIN, 1);		// Mark ISR entry.
 	CMV_Input->FOT_int = 0x00000000;			// Clear the FOT interrupt flag.
 
-	// Record codestream size for the just-captured frame (if one exists).
+	// Time-critical Encoder access. Must complete before end of FOT.
+	memcpy(&Encoder_prev, Encoder, sizeof(Encoder_s));
+	encoderServiceRAMAddr(&Encoder_prev);
+	memcpy(&Encoder_next, Encoder, sizeof(Encoder_s));
+	XGpioPs_WritePin(&Gpio, T_EXP1_PIN, 0);
+
+	// Record information for the just-captured frame (if one exists).
 	if(nFramesIn >= 0)
 	{
 		iFrameIn = nFramesIn % FH_BUFFER_SIZE;
 		for(int iCS = 0; iCS < 16; iCS++)
 		{
-			fhBuffer[iFrameIn].csSize[iCS] = Encoder->c_RAM_addr[iCS] - fhBuffer[iFrameIn].csAddr[iCS];
+			// Codestream size.
+			fhBuffer[iFrameIn].csSize[iCS] = Encoder_prev.c_RAM_addr[iCS] - fhBuffer[iFrameIn].csAddr[iCS];
 		}
 	}
-
-	// Check codestream RAM addresses for full threshold and roll over as necessary.
-	// - Must be called AFTER recording codestream size for the just-captured frame.
-	// - Must be called BEFORE recording codestream start addresses for the upcoming frame.
-	// - Must return BEFORE the end of the FOT period and the start of frame read-in.
-	encoderServiceRAMAddr();
 
 	// Increment the input frame counter.
 	nFramesIn++;
@@ -121,7 +127,7 @@ void isrFOT(void * CallbackRef)
 
 	// Time and index stamp the upcoming frame.
 	XTime_GetTime(&tFrameIn);
-	fhBuffer[iFrameIn].tFrameRead_us = tFrameIn / (COUNTS_PER_SECOND / 1000000);
+	fhBuffer[iFrameIn].tFrameRead_us = tFrameIn * US_PER_COUNT;
 	fhBuffer[iFrameIn].nFrame = nFramesIn;
 
 	// Frame delimeter and info for the upcoming frame.
@@ -131,21 +137,29 @@ void isrFOT(void * CallbackRef)
 
 	// Quantizer settings for the upcoming frame.
 	// TO-DO: Right here is where the quantizer settings should be modified to hit bit rate target!
-	fhBuffer[iFrameIn].q_mult_HH1_HL1_LH1 = Encoder->q_mult_HH1_HL1_LH1;
-	fhBuffer[iFrameIn].q_mult_HH2_HL2_LH2 = Encoder->q_mult_HH2_HL2_LH2;
-	fhBuffer[iFrameIn].q_mult_HH3_HL3_LH3 = Encoder->q_mult_HH3_HL3_LH3;
-	fhBuffer[iFrameIn].q_mult_LL3 = (Encoder->control_q_mult_LL3) & 0xFFFF;
+	fhBuffer[iFrameIn].q_mult_HH1_HL1_LH1 = Encoder_next.q_mult_HH1_HL1_LH1;
+	fhBuffer[iFrameIn].q_mult_HH2_HL2_LH2 = Encoder_next.q_mult_HH2_HL2_LH2;
+	fhBuffer[iFrameIn].q_mult_HH3_HL3_LH3 = Encoder_next.q_mult_HH3_HL3_LH3;
+	fhBuffer[iFrameIn].q_mult_LL3 = (Encoder_next.control_q_mult_LL3) & 0xFFFF;
 
 	// Codestream start addresses for the upcoming frame.
 	for(int iCS = 0; iCS < 16; iCS++)
 	{
-		fhBuffer[iFrameIn].csAddr[iCS] = Encoder->c_RAM_addr[iCS];
+		fhBuffer[iFrameIn].csAddr[iCS] = Encoder_next.c_RAM_addr[iCS];
 	}
 
-	// XGpioPs_WritePin(&Gpio, T_EXP1_PIN, 0);		// Mark ISR exit.
+	XGpioPs_WritePin(&Gpio, T_EXP1_PIN, 0);		// Mark ISR exit.
 }
 
 // Public Function Definitions -----------------------------------------------------------------------------------------
+
+void frameService(void)
+{
+	// Record.
+	if(nFramesOut + 3 < nFramesIn) { frameRecord(); }
+}
+
+// Private Function Definitions ----------------------------------------------------------------------------------------
 
 void frameRecord()
 {
@@ -154,35 +168,31 @@ void frameRecord()
 	u32 csAddrBuffer[16];
 	u32 csSizeBuffer[16];
 
-	if(nFramesOut + 3 < nFramesIn)
+	// XGpioPs_WritePin(&Gpio, T_EXP1_PIN, 1);		// Mark frame recorder entry.
+
+	// Fill in write-time frame header data.
+	XTime_GetTime(&tFrameOut);
+	iFrameOut = nFramesOut % FH_BUFFER_SIZE;
+	fhBuffer[iFrameOut].nFrameBacklog = nFramesIn - nFramesOut;
+	fhBuffer[iFrameOut].tFrameWrite_us = tFrameOut * US_PER_COUNT;
+
+	// Copy the codestream addresses and sizes once to minimize DDR access.
+	memcpy(csAddrBuffer, fhBuffer[iFrameOut].csAddr, 16 * sizeof(u32));
+	memcpy(csSizeBuffer, fhBuffer[iFrameOut].csSize, 16 * sizeof(u32));
+
+	if((nFramesOut % FRAMES_PER_FILE) == 0) { fsCreateFile(); }
+
+	// Write frame header.
+	fsWriteFile((u64)(&fhBuffer[iFrameOut]), 512);
+
+	// Write codestream data.
+	for(int iCS = 0; iCS < 16; iCS++)
 	{
-		XGpioPs_WritePin(&Gpio, T_EXP1_PIN, 1);		// Mark frame recorder entry.
-
-		// Fill in write-time frame header data.
-		XTime_GetTime(&tFrameOut);
-		iFrameOut = nFramesOut % FH_BUFFER_SIZE;
-		fhBuffer[iFrameOut].nFrameBacklog = nFramesIn - nFramesOut;
-		fhBuffer[iFrameOut].tFrameWrite_us = tFrameOut;
-
-		// Copy the codestream addresses and sizes once to minimize DDR access.
-		memcpy(csAddrBuffer, fhBuffer[iFrameOut].csAddr, 16 * sizeof(u32));
-		memcpy(csSizeBuffer, fhBuffer[iFrameOut].csSize, 16 * sizeof(u32));
-
-		if((nFramesOut % FRAMES_PER_FILE) == 0) { fsCreateFile(); }
-
-		// Write frame header.
-		fsWriteFile((u64)(&fhBuffer[iFrameOut]), 512);
-
-		// Write codestream data.
-		for(int iCS = 0; iCS < 16; iCS++)
-		{
-			fsWriteFile((u64) csAddrBuffer[iCS], csSizeBuffer[iCS]);
-		}
-
-		nFramesOut++;
-
-		XGpioPs_WritePin(&Gpio, T_EXP1_PIN, 0);		// Mark frame recorder exit.
+		fsWriteFile((u64) csAddrBuffer[iCS], csSizeBuffer[iCS]);
 	}
+
+	nFramesOut++;
+
+	// XGpioPs_WritePin(&Gpio, T_EXP1_PIN, 0);		// Mark frame recorder exit.
 }
 
-// Private Function Definitions ----------------------------------------------------------------------------------------

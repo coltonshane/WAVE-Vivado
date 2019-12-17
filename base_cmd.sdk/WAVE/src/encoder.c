@@ -36,7 +36,7 @@ THE SOFTWARE.
 
 // Private Function Prototypes -----------------------------------------------------------------------------------------
 
-void encoderResetRAMAddr(u16 csFlags);
+void encoderResetRAMAddr(Encoder_s * Encoder_local, u16 csFlags);
 
 // Public Global Variables ---------------------------------------------------------------------------------------------
 
@@ -66,16 +66,16 @@ void encoderInit(void)
 	Encoder->q_mult_HH3_HL3_LH3 = 0x00400040;
 	Encoder->control_q_mult_LL3 = ENC_CTRL_M00_AXI_ARM | 0x00000100;
 
-	encoderResetRAMAddr(0xFFFF);
+	encoderResetRAMAddr(Encoder, 0xFFFF);
 }
 
-void encoderServiceRAMAddr(void)
+void encoderServiceRAMAddr(Encoder_s * Encoder_snapshot)
 {
 	u16 csFlags = 0x0000;
 
 	for(int iCS = 0; iCS < 16; iCS++)
 	{
-		if(Encoder->c_RAM_addr[iCS] > csFullAddr[iCS])
+		if(Encoder_snapshot->c_RAM_addr[iCS] > csFullAddr[iCS])
 		{
 			csFlags |= (1 << iCS);
 		}
@@ -83,13 +83,13 @@ void encoderServiceRAMAddr(void)
 
 	if(csFlags)
 	{
-		encoderResetRAMAddr(csFlags);
+		encoderResetRAMAddr(Encoder_snapshot, csFlags);
 	}
 }
 
 // Private Function Definitions ----------------------------------------------------------------------------------------
 
-void encoderResetRAMAddr(u16 csFlags)
+void encoderResetRAMAddr(Encoder_s * Encoder_snapshot, u16 csFlags)
 {
 	for(int iCS = 0; iCS < 16; iCS++)
 	{
@@ -99,7 +99,7 @@ void encoderResetRAMAddr(u16 csFlags)
 		}
 		else
 		{
-			Encoder->c_RAM_addr_update[iCS] = Encoder->c_RAM_addr[iCS];
+			Encoder->c_RAM_addr_update[iCS] = Encoder_snapshot->c_RAM_addr[iCS];
 		}
 	}
 

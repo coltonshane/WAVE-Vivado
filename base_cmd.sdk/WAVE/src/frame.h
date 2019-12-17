@@ -35,7 +35,7 @@ THE SOFTWARE.
 
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
-void frameRecord(void);
+void frameService(void);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
 

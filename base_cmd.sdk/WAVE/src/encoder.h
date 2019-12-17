@@ -47,7 +47,7 @@ typedef struct __attribute__((packed))
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
 void encoderInit(void);
-void encoderServiceRAMAddr(void);
+void encoderServiceRAMAddr(Encoder_s * Encoder_snapshot);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
 
