@@ -31,4 +31,4 @@ base_cmd.srcs/sources_1/**/xgui
 base_cmd.vitis/.metadata
 base_cmd.vitis/RemoteSystemsTempFiles
 base_cmd.vitis/*platform*
-base_cmd.visit/*system*
+base_cmd.vitis/*system*
