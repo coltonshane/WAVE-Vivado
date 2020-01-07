@@ -3,8 +3,17 @@
 *.xml
 *.cproject
 *.project
+*.prj
+*.sprj
 *.hdf
 *.dcp
+*.analytics
+*.bit
+*.xsa
+
+*psu_init*
+
+drivers
 
 base_cmd.cache
 base_cmd.hw
@@ -12,16 +21,14 @@ base_cmd.ip_user_files
 base_cmd.runs
 base_cmd.sim
 base_cmd.tmp
+base_cmd.sdk
 
 base_cmd.srcs/sources_1/**/bd
 base_cmd.srcs/sources_1/**/drivers
 base_cmd.srcs/sources_1/**/example_designs
 base_cmd.srcs/sources_1/**/xgui
 
-base_cmd.sdk/.metadata
-base_cmd.sdk/.sdk
-base_cmd.sdk/*hw_platform*
-base_cmd.sdk/*TempFiles*
-base_cmd.sdk/*bsp*
-base_cmd.sdk/webtalk
-base_cmd.sdk/**/Debug
+base_cmd.vitis/.metadata
+base_cmd.vitis/RemoteSystemsTempFiles
+base_cmd.vitis/*platform*
+base_cmd.visit/*system*
