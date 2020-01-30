@@ -10,10 +10,10 @@ wavelet stage (LL1). Control and configuration is done through an AXI-Lite slave
 */
 
 // Color field enumeration.
-`define COLOR_R1 2'b00
-`define COLOR_G1 2'b01
-`define COLOR_G2 2'b10
-`define COLOR_B1 2'b11
+`define COLOR_G1 2'b00
+`define COLOR_R1 2'b01
+`define COLOR_B1 2'b10
+`define COLOR_G2 2'b11
 
 module Wavelet_S1_v1_0 #
 (
@@ -127,9 +127,11 @@ assign px_idx = px_count[6:0];
 
 // Extract pixel data array from concatenated input.
 wire [9:0] px_data [63:0];
-for(i = 0; i < 64; i = i + 1)
+for(i = 0; i < 32; i = i + 1)
 begin
-    assign px_data[i] = px_chXX_concat[10*i+:10];
+    // Channel-level X-flip to go along with CMV12000 pixel-level X-flip. 
+    assign px_data[31-i] = px_chXX_concat[10*i+:10];        // G1 and R1 row.
+    assign px_data[63-i] = px_chXX_concat[10*(32+i)+:10];   // B1 and G2 row.
 end
 
 // Declare I/O arrays for the horizontal wavelet cores.
@@ -198,7 +200,7 @@ generate
 for (i = 0; i < 32; i = i + 1)
 begin : dwt26_h1_array
 
-    // Top channel pixels drive the R1 and G1 color fields.
+    // Bottom channel pixels drive the R1 and G1 color fields.
     dwt26_h1
     #(
         .PX_MATH_WIDTH(PX_MATH_WIDTH),
@@ -209,7 +211,7 @@ begin : dwt26_h1_array
         .px_clk(px_clk),
         .px_dval(px_dval),
         .px_idx(px_idx),
-        .px_data(px_data[i+32]),
+        .px_data(px_data[i]),
         .S_pp0_fromR(S_pp0_fromR_R1[i]),
         .D_pp0_fromR(D_pp0_fromR_R1[i]),
         .S_pp1_fromR(S_pp1_fromR_R1[i]),
@@ -230,7 +232,7 @@ begin : dwt26_h1_array
         .px_clk(px_clk),
         .px_dval(px_dval),
         .px_idx(px_idx),
-        .px_data(px_data[i+32]),
+        .px_data(px_data[i]),
         .S_pp0_fromR(S_pp0_fromR_G1[i]),
         .D_pp0_fromR(D_pp0_fromR_G1[i]),
         .S_pp1_fromR(S_pp1_fromR_G1[i]),
@@ -241,7 +243,7 @@ begin : dwt26_h1_array
         .D_out(D_out_G1[i])
     );
     
-    // Bottom channel pixels drive the G2 and B1 color fields.
+    // Top channel pixels drive the G2 and B1 color fields.
     dwt26_h1
     #(
         .PX_MATH_WIDTH(PX_MATH_WIDTH),
@@ -252,7 +254,7 @@ begin : dwt26_h1_array
         .px_clk(px_clk),
         .px_dval(px_dval),
         .px_idx(px_idx),
-        .px_data(px_data[i]),
+        .px_data(px_data[i+32]),
         .S_pp0_fromR(S_pp0_fromR_G2[i]),
         .D_pp0_fromR(D_pp0_fromR_G2[i]),
         .S_pp1_fromR(S_pp1_fromR_G2[i]),
@@ -273,7 +275,7 @@ begin : dwt26_h1_array
         .px_clk(px_clk),
         .px_dval(px_dval),
         .px_idx(px_idx),
-        .px_data(px_data[i]),
+        .px_data(px_data[i+32]),
         .S_pp0_fromR(S_pp0_fromR_B1[i]),
         .D_pp0_fromR(D_pp0_fromR_B1[i]),
         .S_pp1_fromR(S_pp1_fromR_B1[i]),
@@ -289,12 +291,12 @@ endgenerate
 
 // Pixel counters at the interface between the vertical and horizontal first-stage cores.
 // These are offset for the known latency of the horizontal cores:
-// R1 and G2 color field horizontal cores: 15 px_clk.
-// G2 and B1 color field horizontal cores: 16 px_clk.
-wire signed [23:0] px_count_v1_R1G2;
-assign px_count_v1_R1G2 = px_count - 24'sh00000F;
+// G1 and B1 color field horizontal cores: 15 px_clk.
+// R1 and G2 color field horizontal cores: 16 px_clk.
 wire signed [23:0] px_count_v1_G1B1;
-assign px_count_v1_G1B1 = px_count - 24'sh000010;
+assign px_count_v1_G1B1 = px_count - 24'sh00000F;
+wire signed [23:0] px_count_v1_R1G2;
+assign px_count_v1_R1G2 = px_count - 24'sh000010;
 
 // Arrays for first-stage vertical core output data.
 wire [31:0] HH1_R1 [7:0];

@@ -14,15 +14,15 @@ All operations and operands are signed 16-bit unless otherwise noted.
 ================================================================================================= */
 
 // Color field enumeration.
-`define COLOR_R1 2'b00
-`define COLOR_G1 2'b01
-`define COLOR_G2 2'b10
-`define COLOR_B1 2'b11
+`define COLOR_G1 2'b00
+`define COLOR_R1 2'b01
+`define COLOR_B1 2'b10
+`define COLOR_G2 2'b11
 
 module dwt26_h1
 #(
     parameter integer PX_MATH_WIDTH = 16,
-    parameter [1:0] COLOR = `COLOR_R1
+    parameter [1:0] COLOR = `COLOR_G1
 )
 (
     input wire px_clk,          // Pixel clock.

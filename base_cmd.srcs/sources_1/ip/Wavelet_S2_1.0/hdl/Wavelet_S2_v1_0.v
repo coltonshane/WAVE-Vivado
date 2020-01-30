@@ -11,10 +11,10 @@ wavelet stage (LL2). Control and configuration is done through an AXI-Lite slave
 */
 
 // Color field enumeration.
-`define COLOR_R1 2'b00
-`define COLOR_G1 2'b01
-`define COLOR_G2 2'b10
-`define COLOR_B1 2'b11
+`define COLOR_G1 2'b00
+`define COLOR_R1 2'b01
+`define COLOR_B1 2'b10
+`define COLOR_G2 2'b11
 
 module Wavelet_S2_v1_0 #
 (

@@ -45,13 +45,13 @@
     <Option Name="WTVcsLaunchSim" Val="0"/>
     <Option Name="WTRivieraLaunchSim" Val="0"/>
     <Option Name="WTActivehdlLaunchSim" Val="0"/>
-    <Option Name="WTXSimExportSim" Val="77"/>
-    <Option Name="WTModelSimExportSim" Val="77"/>
-    <Option Name="WTQuestaExportSim" Val="76"/>
-    <Option Name="WTIesExportSim" Val="76"/>
-    <Option Name="WTVcsExportSim" Val="76"/>
-    <Option Name="WTRivieraExportSim" Val="76"/>
-    <Option Name="WTActivehdlExportSim" Val="76"/>
+    <Option Name="WTXSimExportSim" Val="80"/>
+    <Option Name="WTModelSimExportSim" Val="80"/>
+    <Option Name="WTQuestaExportSim" Val="79"/>
+    <Option Name="WTIesExportSim" Val="79"/>
+    <Option Name="WTVcsExportSim" Val="79"/>
+    <Option Name="WTRivieraExportSim" Val="79"/>
+    <Option Name="WTActivehdlExportSim" Val="79"/>
     <Option Name="GenerateIPUpgradeLog" Val="TRUE"/>
     <Option Name="XSimRadix" Val="hex"/>
     <Option Name="XSimTimeUnit" Val="ns"/>
@@ -80,14 +80,14 @@
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
-        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_zynq_ultra_ps_e_0_1/BoardSetupTest_zynq_ultra_ps_e_0_1.xci">
-          <Proxy FileSetName="BoardSetupTest_zynq_ultra_ps_e_0_1"/>
-        </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_proc_sys_reset_0_0/BoardSetupTest_proc_sys_reset_0_0.xci">
           <Proxy FileSetName="BoardSetupTest_proc_sys_reset_0_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_lvds_clk_out_0_0/BoardSetupTest_lvds_clk_out_0_0.xci">
           <Proxy FileSetName="BoardSetupTest_lvds_clk_out_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_util_vector_logic_0_0/BoardSetupTest_util_vector_logic_0_0.xci">
+          <Proxy FileSetName="BoardSetupTest_util_vector_logic_0_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_clk_wiz_0_0/BoardSetupTest_clk_wiz_0_0.xci">
           <Proxy FileSetName="BoardSetupTest_clk_wiz_0_0"/>
@@ -98,17 +98,17 @@
         <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_Wavelet_S1_0_0/BoardSetupTest_Wavelet_S1_0_0.xci">
           <Proxy FileSetName="BoardSetupTest_Wavelet_S1_0_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_smartconnect_0_0/BoardSetupTest_smartconnect_0_0.xci">
-          <Proxy FileSetName="BoardSetupTest_smartconnect_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_util_vector_logic_0_0/BoardSetupTest_util_vector_logic_0_0.xci">
-          <Proxy FileSetName="BoardSetupTest_util_vector_logic_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_Wavelet_S2_0_0/BoardSetupTest_Wavelet_S2_0_0.xci">
-          <Proxy FileSetName="BoardSetupTest_Wavelet_S2_0_0"/>
+        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_Encoder_0_1/BoardSetupTest_Encoder_0_1.xci">
+          <Proxy FileSetName="BoardSetupTest_Encoder_0_1"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_lvds_clk_synth_1/BoardSetupTest_lvds_clk_synth_1.xci">
           <Proxy FileSetName="BoardSetupTest_lvds_clk_synth_1"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_zynq_ultra_ps_e_0_1/BoardSetupTest_zynq_ultra_ps_e_0_1.xci">
+          <Proxy FileSetName="BoardSetupTest_zynq_ultra_ps_e_0_1"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_Wavelet_S2_0_0/BoardSetupTest_Wavelet_S2_0_0.xci">
+          <Proxy FileSetName="BoardSetupTest_Wavelet_S2_0_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_Wavelet_S3_0_0/BoardSetupTest_Wavelet_S3_0_0.xci">
           <Proxy FileSetName="BoardSetupTest_Wavelet_S3_0_0"/>
@@ -116,26 +116,14 @@
         <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_xdma_0_0/BoardSetupTest_xdma_0_0.xci">
           <Proxy FileSetName="BoardSetupTest_xdma_0_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_Encoder_0_1/BoardSetupTest_Encoder_0_1.xci">
-          <Proxy FileSetName="BoardSetupTest_Encoder_0_1"/>
-        </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_proc_sys_reset_0_1/BoardSetupTest_proc_sys_reset_0_1.xci">
           <Proxy FileSetName="BoardSetupTest_proc_sys_reset_0_1"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_util_ds_buf_0_0/BoardSetupTest_util_ds_buf_0_0.xci">
-          <Proxy FileSetName="BoardSetupTest_util_ds_buf_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_auto_ds_0/BoardSetupTest_auto_ds_0.xci">
-          <Proxy FileSetName="BoardSetupTest_auto_ds_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_auto_cc_0/BoardSetupTest_auto_cc_0.xci">
-          <Proxy FileSetName="BoardSetupTest_auto_cc_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_auto_pc_0/BoardSetupTest_auto_pc_0.xci">
-          <Proxy FileSetName="BoardSetupTest_auto_pc_0"/>
-        </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_xbar_0/BoardSetupTest_xbar_0.xci">
           <Proxy FileSetName="BoardSetupTest_xbar_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_util_ds_buf_0_0/BoardSetupTest_util_ds_buf_0_0.xci">
+          <Proxy FileSetName="BoardSetupTest_util_ds_buf_0_0"/>
         </CompFileExtendedInfo>
       </File>
       <File Path="$PSRCDIR/sources_1/bd/BoardSetupTest/hdl/BoardSetupTest_wrapper.v">
@@ -187,7 +175,7 @@
       <File Path="$PSRCDIR/utils_1/imports/impl_1/BoardSetupTest_wrapper_routed.dcp">
         <FileInfo>
           <Attr Name="ImportPath" Val="$PRUNDIR/impl_1/BoardSetupTest_wrapper_routed.dcp"/>
-          <Attr Name="ImportTime" Val="1578423642"/>
+          <Attr Name="ImportTime" Val="1580423145"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedInSteps" Val="impl_1"/>
@@ -197,7 +185,7 @@
       <File Path="$PSRCDIR/utils_1/imports/synth_1/BoardSetupTest_wrapper.dcp">
         <FileInfo>
           <Attr Name="ImportPath" Val="$PRUNDIR/synth_1/BoardSetupTest_wrapper.dcp"/>
-          <Attr Name="ImportTime" Val="1578423642"/>
+          <Attr Name="ImportTime" Val="1580423145"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedInSteps" Val="synth_1"/>
@@ -232,27 +220,9 @@
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
-    <FileSet Name="BoardSetupTest_Wavelet_S2_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/BoardSetupTest_Wavelet_S2_0_0">
-      <Config>
-        <Option Name="TopModule" Val="BoardSetupTest_Wavelet_S2_0_0"/>
-        <Option Name="UseBlackboxStub" Val="1"/>
-      </Config>
-    </FileSet>
-    <FileSet Name="BoardSetupTest_Wavelet_S3_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/BoardSetupTest_Wavelet_S3_0_0">
-      <Config>
-        <Option Name="TopModule" Val="BoardSetupTest_Wavelet_S3_0_0"/>
-        <Option Name="UseBlackboxStub" Val="1"/>
-      </Config>
-    </FileSet>
     <FileSet Name="BoardSetupTest_CMV_Input_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/BoardSetupTest_CMV_Input_0_0">
       <Config>
         <Option Name="TopModule" Val="BoardSetupTest_CMV_Input_0_0"/>
-        <Option Name="UseBlackboxStub" Val="1"/>
-      </Config>
-    </FileSet>
-    <FileSet Name="BoardSetupTest_Encoder_0_1" Type="BlockSrcs" RelSrcDir="$PSRCDIR/BoardSetupTest_Encoder_0_1">
-      <Config>
-        <Option Name="TopModule" Val="BoardSetupTest_Encoder_0_1"/>
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
@@ -262,21 +232,9 @@
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
-    <FileSet Name="BoardSetupTest_smartconnect_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/BoardSetupTest_smartconnect_0_0">
-      <Config>
-        <Option Name="TopModule" Val="BoardSetupTest_smartconnect_0_0"/>
-        <Option Name="UseBlackboxStub" Val="1"/>
-      </Config>
-    </FileSet>
     <FileSet Name="BoardSetupTest_clk_wiz_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/BoardSetupTest_clk_wiz_0_0">
       <Config>
         <Option Name="TopModule" Val="BoardSetupTest_clk_wiz_0_0"/>
-        <Option Name="UseBlackboxStub" Val="1"/>
-      </Config>
-    </FileSet>
-    <FileSet Name="BoardSetupTest_Wavelet_S1_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/BoardSetupTest_Wavelet_S1_0_0">
-      <Config>
-        <Option Name="TopModule" Val="BoardSetupTest_Wavelet_S1_0_0"/>
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
@@ -304,21 +262,27 @@
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
-    <FileSet Name="BoardSetupTest_auto_cc_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/BoardSetupTest_auto_cc_0">
+    <FileSet Name="BoardSetupTest_Wavelet_S1_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/BoardSetupTest_Wavelet_S1_0_0">
       <Config>
-        <Option Name="TopModule" Val="BoardSetupTest_auto_cc_0"/>
+        <Option Name="TopModule" Val="BoardSetupTest_Wavelet_S1_0_0"/>
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
-    <FileSet Name="BoardSetupTest_auto_ds_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/BoardSetupTest_auto_ds_0">
+    <FileSet Name="BoardSetupTest_Encoder_0_1" Type="BlockSrcs" RelSrcDir="$PSRCDIR/BoardSetupTest_Encoder_0_1">
       <Config>
-        <Option Name="TopModule" Val="BoardSetupTest_auto_ds_0"/>
+        <Option Name="TopModule" Val="BoardSetupTest_Encoder_0_1"/>
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
-    <FileSet Name="BoardSetupTest_auto_pc_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/BoardSetupTest_auto_pc_0">
+    <FileSet Name="BoardSetupTest_Wavelet_S2_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/BoardSetupTest_Wavelet_S2_0_0">
       <Config>
-        <Option Name="TopModule" Val="BoardSetupTest_auto_pc_0"/>
+        <Option Name="TopModule" Val="BoardSetupTest_Wavelet_S2_0_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="BoardSetupTest_Wavelet_S3_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/BoardSetupTest_Wavelet_S3_0_0">
+      <Config>
+        <Option Name="TopModule" Val="BoardSetupTest_Wavelet_S3_0_0"/>
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
@@ -392,37 +356,7 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="BoardSetupTest_Wavelet_S2_0_0_synth_1" Type="Ft3:Synth" SrcSet="BoardSetupTest_Wavelet_S2_0_0" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_Wavelet_S2_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/BoardSetupTest_Wavelet_S2_0_0_synth_1" IncludeInArchive="true">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019"/>
-        <Step Id="synth_design"/>
-      </Strategy>
-      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
-      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2019"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="BoardSetupTest_Wavelet_S3_0_0_synth_1" Type="Ft3:Synth" SrcSet="BoardSetupTest_Wavelet_S3_0_0" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_Wavelet_S3_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/BoardSetupTest_Wavelet_S3_0_0_synth_1" IncludeInArchive="true">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019"/>
-        <Step Id="synth_design"/>
-      </Strategy>
-      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
-      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2019"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
     <Run Id="BoardSetupTest_CMV_Input_0_0_synth_1" Type="Ft3:Synth" SrcSet="BoardSetupTest_CMV_Input_0_0" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_CMV_Input_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/BoardSetupTest_CMV_Input_0_0_synth_1" IncludeInArchive="true">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019"/>
-        <Step Id="synth_design"/>
-      </Strategy>
-      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
-      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2019"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="BoardSetupTest_Encoder_0_1_synth_1" Type="Ft3:Synth" SrcSet="BoardSetupTest_Encoder_0_1" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_Encoder_0_1" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/BoardSetupTest_Encoder_0_1_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019"/>
         <Step Id="synth_design"/>
@@ -434,21 +368,7 @@
     </Run>
     <Run Id="BoardSetupTest_zynq_ultra_ps_e_0_1_synth_1" Type="Ft3:Synth" SrcSet="BoardSetupTest_zynq_ultra_ps_e_0_1" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_zynq_ultra_ps_e_0_1" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/BoardSetupTest_zynq_ultra_ps_e_0_1_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
-        <Step Id="synth_design"/>
-      </Strategy>
-      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
-      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2019"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="BoardSetupTest_smartconnect_0_0_synth_1" Type="Ft3:Synth" SrcSet="BoardSetupTest_smartconnect_0_0" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_smartconnect_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/BoardSetupTest_smartconnect_0_0_synth_1" IncludeInArchive="true">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -458,9 +378,47 @@
     </Run>
     <Run Id="BoardSetupTest_clk_wiz_0_0_synth_1" Type="Ft3:Synth" SrcSet="BoardSetupTest_clk_wiz_0_0" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_clk_wiz_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/BoardSetupTest_clk_wiz_0_0_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2019"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="BoardSetupTest_lvds_clk_synth_1_synth_1" Type="Ft3:Synth" SrcSet="BoardSetupTest_lvds_clk_synth_1" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_lvds_clk_synth_1" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/BoardSetupTest_lvds_clk_synth_1_synth_1" IncludeInArchive="true">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2019"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="BoardSetupTest_xdma_0_0_synth_1" Type="Ft3:Synth" SrcSet="BoardSetupTest_xdma_0_0" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_xdma_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/BoardSetupTest_xdma_0_0_synth_1" IncludeInArchive="true">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2019"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="BoardSetupTest_util_ds_buf_0_0_synth_1" Type="Ft3:Synth" SrcSet="BoardSetupTest_util_ds_buf_0_0" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_util_ds_buf_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/BoardSetupTest_util_ds_buf_0_0_synth_1" IncludeInArchive="true">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2019"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="BoardSetupTest_xbar_0_synth_1" Type="Ft3:Synth" SrcSet="BoardSetupTest_xbar_0" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_xbar_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/BoardSetupTest_xbar_0_synth_1" IncludeInArchive="true">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -480,7 +438,7 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="BoardSetupTest_lvds_clk_synth_1_synth_1" Type="Ft3:Synth" SrcSet="BoardSetupTest_lvds_clk_synth_1" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_lvds_clk_synth_1" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/BoardSetupTest_lvds_clk_synth_1_synth_1" IncludeInArchive="true">
+    <Run Id="BoardSetupTest_Encoder_0_1_synth_1" Type="Ft3:Synth" SrcSet="BoardSetupTest_Encoder_0_1" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_Encoder_0_1" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/BoardSetupTest_Encoder_0_1_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019">
           <Desc>Vivado Synthesis Defaults</Desc>
@@ -492,7 +450,7 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="BoardSetupTest_xdma_0_0_synth_1" Type="Ft3:Synth" SrcSet="BoardSetupTest_xdma_0_0" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_xdma_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/BoardSetupTest_xdma_0_0_synth_1" IncludeInArchive="true">
+    <Run Id="BoardSetupTest_Wavelet_S2_0_0_synth_1" Type="Ft3:Synth" SrcSet="BoardSetupTest_Wavelet_S2_0_0" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_Wavelet_S2_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/BoardSetupTest_Wavelet_S2_0_0_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019">
           <Desc>Vivado Synthesis Defaults</Desc>
@@ -504,55 +462,7 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="BoardSetupTest_util_ds_buf_0_0_synth_1" Type="Ft3:Synth" SrcSet="BoardSetupTest_util_ds_buf_0_0" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_util_ds_buf_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/BoardSetupTest_util_ds_buf_0_0_synth_1" IncludeInArchive="true">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
-        <Step Id="synth_design"/>
-      </Strategy>
-      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
-      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2019"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="BoardSetupTest_xbar_0_synth_1" Type="Ft3:Synth" SrcSet="BoardSetupTest_xbar_0" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_xbar_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/BoardSetupTest_xbar_0_synth_1" IncludeInArchive="true">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
-        <Step Id="synth_design"/>
-      </Strategy>
-      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
-      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2019"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="BoardSetupTest_auto_cc_0_synth_1" Type="Ft3:Synth" SrcSet="BoardSetupTest_auto_cc_0" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_auto_cc_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/BoardSetupTest_auto_cc_0_synth_1" IncludeInArchive="true">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
-        <Step Id="synth_design"/>
-      </Strategy>
-      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
-      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2019"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="BoardSetupTest_auto_ds_0_synth_1" Type="Ft3:Synth" SrcSet="BoardSetupTest_auto_ds_0" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_auto_ds_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/BoardSetupTest_auto_ds_0_synth_1" IncludeInArchive="true">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
-        <Step Id="synth_design"/>
-      </Strategy>
-      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
-      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2019"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="BoardSetupTest_auto_pc_0_synth_1" Type="Ft3:Synth" SrcSet="BoardSetupTest_auto_pc_0" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_auto_pc_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/BoardSetupTest_auto_pc_0_synth_1" IncludeInArchive="true">
+    <Run Id="BoardSetupTest_Wavelet_S3_0_0_synth_1" Type="Ft3:Synth" SrcSet="BoardSetupTest_Wavelet_S3_0_0" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_Wavelet_S3_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/BoardSetupTest_Wavelet_S3_0_0_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019">
           <Desc>Vivado Synthesis Defaults</Desc>
@@ -650,58 +560,7 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="BoardSetupTest_Wavelet_S2_0_0_impl_1" Type="Ft2:EntireDesign" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_Wavelet_S2_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="BoardSetupTest_Wavelet_S2_0_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019"/>
-        <Step Id="init_design"/>
-        <Step Id="opt_design"/>
-        <Step Id="power_opt_design"/>
-        <Step Id="place_design"/>
-        <Step Id="post_place_power_opt_design"/>
-        <Step Id="phys_opt_design"/>
-        <Step Id="route_design"/>
-        <Step Id="post_route_phys_opt_design"/>
-        <Step Id="write_bitstream"/>
-      </Strategy>
-      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2019"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="BoardSetupTest_Wavelet_S3_0_0_impl_1" Type="Ft2:EntireDesign" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_Wavelet_S3_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="BoardSetupTest_Wavelet_S3_0_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019"/>
-        <Step Id="init_design"/>
-        <Step Id="opt_design"/>
-        <Step Id="power_opt_design"/>
-        <Step Id="place_design"/>
-        <Step Id="post_place_power_opt_design"/>
-        <Step Id="phys_opt_design"/>
-        <Step Id="route_design"/>
-        <Step Id="post_route_phys_opt_design"/>
-        <Step Id="write_bitstream"/>
-      </Strategy>
-      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2019"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
     <Run Id="BoardSetupTest_CMV_Input_0_0_impl_1" Type="Ft2:EntireDesign" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_CMV_Input_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="BoardSetupTest_CMV_Input_0_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019"/>
-        <Step Id="init_design"/>
-        <Step Id="opt_design"/>
-        <Step Id="power_opt_design"/>
-        <Step Id="place_design"/>
-        <Step Id="post_place_power_opt_design"/>
-        <Step Id="phys_opt_design"/>
-        <Step Id="route_design"/>
-        <Step Id="post_route_phys_opt_design"/>
-        <Step Id="write_bitstream"/>
-      </Strategy>
-      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2019"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="BoardSetupTest_Encoder_0_1_impl_1" Type="Ft2:EntireDesign" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_Encoder_0_1" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="BoardSetupTest_Encoder_0_1_synth_1" IncludeInArchive="false" GenFullBitstream="true">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019"/>
         <Step Id="init_design"/>
@@ -720,28 +579,7 @@
     </Run>
     <Run Id="BoardSetupTest_zynq_ultra_ps_e_0_1_impl_1" Type="Ft2:EntireDesign" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_zynq_ultra_ps_e_0_1" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="BoardSetupTest_zynq_ultra_ps_e_0_1_synth_1" IncludeInArchive="false" GenFullBitstream="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
-        <Step Id="init_design"/>
-        <Step Id="opt_design"/>
-        <Step Id="power_opt_design"/>
-        <Step Id="place_design"/>
-        <Step Id="post_place_power_opt_design"/>
-        <Step Id="phys_opt_design" EnableStepBool="1"/>
-        <Step Id="route_design"/>
-        <Step Id="post_route_phys_opt_design"/>
-        <Step Id="write_bitstream"/>
-      </Strategy>
-      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2019"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="BoardSetupTest_smartconnect_0_0_impl_1" Type="Ft2:EntireDesign" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_smartconnect_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="BoardSetupTest_smartconnect_0_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
@@ -758,9 +596,75 @@
     </Run>
     <Run Id="BoardSetupTest_clk_wiz_0_0_impl_1" Type="Ft2:EntireDesign" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_clk_wiz_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="BoardSetupTest_clk_wiz_0_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design" EnableStepBool="1"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2019"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="BoardSetupTest_lvds_clk_synth_1_impl_1" Type="Ft2:EntireDesign" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_lvds_clk_synth_1" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="BoardSetupTest_lvds_clk_synth_1_synth_1" IncludeInArchive="false" GenFullBitstream="true">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design" EnableStepBool="1"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2019"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="BoardSetupTest_xdma_0_0_impl_1" Type="Ft2:EntireDesign" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_xdma_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="BoardSetupTest_xdma_0_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design" EnableStepBool="1"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2019"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="BoardSetupTest_util_ds_buf_0_0_impl_1" Type="Ft2:EntireDesign" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_util_ds_buf_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="BoardSetupTest_util_ds_buf_0_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design" EnableStepBool="1"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2019"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="BoardSetupTest_xbar_0_impl_1" Type="Ft2:EntireDesign" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_xbar_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="BoardSetupTest_xbar_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
@@ -794,7 +698,7 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="BoardSetupTest_lvds_clk_synth_1_impl_1" Type="Ft2:EntireDesign" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_lvds_clk_synth_1" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="BoardSetupTest_lvds_clk_synth_1_synth_1" IncludeInArchive="false" GenFullBitstream="true">
+    <Run Id="BoardSetupTest_Encoder_0_1_impl_1" Type="Ft2:EntireDesign" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_Encoder_0_1" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="BoardSetupTest_Encoder_0_1_synth_1" IncludeInArchive="false" GenFullBitstream="true">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019">
           <Desc>Default settings for Implementation.</Desc>
@@ -813,7 +717,7 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="BoardSetupTest_xdma_0_0_impl_1" Type="Ft2:EntireDesign" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_xdma_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="BoardSetupTest_xdma_0_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
+    <Run Id="BoardSetupTest_Wavelet_S2_0_0_impl_1" Type="Ft2:EntireDesign" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_Wavelet_S2_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="BoardSetupTest_Wavelet_S2_0_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019">
           <Desc>Default settings for Implementation.</Desc>
@@ -832,83 +736,7 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="BoardSetupTest_util_ds_buf_0_0_impl_1" Type="Ft2:EntireDesign" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_util_ds_buf_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="BoardSetupTest_util_ds_buf_0_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
-        <Step Id="init_design"/>
-        <Step Id="opt_design"/>
-        <Step Id="power_opt_design"/>
-        <Step Id="place_design"/>
-        <Step Id="post_place_power_opt_design"/>
-        <Step Id="phys_opt_design" EnableStepBool="1"/>
-        <Step Id="route_design"/>
-        <Step Id="post_route_phys_opt_design"/>
-        <Step Id="write_bitstream"/>
-      </Strategy>
-      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2019"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="BoardSetupTest_xbar_0_impl_1" Type="Ft2:EntireDesign" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_xbar_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="BoardSetupTest_xbar_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
-        <Step Id="init_design"/>
-        <Step Id="opt_design"/>
-        <Step Id="power_opt_design"/>
-        <Step Id="place_design"/>
-        <Step Id="post_place_power_opt_design"/>
-        <Step Id="phys_opt_design" EnableStepBool="1"/>
-        <Step Id="route_design"/>
-        <Step Id="post_route_phys_opt_design"/>
-        <Step Id="write_bitstream"/>
-      </Strategy>
-      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2019"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="BoardSetupTest_auto_cc_0_impl_1" Type="Ft2:EntireDesign" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_auto_cc_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="BoardSetupTest_auto_cc_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
-        <Step Id="init_design"/>
-        <Step Id="opt_design"/>
-        <Step Id="power_opt_design"/>
-        <Step Id="place_design"/>
-        <Step Id="post_place_power_opt_design"/>
-        <Step Id="phys_opt_design" EnableStepBool="1"/>
-        <Step Id="route_design"/>
-        <Step Id="post_route_phys_opt_design"/>
-        <Step Id="write_bitstream"/>
-      </Strategy>
-      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2019"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="BoardSetupTest_auto_ds_0_impl_1" Type="Ft2:EntireDesign" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_auto_ds_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="BoardSetupTest_auto_ds_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
-        <Step Id="init_design"/>
-        <Step Id="opt_design"/>
-        <Step Id="power_opt_design"/>
-        <Step Id="place_design"/>
-        <Step Id="post_place_power_opt_design"/>
-        <Step Id="phys_opt_design" EnableStepBool="1"/>
-        <Step Id="route_design"/>
-        <Step Id="post_route_phys_opt_design"/>
-        <Step Id="write_bitstream"/>
-      </Strategy>
-      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2019"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="BoardSetupTest_auto_pc_0_impl_1" Type="Ft2:EntireDesign" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_auto_pc_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="BoardSetupTest_auto_pc_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
+    <Run Id="BoardSetupTest_Wavelet_S3_0_0_impl_1" Type="Ft2:EntireDesign" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_Wavelet_S3_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="BoardSetupTest_Wavelet_S3_0_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019">
           <Desc>Default settings for Implementation.</Desc>
