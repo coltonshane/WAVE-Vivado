@@ -106,7 +106,7 @@ int main()
     while(!triggerShutdown)
     {
     	usbPoll();
-    	frameService();
+    	// frameService();
 
     	while(requestFrames)
     	{

@@ -29,6 +29,8 @@ base_cmd.srcs/sources_1/**/example_designs
 base_cmd.srcs/sources_1/**/xgui
 
 base_cmd.vitis/.metadata
+base_cmd.vitis/.sdk
+base_cmd.vitis/webtalk
 base_cmd.vitis/RemoteSystemsTempFiles
 base_cmd.vitis/*platform*
 base_cmd.vitis/*system*

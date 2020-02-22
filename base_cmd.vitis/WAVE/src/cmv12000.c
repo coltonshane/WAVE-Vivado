@@ -195,6 +195,7 @@ void cmvInit(void)
 	cmvUpdateSettings();
 
 	// cmvRegWrite(&Spi0, CMV_REG_ADDR_TEST_PATTERN, CMV_REG_VAL_TEST_PATTERN_ON);
+	// cmvRegWrite(&Spi0, CMV_REG_ADDR_PGA_GAIN, CMV_REG_VAL_PGA_GAIN_X2);
 	// cmvRegWrite(&Spi0, CMV_REG_ADDR_DIG_GAIN, 16);
 }
 
