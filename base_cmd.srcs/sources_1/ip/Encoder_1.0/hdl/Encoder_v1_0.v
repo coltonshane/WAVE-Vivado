@@ -58,10 +58,7 @@ module Encoder_v1_0
 	input wire [511:0] HH2_concat,
 	input wire [511:0] HL2_concat,
 	input wire [511:0] LH2_concat,
-	input wire [255:0] HH3_concat,
-	input wire [255:0] HL3_concat,
-	input wire [255:0] LH3_concat,
-	input wire [255:0] LL3_concat,
+	input wire [511:0] LL2_concat,
 	
 	// User ports ends
 	// Do not modify the ports beyond this line
@@ -144,9 +141,6 @@ wire signed [9:0] q_mult_HH1;
 wire signed [9:0] q_mult_HL1_LH1;
 wire signed [9:0] q_mult_HH2;
 wire signed [9:0] q_mult_HL2_LH2;
-wire signed [9:0] q_mult_HH3;
-wire signed [9:0] q_mult_HL3_LH3;
-wire signed [9:0] q_mult_LL3;
     
 wire c_RAM_addr_update_request;
 reg c_RAM_addr_update_complete;
@@ -170,23 +164,20 @@ Encoder_v1_0_S00_AXI
 ) 
 Encoder_v1_0_S00_AXI_inst 
 (
-    .c_RAM_addr_concat(c_RAM_addr_concat),
-    .c_RAM_addr_update_concat(c_RAM_addr_update_concat),
+  .c_RAM_addr_concat(c_RAM_addr_concat),
+  .c_RAM_addr_update_concat(c_RAM_addr_update_concat),
     
-    .q_mult_HH1(q_mult_HH1),
-    .q_mult_HL1_LH1(q_mult_HL1_LH1),
-    .q_mult_HH2(q_mult_HH2),
-    .q_mult_HL2_LH2(q_mult_HL2_LH2),
-    .q_mult_HH3(q_mult_HH3),
-    .q_mult_HL3_LH3(q_mult_HL3_LH3),
-    .q_mult_LL3(q_mult_LL3),
+  .q_mult_HH1(q_mult_HH1),
+  .q_mult_HL1_LH1(q_mult_HL1_LH1),
+  .q_mult_HH2(q_mult_HH2),
+  .q_mult_HL2_LH2(q_mult_HL2_LH2),
     
-    .c_RAM_addr_update_request(c_RAM_addr_update_request),
-    .c_RAM_addr_update_complete(c_RAM_addr_update_complete),
-    .m00_axi_armed(m00_axi_armed),
-    .debug_c_state(debug_c_state),
+  .c_RAM_addr_update_request(c_RAM_addr_update_request),
+  .c_RAM_addr_update_complete(c_RAM_addr_update_complete),
+  .m00_axi_armed(m00_axi_armed),
+  .debug_c_state(debug_c_state),
 
-    .debug_fifo_rd_count_concat(debug_fifo_rd_count_concat),
+  .debug_fifo_rd_count_concat(debug_fifo_rd_count_concat),
 
     // AXI-Lite slave controller signals.
 	.S_AXI_ACLK(s00_axi_aclk),
@@ -231,8 +222,8 @@ Encoder_v1_0_M00_AXI_inst
 	.axi_init_txn(axi_init_txn),
 	.axi_awaddr_init(axi_awaddr_init),
 	.axi_wdata(axi_wdata),
-    .axi_wnext(axi_wnext),
-    .axi_busy(axi_busy),
+  .axi_wnext(axi_wnext),
+  .axi_busy(axi_busy),
      
 	.M_AXI_ACLK(m00_axi_aclk),
 	.M_AXI_ARESETN(m00_axi_aresetn),
@@ -287,30 +278,24 @@ Encoder_v1_0_M00_AXI_inst
 // {HH1, HL1, LH1, LL1} G1 and B1 color field wavelet stage: 532 px_clk.
 // {HH1, HL1, LH1, LL1} R1 and G2 color field wavelet stage: 533 px_clk.
 // {HH2, HL2, LH2, LL2} All four color fields wavelet stage: 1582 px_clk.
-// {HH3, HL3, LH3, LL3} All four color fields wavelet stage: 3674 px_clk.
 wire signed [23:0] px_count_c_XX1_G1B1;
 assign px_count_c_XX1_G1B1 = px_count - 24'sh000214;
 wire signed [23:0] px_count_c_XX1_R1G2;
 assign px_count_c_XX1_R1G2 = px_count - 24'sh000215;
 wire signed [23:0] px_count_c_XX2;
 assign px_count_c_XX2 = px_count - 24'sh00062E;
-wire signed [23:0] px_count_c_XX3;
-assign px_count_c_XX3 = px_count - 24'sh000E5A;
 
 // Pixel counters at the interface between the encoders and their output buffer.
 // These are offset for the known latency of the wavelet stage(s) + the encoder and quantizer:
 // {HH1, HL1, LH1, LL1} G1 and B1 color field: 538 px_clk. (+6 for compressor)
 // {HH1, HL1, LH1, LL1} R1 and G2 color field: 539 px_clk. (+6 for compressor)
 // {HH2, HL2, LH2, LL2} All four color fields: 1592 px_clk. (+10 for compressor_16in)
-// {HH3, HL3, LH3, LL3} All four color fields: 3692 px_clk. (+18 for compressor_16in)
 wire signed [23:0] px_count_e_XX1_G1B1;
 assign px_count_e_XX1_G1B1 = px_count - 24'sh00021A;
 wire signed [23:0] px_count_e_XX1_R1G2;
 assign px_count_e_XX1_R1G2 = px_count - 24'sh00021B;
 wire signed [23:0] px_count_e_XX2;
 assign px_count_e_XX2 = px_count - 24'sh000638;
-wire signed [23:0] px_count_e_XX3;
-assign px_count_e_XX3 = px_count - 24'sh000E6C;
 
 // Create a shared phase flag for px_clk_2x, px_clk_2x_phase:
 // 0: The previous px_clk_2x rising edge was aligned with a px_clk rising edge.
@@ -570,22 +555,15 @@ compressor_16in c_LH2     // Stream 14, handling LH2
     .fifo_rd_count(fifo_rd_count[14]),
     .fifo_rd_data(fifo_rd_data[14])
 );
-compressor_32in c_XX3     // Stream 15, handling HH3, HL3, LH3, and LL3
+compressor_LL2 c_LL2     // Stream 15, handling LL2
 (
     .px_clk(px_clk),
     .px_clk_2x(px_clk_2x),
     .px_clk_2x_phase(px_clk_2x_phase),
-    .px_count_c(px_count_c_XX3),
-    .px_count_e(px_count_e_XX3),
-    .q_mult_HH3(q_mult_HH3),
-    .q_mult_HL3(q_mult_HL3_LH3),
-    .q_mult_LH3(q_mult_HL3_LH3),
-    .q_mult_LL3(q_mult_LL3),
+    .px_count_c(px_count_c_XX2),
+    .px_count_e(px_count_e_XX2),
     
-    .in_2px_HH3_concat(HH3_concat),
-    .in_2px_HL3_concat(HL3_concat),
-    .in_2px_LH3_concat(LH3_concat),
-    .in_2px_LL3_concat(LL3_concat),
+    .in_2px_concat(LL2_concat),
     
     .m00_axi_aclk(m00_axi_aclk),
     .fifo_rd_next(fifo_rd_next[15]),

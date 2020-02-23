@@ -52,14 +52,6 @@ u32 * debug_core_HL2_data = (u32 *)(0xA0002014);
 u32 * debug_core_LH2_data = (u32 *)(0xA0002018);
 u32 * debug_core_LL2_data = (u32 *)(0xA000201C);
 
-// Wavelet S3
-u32 * debug_XX3_px_count_trig = (u32 *)(0xA0003000);
-u32 * debug_core_XX3_addr  = (u32 *)(0xA0003004);
-u32 * debug_core_HH3_data = (u32 *)(0xA0003010);
-u32 * debug_core_HL3_data = (u32 *)(0xA0003014);
-u32 * debug_core_LH3_data = (u32 *)(0xA0003018);
-u32 * debug_core_LL3_data = (u32 *)(0xA000301C);
-
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 
 // Public Function Definitions -----------------------------------------------------------------------------------------
