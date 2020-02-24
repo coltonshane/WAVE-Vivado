@@ -49,16 +49,14 @@ module Encoder_v1_0_S00_AXI
     output wire signed [9:0] q_mult_HL1_LH1,
     output wire signed [9:0] q_mult_HH2,
     output wire signed [9:0] q_mult_HL2_LH2,
-    output wire signed [9:0] q_mult_HH3,
-    output wire signed [9:0] q_mult_HL3_LH3,
-    output wire signed [9:0] q_mult_LL3,
     
     output wire c_RAM_addr_update_request,
     input wire c_RAM_addr_update_complete,
     output wire m00_axi_armed,
     output wire [4:0] debug_c_state,
 
-    input wire [255:0] debug_fifo_rd_count_concat,
+    input wire [15:0] fifo_overfull_concat,
+    input wire [255:0] fifo_rd_count_concat,
     
 	// User ports ends
 	// Do not modify the ports beyond this line
@@ -284,12 +282,13 @@ begin
 	        
 	        // Slave Register 35: Control
 	        slv_reg[35][25] <= c_RAM_addr_update_complete;
+	        slv_reg[35][15:0] <= fifo_overfull_concat;
 	        
-	        // Slave Registers 36-43: FIFO read counts.
+	        // Slave Registers 36-43: Encoder buffer and FIFO state.
 	        for(i = 0; i < 8; i = i + 1)
 	        begin
-                slv_reg[36 + i] <= debug_fifo_rd_count_concat[32*i+:32];
-            end
+            slv_reg[36 + i] <= fifo_rd_count_concat[32*i+:32];
+          end
 	   
 	    end : in_latch
 	    
@@ -436,15 +435,10 @@ assign q_mult_HL1_LH1 = slv_reg[32][0+:10];
 assign q_mult_HH2 = slv_reg[33][16+:10];
 assign q_mult_HL2_LH2 = slv_reg[33][0+:10];
 
-// Slave Register 34: Stage 3 Quantizer Settings
-assign q_mult_HH3 = slv_reg[34][16+:10];
-assign q_mult_HL3_LH3 = slv_reg[34][0+:10];
-
-// Slave Register 35: Control + Stage 3 LPF Quantizer Setting
+// Slave Register 35: Control
 assign m00_axi_armed = slv_reg[35][28];
 assign c_RAM_addr_update_request = slv_reg[35][24];
 assign debug_c_state = slv_reg[35][20:16];
-assign q_mult_LL3 = slv_reg[35][0+:10];
 
 // User logic ends
 

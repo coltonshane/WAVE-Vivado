@@ -26,8 +26,9 @@ module compressor_LL2
     
     input wire m00_axi_aclk,
     input wire fifo_rd_next,
-    output wire [9:0] fifo_rd_count,
     output wire [127:0] fifo_rd_data,
+    output wire [9:0] fifo_rd_count,
+    output wire [6:0] e_buffer_rd_count,
     
     output wire [127:0] debug_e_buffer
 );
@@ -209,6 +210,7 @@ FIFO36E2_L
 );
 // -------------------------------------------------------------------------------------------------
 
+assign e_buffer_rd_count = e_buffer_idx;
 assign debug_e_buffer = {e_buffer_1, e_buffer_0};
 
 endmodule

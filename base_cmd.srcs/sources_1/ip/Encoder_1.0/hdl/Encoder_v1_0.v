@@ -147,7 +147,8 @@ reg c_RAM_addr_update_complete;
 wire m00_axi_armed;
 wire [4:0] debug_c_state;
 
-wire [255:0] debug_fifo_rd_count_concat;
+wire [15:0] fifo_overfull_concat;
+wire [255:0] fifo_rd_count_concat;
 
 // AXI Master 00 signals.
 reg axi_init_txn;
@@ -177,7 +178,8 @@ Encoder_v1_0_S00_AXI_inst
   .m00_axi_armed(m00_axi_armed),
   .debug_c_state(debug_c_state),
 
-  .debug_fifo_rd_count_concat(debug_fifo_rd_count_concat),
+  .fifo_overfull_concat(fifo_overfull_concat),
+  .fifo_rd_count_concat(fifo_rd_count_concat),
 
     // AXI-Lite slave controller signals.
 	.S_AXI_ACLK(s00_axi_aclk),
@@ -310,8 +312,9 @@ assign px_clk_2x_phase = (px_count[0] == px_count_prev_LSB_2x);
 
 // Independent compressor FIFO controls and data.
 wire fifo_rd_next[15:0];
-wire [9:0] fifo_rd_count[15:0];
 wire [127:0] fifo_rd_data[15:0];
+wire [9:0] fifo_rd_count[15:0];
+wire [6:0] e_buffer_rd_count[15:0];
 
 // Compressor instantiation and mapping.
 // --------------------------------------------------------------------------------
@@ -328,8 +331,9 @@ compressor c_HH1_R1     // Stream 00, handling HH1.R1[7:0]
     
     .m00_axi_aclk(m00_axi_aclk),
     .fifo_rd_next(fifo_rd_next[0]),
+    .fifo_rd_data(fifo_rd_data[0]),
     .fifo_rd_count(fifo_rd_count[0]),
-    .fifo_rd_data(fifo_rd_data[0])
+    .e_buffer_rd_count(e_buffer_rd_count[0])
 );
 compressor c_HH1_G1     // Stream 01, handling HH1.G1[7:0]
 (
@@ -344,8 +348,9 @@ compressor c_HH1_G1     // Stream 01, handling HH1.G1[7:0]
     
     .m00_axi_aclk(m00_axi_aclk),
     .fifo_rd_next(fifo_rd_next[1]),
+    .fifo_rd_data(fifo_rd_data[1]),
     .fifo_rd_count(fifo_rd_count[1]),
-    .fifo_rd_data(fifo_rd_data[1])
+    .e_buffer_rd_count(e_buffer_rd_count[1])
 );
 compressor c_HH1_G2     // Stream 02, handling HH1.G2[7:0]
 (
@@ -360,8 +365,9 @@ compressor c_HH1_G2     // Stream 02, handling HH1.G2[7:0]
     
     .m00_axi_aclk(m00_axi_aclk),
     .fifo_rd_next(fifo_rd_next[2]),
+    .fifo_rd_data(fifo_rd_data[2]),
     .fifo_rd_count(fifo_rd_count[2]),
-    .fifo_rd_data(fifo_rd_data[2])
+    .e_buffer_rd_count(e_buffer_rd_count[2])
 );
 compressor c_HH1_B1     // Stream 03, handling HH1.B1[7:0]
 (
@@ -376,8 +382,9 @@ compressor c_HH1_B1     // Stream 03, handling HH1.B1[7:0]
     
     .m00_axi_aclk(m00_axi_aclk),
     .fifo_rd_next(fifo_rd_next[3]),
+    .fifo_rd_data(fifo_rd_data[3]),
     .fifo_rd_count(fifo_rd_count[3]),
-    .fifo_rd_data(fifo_rd_data[3])
+    .e_buffer_rd_count(e_buffer_rd_count[3])
 );
 compressor c_HL1_R1     // Stream 04, handling HL1.R1[7:0]
 (
@@ -392,8 +399,9 @@ compressor c_HL1_R1     // Stream 04, handling HL1.R1[7:0]
     
     .m00_axi_aclk(m00_axi_aclk),
     .fifo_rd_next(fifo_rd_next[4]),
+    .fifo_rd_data(fifo_rd_data[4]),
     .fifo_rd_count(fifo_rd_count[4]),
-    .fifo_rd_data(fifo_rd_data[4])
+    .e_buffer_rd_count(e_buffer_rd_count[4])
 );
 compressor c_HL1_G1     // Stream 05, handling HL1.G1[7:0]
 (
@@ -408,8 +416,9 @@ compressor c_HL1_G1     // Stream 05, handling HL1.G1[7:0]
     
     .m00_axi_aclk(m00_axi_aclk),
     .fifo_rd_next(fifo_rd_next[5]),
+    .fifo_rd_data(fifo_rd_data[5]),
     .fifo_rd_count(fifo_rd_count[5]),
-    .fifo_rd_data(fifo_rd_data[5])
+    .e_buffer_rd_count(e_buffer_rd_count[5])
 );
 compressor c_HL1_G2     // Stream 06, handling HL1.G2[7:0]
 (
@@ -424,8 +433,9 @@ compressor c_HL1_G2     // Stream 06, handling HL1.G2[7:0]
     
     .m00_axi_aclk(m00_axi_aclk),
     .fifo_rd_next(fifo_rd_next[6]),
+    .fifo_rd_data(fifo_rd_data[6]),
     .fifo_rd_count(fifo_rd_count[6]),
-    .fifo_rd_data(fifo_rd_data[6])
+    .e_buffer_rd_count(e_buffer_rd_count[6])
 );
 compressor c_HL1_B1     // Stream 07, handling HL1.B1[7:0]
 (
@@ -440,8 +450,9 @@ compressor c_HL1_B1     // Stream 07, handling HL1.B1[7:0]
     
     .m00_axi_aclk(m00_axi_aclk),
     .fifo_rd_next(fifo_rd_next[7]),
+    .fifo_rd_data(fifo_rd_data[7]),
     .fifo_rd_count(fifo_rd_count[7]),
-    .fifo_rd_data(fifo_rd_data[7])
+    .e_buffer_rd_count(e_buffer_rd_count[7])
 );
 compressor c_LH1_R1     // Stream 08, handling LH1.R1[7:0]
 (
@@ -456,8 +467,9 @@ compressor c_LH1_R1     // Stream 08, handling LH1.R1[7:0]
     
     .m00_axi_aclk(m00_axi_aclk),
     .fifo_rd_next(fifo_rd_next[8]),
+    .fifo_rd_data(fifo_rd_data[8]),
     .fifo_rd_count(fifo_rd_count[8]),
-    .fifo_rd_data(fifo_rd_data[8])
+    .e_buffer_rd_count(e_buffer_rd_count[8])
 );
 compressor c_LH1_G1     // Stream 09, handling LH1.G1[7:0]
 (
@@ -472,8 +484,9 @@ compressor c_LH1_G1     // Stream 09, handling LH1.G1[7:0]
     
     .m00_axi_aclk(m00_axi_aclk),
     .fifo_rd_next(fifo_rd_next[9]),
+    .fifo_rd_data(fifo_rd_data[9]),
     .fifo_rd_count(fifo_rd_count[9]),
-    .fifo_rd_data(fifo_rd_data[9])
+    .e_buffer_rd_count(e_buffer_rd_count[9])
 );
 compressor c_LH1_G2     // Stream 10, handling LH1.G2[7:0]
 (
@@ -488,8 +501,9 @@ compressor c_LH1_G2     // Stream 10, handling LH1.G2[7:0]
     
     .m00_axi_aclk(m00_axi_aclk),
     .fifo_rd_next(fifo_rd_next[10]),
+    .fifo_rd_data(fifo_rd_data[10]),
     .fifo_rd_count(fifo_rd_count[10]),
-    .fifo_rd_data(fifo_rd_data[10])
+    .e_buffer_rd_count(e_buffer_rd_count[10])
 );
 compressor c_LH1_B1     // Stream 11, handling LH1.B1[7:0]
 (
@@ -504,8 +518,9 @@ compressor c_LH1_B1     // Stream 11, handling LH1.B1[7:0]
     
     .m00_axi_aclk(m00_axi_aclk),
     .fifo_rd_next(fifo_rd_next[11]),
+    .fifo_rd_data(fifo_rd_data[11]),
     .fifo_rd_count(fifo_rd_count[11]),
-    .fifo_rd_data(fifo_rd_data[11])
+    .e_buffer_rd_count(e_buffer_rd_count[11])
 );
 compressor_16in c_HH2     // Stream 12, handling HH2
 (
@@ -520,8 +535,9 @@ compressor_16in c_HH2     // Stream 12, handling HH2
     
     .m00_axi_aclk(m00_axi_aclk),
     .fifo_rd_next(fifo_rd_next[12]),
+    .fifo_rd_data(fifo_rd_data[12]),
     .fifo_rd_count(fifo_rd_count[12]),
-    .fifo_rd_data(fifo_rd_data[12])
+    .e_buffer_rd_count(e_buffer_rd_count[12])
 );
 compressor_16in c_HL2     // Stream 13, handling HL2
 (
@@ -536,8 +552,9 @@ compressor_16in c_HL2     // Stream 13, handling HL2
     
     .m00_axi_aclk(m00_axi_aclk),
     .fifo_rd_next(fifo_rd_next[13]),
+    .fifo_rd_data(fifo_rd_data[13]),
     .fifo_rd_count(fifo_rd_count[13]),
-    .fifo_rd_data(fifo_rd_data[13])
+    .e_buffer_rd_count(e_buffer_rd_count[13])
 );
 compressor_16in c_LH2     // Stream 14, handling LH2
 (
@@ -552,8 +569,9 @@ compressor_16in c_LH2     // Stream 14, handling LH2
     
     .m00_axi_aclk(m00_axi_aclk),
     .fifo_rd_next(fifo_rd_next[14]),
+    .fifo_rd_data(fifo_rd_data[14]),
     .fifo_rd_count(fifo_rd_count[14]),
-    .fifo_rd_data(fifo_rd_data[14])
+    .e_buffer_rd_count(e_buffer_rd_count[14])
 );
 compressor_LL2 c_LL2     // Stream 15, handling LL2
 (
@@ -567,8 +585,9 @@ compressor_LL2 c_LL2     // Stream 15, handling LL2
     
     .m00_axi_aclk(m00_axi_aclk),
     .fifo_rd_next(fifo_rd_next[15]),
+    .fifo_rd_data(fifo_rd_data[15]),
     .fifo_rd_count(fifo_rd_count[15]),
-    .fifo_rd_data(fifo_rd_data[15])
+    .e_buffer_rd_count(e_buffer_rd_count[15])
 );
 // --------------------------------------------------------------------------------
 
@@ -716,10 +735,12 @@ end
 
 // --------------------------------------------------------------------------------
 
-// Debug signals.
+// Encoder FIFO and bit buffer fill states.
 for (i = 0; i < 16; i = i + 1)
 begin
-    assign debug_fifo_rd_count_concat[16*i+:16] = fifo_rd_count[i];
+    assign fifo_overfull_concat[i] = fifo_rd_count[i][9];             // FIFO MSB
+    assign fifo_rd_count_concat[(16*i+7)+:9] = fifo_rd_count[i][8:0]; // FIFO
+    assign fifo_rd_count_concat[(16*i+0)+:7] = e_buffer_rd_count[i];  // Buffer
 end
 
 // User logic ends
