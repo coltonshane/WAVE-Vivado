@@ -44,30 +44,33 @@ THE SOFTWARE.
 // 512B Frame Header Structure
 typedef struct __attribute__((packed))
 {
-	// Start of Frame [36B]
+	// Start of Frame [38B]
 	char delimeter[12];			// Frame delimiter, always "WAVE HELLO!\n"
 	u32 nFrame;					// Frame number.
 	u32 nFrameBacklog;			// Frame recording backlog.
 	u64 tFrameRead_us;			// Frame read (from sensor) timestamp in [us].
 	u64 tFrameWrite_us;			// Frame write (to SSD) timestamp in [us].
+	u16 csFIFOOver;				// Codestream FIFO overfull flags.
 
-	// Frame Information [12B]
+	// Frame Information [10B]
 	u16 wFrame;					// Width
 	u16 hFrame;					// Height
-	u8 reserved0[8];
+	u8 reserved0[6];
 
 	// Quantizer Settings [16B]
 	u32 q_mult_HH1_HL1_LH1;		// Stage 1 quantizer settings.
 	u32 q_mult_HH2_HL2_LH2;		// Stage 2 quantizer settings.
-	u32 q_mult_HH3_HL3_LH3;		// Stage 3 quantizer settings.
-	u32 q_mult_LL3;				// Stage 3 LPF quantizer setting.
+	u8 reserved1[8];
 
 	// Codestream Address and Size [128B]
 	u32 csAddr[16];				// Codestream addresses in [B].
 	u32 csSize[16];				// Codestream sizes [B].
 
-	// Padding [320B]
-	u8 reserved1[320];
+	// Codestream start-of-frame FIFO and buffer state [32B].
+	u16 csFIFOState[16];
+
+	// Padding [288B]
+	u8 reserved2[288];
 } FrameHeader_s;
 
 // Private Function Prototypes -----------------------------------------------------------------------------------------
@@ -139,13 +142,13 @@ void isrFOT(void * CallbackRef)
 	// TO-DO: Right here is where the quantizer settings should be modified to hit bit rate target!
 	fhBuffer[iFrameIn].q_mult_HH1_HL1_LH1 = Encoder_next.q_mult_HH1_HL1_LH1;
 	fhBuffer[iFrameIn].q_mult_HH2_HL2_LH2 = Encoder_next.q_mult_HH2_HL2_LH2;
-	fhBuffer[iFrameIn].q_mult_HH3_HL3_LH3 = Encoder_next.q_mult_HH3_HL3_LH3;
-	fhBuffer[iFrameIn].q_mult_LL3 = (Encoder_next.control_q_mult_LL3) & 0xFFFF;
 
-	// Codestream start addresses for the upcoming frame.
+	// Codestream start addresses and FIFO state for the upcoming frame.
+	fhBuffer[iFrameIn].csFIFOOver = Encoder_next.control & 0xFFFF;
 	for(int iCS = 0; iCS < 16; iCS++)
 	{
 		fhBuffer[iFrameIn].csAddr[iCS] = Encoder_next.c_RAM_addr[iCS];
+		fhBuffer[iFrameIn].csFIFOState[iCS] = Encoder_next.fifo_rd_count[iCS];
 	}
 
 	XGpioPs_WritePin(&Gpio, T_EXP1_PIN, 0);		// Mark ISR exit.

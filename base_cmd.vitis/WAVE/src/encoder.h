@@ -39,9 +39,9 @@ typedef struct __attribute__((packed))
 	u32 c_RAM_addr_update[16];
 	u32 q_mult_HH1_HL1_LH1;
 	u32 q_mult_HH2_HL2_LH2;
-	u32 q_mult_HH3_HL3_LH3;
-	u32 control_q_mult_LL3;
-	u16 debug_fifo_rd_count[16];
+	u32 reserved;
+	u32 control;
+	u16 fifo_rd_count[16];
 } Encoder_s;
 
 // Public Function Prototypes ------------------------------------------------------------------------------------------
