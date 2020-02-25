@@ -45,13 +45,13 @@
     <Option Name="WTVcsLaunchSim" Val="0"/>
     <Option Name="WTRivieraLaunchSim" Val="0"/>
     <Option Name="WTActivehdlLaunchSim" Val="0"/>
-    <Option Name="WTXSimExportSim" Val="83"/>
-    <Option Name="WTModelSimExportSim" Val="83"/>
-    <Option Name="WTQuestaExportSim" Val="82"/>
-    <Option Name="WTIesExportSim" Val="82"/>
-    <Option Name="WTVcsExportSim" Val="82"/>
-    <Option Name="WTRivieraExportSim" Val="82"/>
-    <Option Name="WTActivehdlExportSim" Val="82"/>
+    <Option Name="WTXSimExportSim" Val="84"/>
+    <Option Name="WTModelSimExportSim" Val="84"/>
+    <Option Name="WTQuestaExportSim" Val="83"/>
+    <Option Name="WTIesExportSim" Val="83"/>
+    <Option Name="WTVcsExportSim" Val="83"/>
+    <Option Name="WTRivieraExportSim" Val="83"/>
+    <Option Name="WTActivehdlExportSim" Val="83"/>
     <Option Name="GenerateIPUpgradeLog" Val="TRUE"/>
     <Option Name="XSimRadix" Val="hex"/>
     <Option Name="XSimTimeUnit" Val="ns"/>
@@ -83,32 +83,29 @@
         <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_util_vector_logic_0_0/BoardSetupTest_util_vector_logic_0_0.xci">
           <Proxy FileSetName="BoardSetupTest_util_vector_logic_0_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_proc_sys_reset_0_0/BoardSetupTest_proc_sys_reset_0_0.xci">
-          <Proxy FileSetName="BoardSetupTest_proc_sys_reset_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_xbar_0/BoardSetupTest_xbar_0.xci">
-          <Proxy FileSetName="BoardSetupTest_xbar_0"/>
+        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_lvds_clk_out_0_0/BoardSetupTest_lvds_clk_out_0_0.xci">
+          <Proxy FileSetName="BoardSetupTest_lvds_clk_out_0_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_CMV_Input_0_0/BoardSetupTest_CMV_Input_0_0.xci">
           <Proxy FileSetName="BoardSetupTest_CMV_Input_0_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_zynq_ultra_ps_e_0_1/BoardSetupTest_zynq_ultra_ps_e_0_1.xci">
-          <Proxy FileSetName="BoardSetupTest_zynq_ultra_ps_e_0_1"/>
-        </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_clk_wiz_0_0/BoardSetupTest_clk_wiz_0_0.xci">
           <Proxy FileSetName="BoardSetupTest_clk_wiz_0_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_proc_sys_reset_0_1/BoardSetupTest_proc_sys_reset_0_1.xci">
-          <Proxy FileSetName="BoardSetupTest_proc_sys_reset_0_1"/>
+        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_proc_sys_reset_0_0/BoardSetupTest_proc_sys_reset_0_0.xci">
+          <Proxy FileSetName="BoardSetupTest_proc_sys_reset_0_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_lvds_clk_out_0_0/BoardSetupTest_lvds_clk_out_0_0.xci">
-          <Proxy FileSetName="BoardSetupTest_lvds_clk_out_0_0"/>
+        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_zynq_ultra_ps_e_0_1/BoardSetupTest_zynq_ultra_ps_e_0_1.xci">
+          <Proxy FileSetName="BoardSetupTest_zynq_ultra_ps_e_0_1"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_Wavelet_S1_0_0/BoardSetupTest_Wavelet_S1_0_0.xci">
+          <Proxy FileSetName="BoardSetupTest_Wavelet_S1_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_util_ds_buf_0_0/BoardSetupTest_util_ds_buf_0_0.xci">
+          <Proxy FileSetName="BoardSetupTest_util_ds_buf_0_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_lvds_clk_synth_1/BoardSetupTest_lvds_clk_synth_1.xci">
           <Proxy FileSetName="BoardSetupTest_lvds_clk_synth_1"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_Encoder_0_1/BoardSetupTest_Encoder_0_1.xci">
-          <Proxy FileSetName="BoardSetupTest_Encoder_0_1"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_Wavelet_S2_0_0/BoardSetupTest_Wavelet_S2_0_0.xci">
           <Proxy FileSetName="BoardSetupTest_Wavelet_S2_0_0"/>
@@ -116,11 +113,14 @@
         <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_xdma_0_0/BoardSetupTest_xdma_0_0.xci">
           <Proxy FileSetName="BoardSetupTest_xdma_0_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_util_ds_buf_0_0/BoardSetupTest_util_ds_buf_0_0.xci">
-          <Proxy FileSetName="BoardSetupTest_util_ds_buf_0_0"/>
+        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_Encoder_0_1/BoardSetupTest_Encoder_0_1.xci">
+          <Proxy FileSetName="BoardSetupTest_Encoder_0_1"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_Wavelet_S1_0_0/BoardSetupTest_Wavelet_S1_0_0.xci">
-          <Proxy FileSetName="BoardSetupTest_Wavelet_S1_0_0"/>
+        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_proc_sys_reset_0_1/BoardSetupTest_proc_sys_reset_0_1.xci">
+          <Proxy FileSetName="BoardSetupTest_proc_sys_reset_0_1"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_xbar_0/BoardSetupTest_xbar_0.xci">
+          <Proxy FileSetName="BoardSetupTest_xbar_0"/>
         </CompFileExtendedInfo>
       </File>
       <File Path="$PSRCDIR/sources_1/bd/BoardSetupTest/hdl/BoardSetupTest_wrapper.v">
@@ -172,7 +172,7 @@
       <File Path="$PSRCDIR/utils_1/imports/impl_1/BoardSetupTest_wrapper_routed.dcp">
         <FileInfo>
           <Attr Name="ImportPath" Val="$PRUNDIR/impl_1/BoardSetupTest_wrapper_routed.dcp"/>
-          <Attr Name="ImportTime" Val="1582590285"/>
+          <Attr Name="ImportTime" Val="1582652353"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedInSteps" Val="impl_1"/>
@@ -182,7 +182,7 @@
       <File Path="$PSRCDIR/utils_1/imports/synth_1/BoardSetupTest_wrapper.dcp">
         <FileInfo>
           <Attr Name="ImportPath" Val="$PRUNDIR/synth_1/BoardSetupTest_wrapper.dcp"/>
-          <Attr Name="ImportTime" Val="1582590285"/>
+          <Attr Name="ImportTime" Val="1582652354"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedInSteps" Val="synth_1"/>
@@ -302,12 +302,12 @@
         <StratHandle Name="Flow_PerfOptimized_high" Flow="Vivado Synthesis 2019"/>
         <Step Id="synth_design">
           <Option Id="ResourceSharing">2</Option>
-          <Option Id="KeepEquivalentRegisters">1</Option>
-          <Option Id="FsmExtraction">1</Option>
           <Option Id="NoCombineLuts">1</Option>
-          <Option Id="Directive">7</Option>
           <Option Id="ShregMinSize">5</Option>
+          <Option Id="KeepEquivalentRegisters">1</Option>
           <Option Id="RepFanoutThreshold">400</Option>
+          <Option Id="FsmExtraction">1</Option>
+          <Option Id="Directive">7</Option>
         </Step>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>

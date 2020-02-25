@@ -321,16 +321,15 @@ wire [6:0] e_buffer_rd_count[15:0];
 
 // Compressor instantiation and mapping.
 // --------------------------------------------------------------------------------
-compressor c_HH1_R1     // Stream 00, handling HH1.R1[7:0]
+compressor_LL2 c_LL2     // Stream 00, handling LL2
 (
     .px_clk(px_clk),
     .px_clk_2x(px_clk_2x),
     .px_clk_2x_phase(px_clk_2x_phase),
-    .px_count_c(px_count_c_XX1_R1G2),
-    .px_count_e(px_count_e_XX1_R1G2),
-    .q_mult(q_mult_HH1),
+    .px_count_c(px_count_c_XX2),
+    .px_count_e(px_count_e_XX2),
     
-    .in_2px_concat(HH1_concat[0+:256]),
+    .in_2px_concat(LL2_concat),
     
     .m00_axi_aclk(m00_axi_aclk),
     .fifo_rd_next(fifo_rd_next[0]),
@@ -339,241 +338,7 @@ compressor c_HH1_R1     // Stream 00, handling HH1.R1[7:0]
     .fifo_wr_count(fifo_wr_count[0]),
     .e_buffer_rd_count(e_buffer_rd_count[0])
 );
-compressor c_HH1_G1     // Stream 01, handling HH1.G1[7:0]
-(
-    .px_clk(px_clk),
-    .px_clk_2x(px_clk_2x),
-    .px_clk_2x_phase(px_clk_2x_phase),
-    .px_count_c(px_count_c_XX1_G1B1),
-    .px_count_e(px_count_e_XX1_G1B1),
-    .q_mult(q_mult_HH1),
-    
-    .in_2px_concat(HH1_concat[256+:256]),
-    
-    .m00_axi_aclk(m00_axi_aclk),
-    .fifo_rd_next(fifo_rd_next[1]),
-    .fifo_rd_data(fifo_rd_data[1]),
-    .fifo_rd_count(fifo_rd_count[1]),
-    .fifo_wr_count(fifo_wr_count[1]),
-    .e_buffer_rd_count(e_buffer_rd_count[1])
-);
-compressor c_HH1_G2     // Stream 02, handling HH1.G2[7:0]
-(
-    .px_clk(px_clk),
-    .px_clk_2x(px_clk_2x),
-    .px_clk_2x_phase(px_clk_2x_phase),
-    .px_count_c(px_count_c_XX1_R1G2),
-    .px_count_e(px_count_e_XX1_R1G2),
-    .q_mult(q_mult_HH1),
-    
-    .in_2px_concat(HH1_concat[512+:256]),
-    
-    .m00_axi_aclk(m00_axi_aclk),
-    .fifo_rd_next(fifo_rd_next[2]),
-    .fifo_rd_data(fifo_rd_data[2]),
-    .fifo_rd_count(fifo_rd_count[2]),
-    .fifo_wr_count(fifo_wr_count[2]),
-    .e_buffer_rd_count(e_buffer_rd_count[2])
-);
-compressor c_HH1_B1     // Stream 03, handling HH1.B1[7:0]
-(
-    .px_clk(px_clk),
-    .px_clk_2x(px_clk_2x),
-    .px_clk_2x_phase(px_clk_2x_phase),
-    .px_count_c(px_count_c_XX1_G1B1),
-    .px_count_e(px_count_e_XX1_G1B1),
-    .q_mult(q_mult_HH1),
-    
-    .in_2px_concat(HH1_concat[768+:256]),
-    
-    .m00_axi_aclk(m00_axi_aclk),
-    .fifo_rd_next(fifo_rd_next[3]),
-    .fifo_rd_data(fifo_rd_data[3]),
-    .fifo_rd_count(fifo_rd_count[3]),
-    .fifo_wr_count(fifo_wr_count[3]),
-    .e_buffer_rd_count(e_buffer_rd_count[3])
-);
-compressor c_HL1_R1     // Stream 04, handling HL1.R1[7:0]
-(
-    .px_clk(px_clk),
-    .px_clk_2x(px_clk_2x),
-    .px_clk_2x_phase(px_clk_2x_phase),
-    .px_count_c(px_count_c_XX1_R1G2),
-    .px_count_e(px_count_e_XX1_R1G2),
-    .q_mult(q_mult_HL1_LH1),
-    
-    .in_2px_concat(HL1_concat[0+:256]),
-    
-    .m00_axi_aclk(m00_axi_aclk),
-    .fifo_rd_next(fifo_rd_next[4]),
-    .fifo_rd_data(fifo_rd_data[4]),
-    .fifo_rd_count(fifo_rd_count[4]),
-    .fifo_wr_count(fifo_wr_count[4]),
-    .e_buffer_rd_count(e_buffer_rd_count[4])
-);
-compressor c_HL1_G1     // Stream 05, handling HL1.G1[7:0]
-(
-    .px_clk(px_clk),
-    .px_clk_2x(px_clk_2x),
-    .px_clk_2x_phase(px_clk_2x_phase),
-    .px_count_c(px_count_c_XX1_G1B1),
-    .px_count_e(px_count_e_XX1_G1B1),
-    .q_mult(q_mult_HL1_LH1),
-    
-    .in_2px_concat(HL1_concat[256+:256]),
-    
-    .m00_axi_aclk(m00_axi_aclk),
-    .fifo_rd_next(fifo_rd_next[5]),
-    .fifo_rd_data(fifo_rd_data[5]),
-    .fifo_rd_count(fifo_rd_count[5]),
-    .fifo_wr_count(fifo_wr_count[5]),
-    .e_buffer_rd_count(e_buffer_rd_count[5])
-);
-compressor c_HL1_G2     // Stream 06, handling HL1.G2[7:0]
-(
-    .px_clk(px_clk),
-    .px_clk_2x(px_clk_2x),
-    .px_clk_2x_phase(px_clk_2x_phase),
-    .px_count_c(px_count_c_XX1_R1G2),
-    .px_count_e(px_count_e_XX1_R1G2),
-    .q_mult(q_mult_HL1_LH1),
-    
-    .in_2px_concat(HL1_concat[512+:256]),
-    
-    .m00_axi_aclk(m00_axi_aclk),
-    .fifo_rd_next(fifo_rd_next[6]),
-    .fifo_rd_data(fifo_rd_data[6]),
-    .fifo_rd_count(fifo_rd_count[6]),
-    .fifo_wr_count(fifo_wr_count[6]),
-    .e_buffer_rd_count(e_buffer_rd_count[6])
-);
-compressor c_HL1_B1     // Stream 07, handling HL1.B1[7:0]
-(
-    .px_clk(px_clk),
-    .px_clk_2x(px_clk_2x),
-    .px_clk_2x_phase(px_clk_2x_phase),
-    .px_count_c(px_count_c_XX1_G1B1),
-    .px_count_e(px_count_e_XX1_G1B1),
-    .q_mult(q_mult_HL1_LH1),
-    
-    .in_2px_concat(HL1_concat[768+:256]),
-    
-    .m00_axi_aclk(m00_axi_aclk),
-    .fifo_rd_next(fifo_rd_next[7]),
-    .fifo_rd_data(fifo_rd_data[7]),
-    .fifo_rd_count(fifo_rd_count[7]),
-    .fifo_wr_count(fifo_wr_count[7]),
-    .e_buffer_rd_count(e_buffer_rd_count[7])
-);
-compressor c_LH1_R1     // Stream 08, handling LH1.R1[7:0]
-(
-    .px_clk(px_clk),
-    .px_clk_2x(px_clk_2x),
-    .px_clk_2x_phase(px_clk_2x_phase),
-    .px_count_c(px_count_c_XX1_R1G2),
-    .px_count_e(px_count_e_XX1_R1G2),
-    .q_mult(q_mult_HL1_LH1),
-    
-    .in_2px_concat(LH1_concat[0+:256]),
-    
-    .m00_axi_aclk(m00_axi_aclk),
-    .fifo_rd_next(fifo_rd_next[8]),
-    .fifo_rd_data(fifo_rd_data[8]),
-    .fifo_rd_count(fifo_rd_count[8]),
-    .fifo_wr_count(fifo_wr_count[8]),
-    .e_buffer_rd_count(e_buffer_rd_count[8])
-);
-compressor c_LH1_G1     // Stream 09, handling LH1.G1[7:0]
-(
-    .px_clk(px_clk),
-    .px_clk_2x(px_clk_2x),
-    .px_clk_2x_phase(px_clk_2x_phase),
-    .px_count_c(px_count_c_XX1_G1B1),
-    .px_count_e(px_count_e_XX1_G1B1),
-    .q_mult(q_mult_HL1_LH1),
-    
-    .in_2px_concat(LH1_concat[256+:256]),
-    
-    .m00_axi_aclk(m00_axi_aclk),
-    .fifo_rd_next(fifo_rd_next[9]),
-    .fifo_rd_data(fifo_rd_data[9]),
-    .fifo_rd_count(fifo_rd_count[9]),
-    .fifo_wr_count(fifo_wr_count[9]),
-    .e_buffer_rd_count(e_buffer_rd_count[9])
-);
-compressor c_LH1_G2     // Stream 10, handling LH1.G2[7:0]
-(
-    .px_clk(px_clk),
-    .px_clk_2x(px_clk_2x),
-    .px_clk_2x_phase(px_clk_2x_phase),
-    .px_count_c(px_count_c_XX1_R1G2),
-    .px_count_e(px_count_e_XX1_R1G2),
-    .q_mult(q_mult_HL1_LH1),
-    
-    .in_2px_concat(LH1_concat[512+:256]),
-    
-    .m00_axi_aclk(m00_axi_aclk),
-    .fifo_rd_next(fifo_rd_next[10]),
-    .fifo_rd_data(fifo_rd_data[10]),
-    .fifo_rd_count(fifo_rd_count[10]),
-    .fifo_wr_count(fifo_wr_count[10]),
-    .e_buffer_rd_count(e_buffer_rd_count[10])
-);
-compressor c_LH1_B1     // Stream 11, handling LH1.B1[7:0]
-(
-    .px_clk(px_clk),
-    .px_clk_2x(px_clk_2x),
-    .px_clk_2x_phase(px_clk_2x_phase),
-    .px_count_c(px_count_c_XX1_G1B1),
-    .px_count_e(px_count_e_XX1_G1B1),
-    .q_mult(q_mult_HL1_LH1),
-    
-    .in_2px_concat(LH1_concat[768+:256]),
-    
-    .m00_axi_aclk(m00_axi_aclk),
-    .fifo_rd_next(fifo_rd_next[11]),
-    .fifo_rd_data(fifo_rd_data[11]),
-    .fifo_rd_count(fifo_rd_count[11]),
-    .fifo_wr_count(fifo_wr_count[11]),
-    .e_buffer_rd_count(e_buffer_rd_count[11])
-);
-compressor_16in c_HH2     // Stream 12, handling HH2
-(
-    .px_clk(px_clk),
-    .px_clk_2x(px_clk_2x),
-    .px_clk_2x_phase(px_clk_2x_phase),
-    .px_count_c(px_count_c_XX2),
-    .px_count_e(px_count_e_XX2),
-    .q_mult(q_mult_HH2),
-    
-    .in_2px_concat(HH2_concat),
-    
-    .m00_axi_aclk(m00_axi_aclk),
-    .fifo_rd_next(fifo_rd_next[12]),
-    .fifo_rd_data(fifo_rd_data[12]),
-    .fifo_rd_count(fifo_rd_count[12]),
-    .fifo_wr_count(fifo_wr_count[12]),
-    .e_buffer_rd_count(e_buffer_rd_count[12])
-);
-compressor_16in c_HL2     // Stream 13, handling HL2
-(
-    .px_clk(px_clk),
-    .px_clk_2x(px_clk_2x),
-    .px_clk_2x_phase(px_clk_2x_phase),
-    .px_count_c(px_count_c_XX2),
-    .px_count_e(px_count_e_XX2),
-    .q_mult(q_mult_HL2_LH2),
-    
-    .in_2px_concat(HL2_concat),
-    
-    .m00_axi_aclk(m00_axi_aclk),
-    .fifo_rd_next(fifo_rd_next[13]),
-    .fifo_rd_data(fifo_rd_data[13]),
-    .fifo_rd_count(fifo_rd_count[13]),
-    .fifo_wr_count(fifo_wr_count[13]),
-    .e_buffer_rd_count(e_buffer_rd_count[13])
-);
-compressor_16in c_LH2     // Stream 14, handling LH2
+compressor_16in c_LH2     // Stream 01, handling LH2
 (
     .px_clk(px_clk),
     .px_clk_2x(px_clk_2x),
@@ -585,21 +350,256 @@ compressor_16in c_LH2     // Stream 14, handling LH2
     .in_2px_concat(LH2_concat),
     
     .m00_axi_aclk(m00_axi_aclk),
-    .fifo_rd_next(fifo_rd_next[14]),
-    .fifo_rd_data(fifo_rd_data[14]),
-    .fifo_rd_count(fifo_rd_count[14]),
-    .fifo_wr_count(fifo_wr_count[14]),
-    .e_buffer_rd_count(e_buffer_rd_count[14])
+    .fifo_rd_next(fifo_rd_next[1]),
+    .fifo_rd_data(fifo_rd_data[1]),
+    .fifo_rd_count(fifo_rd_count[1]),
+    .fifo_wr_count(fifo_wr_count[1]),
+    .e_buffer_rd_count(e_buffer_rd_count[1])
 );
-compressor_LL2 c_LL2     // Stream 15, handling LL2
+compressor_16in c_HL2     // Stream 02, handling HL2
 (
     .px_clk(px_clk),
     .px_clk_2x(px_clk_2x),
     .px_clk_2x_phase(px_clk_2x_phase),
     .px_count_c(px_count_c_XX2),
     .px_count_e(px_count_e_XX2),
+    .q_mult(q_mult_HL2_LH2),
     
-    .in_2px_concat(LL2_concat),
+    .in_2px_concat(HL2_concat),
+    
+    .m00_axi_aclk(m00_axi_aclk),
+    .fifo_rd_next(fifo_rd_next[2]),
+    .fifo_rd_data(fifo_rd_data[2]),
+    .fifo_rd_count(fifo_rd_count[2]),
+    .fifo_wr_count(fifo_wr_count[2]),
+    .e_buffer_rd_count(e_buffer_rd_count[2])
+);
+compressor_16in c_HH2     // Stream 03, handling HH2
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_clk_2x_phase(px_clk_2x_phase),
+    .px_count_c(px_count_c_XX2),
+    .px_count_e(px_count_e_XX2),
+    .q_mult(q_mult_HH2),
+    
+    .in_2px_concat(HH2_concat),
+    
+    .m00_axi_aclk(m00_axi_aclk),
+    .fifo_rd_next(fifo_rd_next[3]),
+    .fifo_rd_data(fifo_rd_data[3]),
+    .fifo_rd_count(fifo_rd_count[3]),
+    .fifo_wr_count(fifo_wr_count[3]),
+    .e_buffer_rd_count(e_buffer_rd_count[3])
+);
+compressor c_LH1_G1     // Stream 04, handling LH1.G1[7:0]
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_clk_2x_phase(px_clk_2x_phase),
+    .px_count_c(px_count_c_XX1_G1B1),
+    .px_count_e(px_count_e_XX1_G1B1),
+    .q_mult(q_mult_HL1_LH1),
+    
+    .in_2px_concat(LH1_concat[256+:256]),
+    
+    .m00_axi_aclk(m00_axi_aclk),
+    .fifo_rd_next(fifo_rd_next[4]),
+    .fifo_rd_data(fifo_rd_data[4]),
+    .fifo_rd_count(fifo_rd_count[4]),
+    .fifo_wr_count(fifo_wr_count[4]),
+    .e_buffer_rd_count(e_buffer_rd_count[4])
+);
+compressor c_LH1_R1     // Stream 05, handling LH1.R1[7:0]
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_clk_2x_phase(px_clk_2x_phase),
+    .px_count_c(px_count_c_XX1_R1G2),
+    .px_count_e(px_count_e_XX1_R1G2),
+    .q_mult(q_mult_HL1_LH1),
+    
+    .in_2px_concat(LH1_concat[0+:256]),
+    
+    .m00_axi_aclk(m00_axi_aclk),
+    .fifo_rd_next(fifo_rd_next[5]),
+    .fifo_rd_data(fifo_rd_data[5]),
+    .fifo_rd_count(fifo_rd_count[5]),
+    .fifo_wr_count(fifo_wr_count[5]),
+    .e_buffer_rd_count(e_buffer_rd_count[5])
+);
+compressor c_LH1_B1     // Stream 06, handling LH1.B1[7:0]
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_clk_2x_phase(px_clk_2x_phase),
+    .px_count_c(px_count_c_XX1_G1B1),
+    .px_count_e(px_count_e_XX1_G1B1),
+    .q_mult(q_mult_HL1_LH1),
+    
+    .in_2px_concat(LH1_concat[768+:256]),
+    
+    .m00_axi_aclk(m00_axi_aclk),
+    .fifo_rd_next(fifo_rd_next[6]),
+    .fifo_rd_data(fifo_rd_data[6]),
+    .fifo_rd_count(fifo_rd_count[6]),
+    .fifo_wr_count(fifo_wr_count[6]),
+    .e_buffer_rd_count(e_buffer_rd_count[6])
+);
+compressor c_LH1_G2     // Stream 07, handling LH1.G2[7:0]
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_clk_2x_phase(px_clk_2x_phase),
+    .px_count_c(px_count_c_XX1_R1G2),
+    .px_count_e(px_count_e_XX1_R1G2),
+    .q_mult(q_mult_HL1_LH1),
+    
+    .in_2px_concat(LH1_concat[512+:256]),
+    
+    .m00_axi_aclk(m00_axi_aclk),
+    .fifo_rd_next(fifo_rd_next[7]),
+    .fifo_rd_data(fifo_rd_data[7]),
+    .fifo_rd_count(fifo_rd_count[7]),
+    .fifo_wr_count(fifo_wr_count[7]),
+    .e_buffer_rd_count(e_buffer_rd_count[7])
+);
+compressor c_HL1_G1     // Stream 08, handling HL1.G1[7:0]
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_clk_2x_phase(px_clk_2x_phase),
+    .px_count_c(px_count_c_XX1_G1B1),
+    .px_count_e(px_count_e_XX1_G1B1),
+    .q_mult(q_mult_HL1_LH1),
+    
+    .in_2px_concat(HL1_concat[256+:256]),
+    
+    .m00_axi_aclk(m00_axi_aclk),
+    .fifo_rd_next(fifo_rd_next[8]),
+    .fifo_rd_data(fifo_rd_data[8]),
+    .fifo_rd_count(fifo_rd_count[8]),
+    .fifo_wr_count(fifo_wr_count[8]),
+    .e_buffer_rd_count(e_buffer_rd_count[8])
+);
+compressor c_HL1_R1     // Stream 09, handling HL1.R1[7:0]
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_clk_2x_phase(px_clk_2x_phase),
+    .px_count_c(px_count_c_XX1_R1G2),
+    .px_count_e(px_count_e_XX1_R1G2),
+    .q_mult(q_mult_HL1_LH1),
+    
+    .in_2px_concat(HL1_concat[0+:256]),
+    
+    .m00_axi_aclk(m00_axi_aclk),
+    .fifo_rd_next(fifo_rd_next[9]),
+    .fifo_rd_data(fifo_rd_data[9]),
+    .fifo_rd_count(fifo_rd_count[9]),
+    .fifo_wr_count(fifo_wr_count[9]),
+    .e_buffer_rd_count(e_buffer_rd_count[9])
+);
+compressor c_HL1_B1     // Stream 10, handling HL1.B1[7:0]
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_clk_2x_phase(px_clk_2x_phase),
+    .px_count_c(px_count_c_XX1_G1B1),
+    .px_count_e(px_count_e_XX1_G1B1),
+    .q_mult(q_mult_HL1_LH1),
+    
+    .in_2px_concat(HL1_concat[768+:256]),
+    
+    .m00_axi_aclk(m00_axi_aclk),
+    .fifo_rd_next(fifo_rd_next[10]),
+    .fifo_rd_data(fifo_rd_data[10]),
+    .fifo_rd_count(fifo_rd_count[10]),
+    .fifo_wr_count(fifo_wr_count[10]),
+    .e_buffer_rd_count(e_buffer_rd_count[10])
+);
+compressor c_HL1_G2     // Stream 11, handling HL1.G2[7:0]
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_clk_2x_phase(px_clk_2x_phase),
+    .px_count_c(px_count_c_XX1_R1G2),
+    .px_count_e(px_count_e_XX1_R1G2),
+    .q_mult(q_mult_HL1_LH1),
+    
+    .in_2px_concat(HL1_concat[512+:256]),
+    
+    .m00_axi_aclk(m00_axi_aclk),
+    .fifo_rd_next(fifo_rd_next[11]),
+    .fifo_rd_data(fifo_rd_data[11]),
+    .fifo_rd_count(fifo_rd_count[11]),
+    .fifo_wr_count(fifo_wr_count[11]),
+    .e_buffer_rd_count(e_buffer_rd_count[11])
+);
+compressor c_HH1_G1     // Stream 12, handling HH1.G1[7:0]
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_clk_2x_phase(px_clk_2x_phase),
+    .px_count_c(px_count_c_XX1_G1B1),
+    .px_count_e(px_count_e_XX1_G1B1),
+    .q_mult(q_mult_HH1),
+    
+    .in_2px_concat(HH1_concat[256+:256]),
+    
+    .m00_axi_aclk(m00_axi_aclk),
+    .fifo_rd_next(fifo_rd_next[12]),
+    .fifo_rd_data(fifo_rd_data[12]),
+    .fifo_rd_count(fifo_rd_count[12]),
+    .fifo_wr_count(fifo_wr_count[12]),
+    .e_buffer_rd_count(e_buffer_rd_count[12])
+);
+compressor c_HH1_R1     // Stream 13, handling HH1.R1[7:0]
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_clk_2x_phase(px_clk_2x_phase),
+    .px_count_c(px_count_c_XX1_R1G2),
+    .px_count_e(px_count_e_XX1_R1G2),
+    .q_mult(q_mult_HH1),
+    
+    .in_2px_concat(HH1_concat[0+:256]),
+    
+    .m00_axi_aclk(m00_axi_aclk),
+    .fifo_rd_next(fifo_rd_next[13]),
+    .fifo_rd_data(fifo_rd_data[13]),
+    .fifo_rd_count(fifo_rd_count[13]),
+    .fifo_wr_count(fifo_wr_count[13]),
+    .e_buffer_rd_count(e_buffer_rd_count[13])
+);
+compressor c_HH1_B1     // Stream 14, handling HH1.B1[7:0]
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_clk_2x_phase(px_clk_2x_phase),
+    .px_count_c(px_count_c_XX1_G1B1),
+    .px_count_e(px_count_e_XX1_G1B1),
+    .q_mult(q_mult_HH1),
+    
+    .in_2px_concat(HH1_concat[768+:256]),
+    
+    .m00_axi_aclk(m00_axi_aclk),
+    .fifo_rd_next(fifo_rd_next[14]),
+    .fifo_rd_data(fifo_rd_data[14]),
+    .fifo_rd_count(fifo_rd_count[14]),
+    .fifo_wr_count(fifo_wr_count[14]),
+    .e_buffer_rd_count(e_buffer_rd_count[14])
+);
+compressor c_HH1_G2     // Stream 15, handling HH1.G2[7:0]
+(
+    .px_clk(px_clk),
+    .px_clk_2x(px_clk_2x),
+    .px_clk_2x_phase(px_clk_2x_phase),
+    .px_count_c(px_count_c_XX1_R1G2),
+    .px_count_e(px_count_e_XX1_R1G2),
+    .q_mult(q_mult_HH1),
+    
+    .in_2px_concat(HH1_concat[512+:256]),
     
     .m00_axi_aclk(m00_axi_aclk),
     .fifo_rd_next(fifo_rd_next[15]),
@@ -608,6 +608,7 @@ compressor_LL2 c_LL2     // Stream 15, handling LL2
     .fifo_wr_count(fifo_wr_count[15]),
     .e_buffer_rd_count(e_buffer_rd_count[15])
 );
+
 // --------------------------------------------------------------------------------
 
 // Round-robin RAM writer.
