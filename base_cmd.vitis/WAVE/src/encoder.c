@@ -63,7 +63,6 @@ void encoderInit(void)
 	// Configure the Encoder and arm the AXI Master.
 	Encoder->q_mult_HH1_HL1_LH1 = 0x00100020;
 	Encoder->q_mult_HH2_HL2_LH2 = 0x00200040;
-	Encoder->reserved = 0x00000000;
 	Encoder->control = ENC_CTRL_M00_AXI_ARM;
 
 	encoderResetRAMAddr(Encoder, 0xFFFF);

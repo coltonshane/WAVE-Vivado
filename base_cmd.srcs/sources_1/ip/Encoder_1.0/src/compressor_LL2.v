@@ -28,6 +28,7 @@ module compressor_LL2
     input wire fifo_rd_next,
     output wire [127:0] fifo_rd_data,
     output wire [9:0] fifo_rd_count,
+    output wire [10:0] fifo_wr_count,
     output wire [6:0] e_buffer_rd_count,
     
     output wire [127:0] debug_e_buffer
@@ -173,6 +174,7 @@ FIFO36E2
 #(
    .FIRST_WORD_FALL_THROUGH("TRUE"),
    .RDCOUNT_TYPE("EXTENDED_DATACOUNT"),
+   .WRCOUNT_TYPE("EXTENDED_DATACOUNT"),
    .READ_WIDTH(72),
    .REGISTER_MODE("REGISTERED"),
    .WRITE_WIDTH(36)
@@ -181,6 +183,7 @@ FIFO36E2_H
 (
    .DOUT({fifo_rd_data[127:96], fifo_rd_data[63:32]}),  // Reorder to match input.
    .RDCOUNT(fifo_rd_count),                             // Driver.
+   .WRCOUNT(fifo_wr_count),                             // Driver.
    .RDCLK(m00_axi_aclk),
    .RDEN(fifo_rd_next),
 
@@ -193,6 +196,7 @@ FIFO36E2
 #(
    .FIRST_WORD_FALL_THROUGH("TRUE"),
    .RDCOUNT_TYPE("EXTENDED_DATACOUNT"),
+   .WRCOUNT_TYPE("EXTENDED_DATACOUNT"),
    .READ_WIDTH(72),
    .REGISTER_MODE("REGISTERED"),
    .WRITE_WIDTH(36)
@@ -201,6 +205,7 @@ FIFO36E2_L
 (
    .DOUT({fifo_rd_data[95:64], fifo_rd_data[31:0]}),    // Reorder to match input.
    .RDCOUNT(),                                          // Follower.
+   .WRCOUNT(),                                          // Follower.
    .RDCLK(m00_axi_aclk),
    .RDEN(fifo_rd_next),
    

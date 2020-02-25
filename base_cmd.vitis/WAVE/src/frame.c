@@ -44,18 +44,18 @@ THE SOFTWARE.
 // 512B Frame Header Structure
 typedef struct __attribute__((packed))
 {
-	// Start of Frame [38B]
+	// Start of Frame [40B]
 	char delimeter[12];			// Frame delimiter, always "WAVE HELLO!\n"
 	u32 nFrame;					// Frame number.
 	u32 nFrameBacklog;			// Frame recording backlog.
 	u64 tFrameRead_us;			// Frame read (from sensor) timestamp in [us].
 	u64 tFrameWrite_us;			// Frame write (to SSD) timestamp in [us].
-	u16 csFIFOOver;				// Codestream FIFO overfull flags.
+	u32 csFIFOFlags;			// Codestream FIFO half-word and overfull flags.
 
-	// Frame Information [10B]
+	// Frame Information [8B]
 	u16 wFrame;					// Width
 	u16 hFrame;					// Height
-	u8 reserved0[6];
+	u8 reserved0[4];
 
 	// Quantizer Settings [16B]
 	u32 q_mult_HH1_HL1_LH1;		// Stage 1 quantizer settings.
@@ -144,7 +144,7 @@ void isrFOT(void * CallbackRef)
 	fhBuffer[iFrameIn].q_mult_HH2_HL2_LH2 = Encoder_next.q_mult_HH2_HL2_LH2;
 
 	// Codestream start addresses and FIFO state for the upcoming frame.
-	fhBuffer[iFrameIn].csFIFOOver = Encoder_next.control & 0xFFFF;
+	fhBuffer[iFrameIn].csFIFOFlags = Encoder_next.fifo_flags;
 	for(int iCS = 0; iCS < 16; iCS++)
 	{
 		fhBuffer[iFrameIn].csAddr[iCS] = Encoder_next.c_RAM_addr[iCS];

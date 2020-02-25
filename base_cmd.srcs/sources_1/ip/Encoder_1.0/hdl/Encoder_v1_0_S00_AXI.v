@@ -55,6 +55,7 @@ module Encoder_v1_0_S00_AXI
     output wire m00_axi_armed,
     output wire [4:0] debug_c_state,
 
+    input wire [15:0] fifo_halfword_concat,
     input wire [15:0] fifo_overfull_concat,
     input wire [255:0] fifo_rd_count_concat,
     
@@ -280,11 +281,14 @@ begin
 	           slv_reg[i] <= c_RAM_addr_concat[32*i+:32];
 	        end
 	        
-	        // Slave Register 35: Control
-	        slv_reg[35][25] <= c_RAM_addr_update_complete;
+	        // Slave Register 34: Control
+	        slv_reg[34][25] <= c_RAM_addr_update_complete;
+	        
+	        // Slave Register 35: Encoder FIFO flags.
+	        slv_reg[35][31:16] <= fifo_halfword_concat;
 	        slv_reg[35][15:0] <= fifo_overfull_concat;
 	        
-	        // Slave Registers 36-43: Encoder buffer and FIFO state.
+	        // Slave Registers 36-43: Encoder FIFO and buffer state.
 	        for(i = 0; i < 8; i = i + 1)
 	        begin
             slv_reg[36 + i] <= fifo_rd_count_concat[32*i+:32];
@@ -435,10 +439,10 @@ assign q_mult_HL1_LH1 = slv_reg[32][0+:10];
 assign q_mult_HH2 = slv_reg[33][16+:10];
 assign q_mult_HL2_LH2 = slv_reg[33][0+:10];
 
-// Slave Register 35: Control
-assign m00_axi_armed = slv_reg[35][28];
-assign c_RAM_addr_update_request = slv_reg[35][24];
-assign debug_c_state = slv_reg[35][20:16];
+// Slave Register 34: Control
+assign m00_axi_armed = slv_reg[34][28];
+assign c_RAM_addr_update_request = slv_reg[34][24];
+assign debug_c_state = slv_reg[34][20:16];
 
 // User logic ends
 
