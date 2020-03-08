@@ -40,13 +40,13 @@ module Encoder_v1_0_M00_AXI
 (
 	// User Ports (Interface to IP)
 	// -----------------------------------------------------------------------------------------------------
-	// Rising edge from IP triggers the start of a 256B transfer (1burst x 128b).
+	// Rising edge from IP triggers the start of a 512B transfer (2 x 16 x 128b).
 	input wire axi_init_txn,
 	
-	// Starting address of the 256B transfer, offset from C_M_TARGET_SLAVE_BASE_ADDR.
+	// Starting address of the 512B transfer, offset from C_M_TARGET_SLAVE_BASE_ADDR.
 	input wire [(C_M_AXI_ADDR_WIDTH-1):0] axi_awaddr_init,
 	
-	// Immediate data to write. This is updated 16 times per 256B transfer.
+	// Immediate data to write. This is updated 32 times per 512B transfer.
     input wire [(C_M_AXI_DATA_WIDTH-1):0] axi_wdata,
     
     // Signal to IP to update the data. This signal is also used internally.

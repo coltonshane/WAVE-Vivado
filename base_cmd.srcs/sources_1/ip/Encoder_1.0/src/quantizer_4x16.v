@@ -4,8 +4,8 @@
 quantizer_4x16.v
 
 Increases quantization of four 16-bit signed values by multiplying by a value
-in the range 0-256, inclusive, then dividing by 256 and rounding towar zero. This 
-is done using a DSP48E2 primative for each 16-bit value (4 total).
+in the range 0-256, inclusive, then dividing by 256 and rounding toward zero. 
+This is done using a DSP48E2 primative for each 16-bit value (4 total).
 
 The DSP48E2s include registered outputs that update on px_clk if q_en is high.
 The four results are presented as a concatenated 64-bit output.
