@@ -34,6 +34,7 @@
 #include "gpio.h"
 #include "supervisor.h"
 #include "cmv12000.h"
+#include "hdmi.h"
 #include "usb.h"
 #include "pcie.h"
 #include "nvme.h"
@@ -47,6 +48,7 @@
 #define INTC_DEVICE_ID XPAR_SCUGIC_0_DEVICE_ID
 
 void isrFOT(void * CallbackRef);
+void isrVSYNC(void * CallbackRef);
 
 XScuGic Gic;
 
@@ -91,15 +93,26 @@ int main()
 
     usleep(1000);
 
-    // Configure and enable FOT interrupt.
+    // Global interrupt controller setup and enable.
     gicConfig = XScuGic_LookupConfig(INTC_DEVICE_ID);
     XScuGic_CfgInitialize(&Gic, gicConfig, gicConfig->CpuBaseAddress);
     Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_INT, (Xil_ExceptionHandler) XScuGic_InterruptHandler, &Gic);
     Xil_ExceptionEnable();
+
+    // Configure and enable FOT interrupt (Highest Priority: 0).
     XScuGic_Connect(&Gic, 124, (Xil_ExceptionHandler) isrFOT, (void *) &Gic);
+    XScuGic_SetPriorityTriggerType(&Gic, 124, 0x00, 0x03);
     XScuGic_Enable(&Gic, 124);
 
+    // Configure and enable VSYNC interrupt (Second Highest Priority: 8).
+    // NOTE: By default, XScuGic DOES NOT support nested interrupts.
+    XScuGic_Connect(&Gic, 125, (Xil_ExceptionHandler) isrVSYNC, (void *) &Gic);
+    XScuGic_SetPriorityTriggerType(&Gic, 125, 0x08, 0x03);
+    XScuGic_Enable(&Gic, 125);
+
     usleep(1000);
+
+    hdmiInit();
     usbInit();
 
     // Main loop.

@@ -1,5 +1,5 @@
 /*
-WAVE Frame Management Include
+HDMI Driver Include
 
 Copyright (C) 2019 by Shane W. Colton
 
@@ -22,55 +22,19 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef __FRAME_INCLUDE__
-#define __FRAME_INCLUDE__
+#ifndef __HDMI_INCLUDE__
+#define __HDMI_INCLUDE__
 
 // Include Headers -----------------------------------------------------------------------------------------------------
-
-#include "main.h"
 
 // Public Pre-Processor Definitions ------------------------------------------------------------------------------------
 
 // Public Type Definitions ---------------------------------------------------------------------------------------------
 
-// 512B Frame Header Structure
-typedef struct __attribute__((packed))
-{
-	// Start of Frame [40B]
-	char delimeter[12];			// Frame delimiter, always "WAVE HELLO!\n"
-	u32 nFrame;					// Frame number.
-	u32 nFrameBacklog;			// Frame recording backlog.
-	u64 tFrameRead_us;			// Frame read (from sensor) timestamp in [us].
-	u64 tFrameWrite_us;			// Frame write (to SSD) timestamp in [us].
-	u32 csFIFOFlags;			// Codestream FIFO half-word and overfull flags.
-
-	// Frame Information [8B]
-	u16 wFrame;					// Width
-	u16 hFrame;					// Height
-	u8 reserved0[4];
-
-	// Quantizer Settings [16B]
-	u32 q_mult_HH1_HL1_LH1;		// Stage 1 quantizer settings.
-	u32 q_mult_HH2_HL2_LH2;		// Stage 2 quantizer settings.
-	u8 reserved1[8];
-
-	// Codestream Address and Size [128B]
-	u32 csAddr[16];				// Codestream addresses in [B].
-	u32 csSize[16];				// Codestream sizes [B].
-
-	// Codestream start-of-frame FIFO and buffer state [32B].
-	u16 csFIFOState[16];
-
-	// Padding [288B]
-	u8 reserved2[288];
-} FrameHeader_s;
-
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
-void frameService(void);
+void hdmiInit(void);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
-
-extern FrameHeader_s * fhBuffer;
 
 #endif
