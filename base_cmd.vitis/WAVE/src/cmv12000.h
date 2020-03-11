@@ -42,6 +42,8 @@ THE SOFTWARE.
 #define CMV_REG_ADDR_EXP_KP2_H 78
 #define CMV_REG_ADDR_NUMBER_SLOPES 79
 #define CMV_REG_ADDR_NUMBER_FRAMES 80
+#define CMV_REG_ADDR_OFFSET_BOT 87
+#define CMV_REG_ADDR_OFFSET_TOP 88
 #define CMV_REG_ADDR_VTFL 106
 
 #define CMV_REG_ADDR_PGA_GAIN 115
@@ -68,6 +70,9 @@ typedef struct
 
 typedef struct
 {
+	u16 Offset_bot;
+	u16 Offset_top;
+	u16 PGA_gain;
 	u16 Exp_time;
 	u16 Exp_kp1;
 	u16 Exp_kp2;

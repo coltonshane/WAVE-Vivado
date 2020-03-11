@@ -68,6 +68,7 @@ typedef struct __attribute__((packed))
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
 void frameService(void);
+int frameLastCaptured(void);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
 

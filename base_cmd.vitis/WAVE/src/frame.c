@@ -131,6 +131,13 @@ void frameService(void)
 	if(nFramesOut + 3 < nFramesIn) { frameRecord(); }
 }
 
+int frameLastCaptured(void)
+{
+	if(nFramesIn < 1) { return -1; }
+
+	return (nFramesIn - 1) % FH_BUFFER_SIZE;
+}
+
 // Private Function Definitions ----------------------------------------------------------------------------------------
 
 void frameRecord()

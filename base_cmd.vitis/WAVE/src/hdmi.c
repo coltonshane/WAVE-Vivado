@@ -112,7 +112,6 @@ u8 RecvBuffer[256];    /**< Buffer for Receiving Data */
 s32 hdmiFrame = -1;
 
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
-u32 vsync_isr_count = 0;
 void isrVSYNC(void * CallbackRef)
 {
 	FrameHeader_s fhSnapshot;
@@ -120,32 +119,31 @@ void isrVSYNC(void * CallbackRef)
 
 	hdmi->control &= ~HDMI_CTRL_VSYNC_IF;	// Clear the VSYNC interrupt flag.
 
-	if(hdmiFrame < 0 ) { return; }
+	hdmiFrame = frameLastCaptured();
 
-	// Take a snapshot of the frame header for the HDMI frame to be displayed, to consolidate RAM read access.
-	fhSnapshot = fhBuffer[hdmiFrame];
-
-	// Compute the bits to be discarded for each bitfield.
-	for(u8 i = 0; i < 3; i++)
+	if(hdmiFrame > 0)
 	{
-		bitDiscard[i] = fhSnapshot.csFIFOState[i] + ((fhSnapshot.csFIFOFlags >> (16 + i)) & 0x1) * 64;
+		// Take a snapshot of the frame header for the HDMI frame to be displayed, to consolidate RAM read access.
+		fhSnapshot = fhBuffer[hdmiFrame];
+
+		// Compute the bits to be discarded for each bitfield.
+		for(u8 i = 0; i < 3; i++)
+		{
+			bitDiscard[i] = fhSnapshot.csFIFOState[i] + ((fhSnapshot.csFIFOFlags >> (16 + i)) & 0x1) * 64;
+		}
+
+		// Load decoder RAM addresses.
+		hdmi->dc_RAM_addr_update_LL2 = fhSnapshot.csAddr[0];
+		hdmi->dc_RAM_addr_update_LH2 = fhSnapshot.csAddr[1];
+		hdmi->dc_RAM_addr_update_HL2 = fhSnapshot.csAddr[2];
+		hdmi->dc_RAM_addr_update_HH2 = fhSnapshot.csAddr[3];
+
+		// Load the bits to be discarded.
+		hdmi->bit_discard_update_LL2 = bitDiscard[0];
+		hdmi->bit_discard_update_LH2 = bitDiscard[1];
+		hdmi->bit_discard_update_HL2 = bitDiscard[2];
+		hdmi->bit_discard_update_HH2 = bitDiscard[3];
 	}
-
-	// Load decoder RAM addresses.
-	hdmi->dc_RAM_addr_update_LL2 = fhSnapshot.csAddr[0];
-	hdmi->dc_RAM_addr_update_LH2 = fhSnapshot.csAddr[1];
-	hdmi->dc_RAM_addr_update_HL2 = fhSnapshot.csAddr[2];
-	hdmi->dc_RAM_addr_update_HH2 = fhSnapshot.csAddr[3];
-
-	// Load the bits to be discarded.
-	hdmi->bit_discard_update_LL2 = bitDiscard[0];
-	hdmi->bit_discard_update_LH2 = bitDiscard[1];
-	hdmi->bit_discard_update_HL2 = bitDiscard[2];
-	hdmi->bit_discard_update_HH2 = bitDiscard[3];
-
-	vsync_isr_count++;
-	hdmiFrame = hdmiFrame+1;
-	if(hdmiFrame == 100) { hdmiFrame = 0; }
 }
 
 // Public Function Definitions -----------------------------------------------------------------------------------------
@@ -155,12 +153,12 @@ void hdmiInit(void)
 	hdmiWriteTestPattern();
 
 	// Load HDMI peripheral registers with initial values.
-	hdmi->vx0 = 640;
-	hdmi->vy0 = 197;
-	hdmi->vxDiv = 0x4000;
-	hdmi->vyDiv = 0x4000;
+	hdmi->vx0 = 192;
+	hdmi->vy0 = 41;
+	hdmi->vxDiv = 0x2133;
+	hdmi->vyDiv = 0x2133;
 	hdmi->wHDMI = 2200;
-	hdmi->hImage2048 = 1536;
+	hdmi->hImage2048 = 1152;
 	hdmi->q_mult_inv_HL2_LH2 = 1024;
 	hdmi->q_mult_inv_HH2 = 2048;
 	hdmi->dc_RAM_addr_update_LL2 = 0x20000000;
@@ -176,7 +174,7 @@ void hdmiInit(void)
 	hdmi->debug_shift2 = 0x48C2;
 
 	// Arm the AXI Master, but hold the FIFOs in reset.
-	// hdmi->control |= HDMI_CTRL_M00_AXI_ARM;
+	hdmi->control |= HDMI_CTRL_M00_AXI_ARM;
 
 	// Initialize HDMI PHY I2C Device
 	XIicPs_Config *Config;
@@ -376,7 +374,7 @@ void hdmiResetTestPatternState(u32 wrAddrBase)
 {
 	wipWord = 0x0000000000000000;
 	wipIndex = 0;
-	wrAddr = (u32 *)(wrAddrBase);
+	wrAddr = (u32 *)((u64) wrAddrBase);
 }
 
 void hdmiPushTestPatternBits(u16 data, u8 count)

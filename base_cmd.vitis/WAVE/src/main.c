@@ -121,13 +121,13 @@ int main()
     	usbPoll();
     	// frameService();
 
-    	while(requestFrames)
+    	if(requestFrames)
     	{
-    		// Toggle the frame request pin.
     		XGpioPs_WritePin(&Gpio, FRAME_REQ_PIN, 1);
-    		usleep(1);
+    	}
+    	else
+    	{
     		XGpioPs_WritePin(&Gpio, FRAME_REQ_PIN, 0);
-    		requestFrames = 0;
     	}
 
     	if(updateCMVRegs)

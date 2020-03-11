@@ -127,7 +127,7 @@ u8 cmvRegAddrMode[] =
 // 10-bit Normal (Color)
 u16 cmvRegValModeNormal[] =
 {
-	3072,
+	2304,
 	0,
 	0,
 	1,
@@ -137,8 +137,8 @@ u16 cmvRegValModeNormal[] =
 	128,
 	128,
 	128,
-	540,
-	540,
+	520,
+	520,
 	44812,
 	11614,
 	13416,
@@ -186,21 +186,26 @@ void cmvInit(void)
 	cmvRegInit(&Spi0);
 	cmvRegSetMode(&Spi0);
 
-	CMV_Settings.Exp_time = 1152;
+	CMV_Settings.Offset_bot = 520;
+	CMV_Settings.Offset_top = 520;
+	CMV_Settings.PGA_gain = CMV_REG_VAL_PGA_GAIN_X1;
+	CMV_Settings.Exp_time = 864;
 	CMV_Settings.Exp_kp1 = 80;
 	CMV_Settings.Exp_kp2 = 8;
 	CMV_Settings.Vtfl = 84 * 128 + 104;
 	CMV_Settings.Number_slopes = 1;
-	CMV_Settings.Number_frames = 300;
+	CMV_Settings.Number_frames = 1;
 	cmvUpdateSettings();
 
 	// cmvRegWrite(&Spi0, CMV_REG_ADDR_TEST_PATTERN, CMV_REG_VAL_TEST_PATTERN_ON);
-	// cmvRegWrite(&Spi0, CMV_REG_ADDR_PGA_GAIN, CMV_REG_VAL_PGA_GAIN_X2);
 	// cmvRegWrite(&Spi0, CMV_REG_ADDR_DIG_GAIN, 16);
 }
 
 void cmvUpdateSettings(void)
 {
+	cmvRegWrite(&Spi0, CMV_REG_ADDR_OFFSET_BOT, CMV_Settings.Offset_bot);
+	cmvRegWrite(&Spi0, CMV_REG_ADDR_OFFSET_TOP, CMV_Settings.Offset_top);
+	cmvRegWrite(&Spi0, CMV_REG_ADDR_PGA_GAIN, CMV_Settings.PGA_gain);
 	cmvRegWrite(&Spi0, CMV_REG_ADDR_EXP_TIME_L, CMV_Settings.Exp_time);
 	cmvRegWrite(&Spi0, CMV_REG_ADDR_EXP_KP1_L, CMV_Settings.Exp_kp1);
 	cmvRegWrite(&Spi0, CMV_REG_ADDR_EXP_KP2_L, CMV_Settings.Exp_kp2);
