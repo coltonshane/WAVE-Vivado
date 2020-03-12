@@ -3,11 +3,11 @@
 ===================================================================================
 viewport_normalize.v
 
-Converts input coordinate (vx, vy) in HDMI output screen space (2750x1125) to 
+Converts input coordinate (vx, vy) in HDMI output screen space (w x 1125) to 
 output coordinate (vxNorm, vyNorm) in 2^16-wide normalized image space.
 
 Input coordinate (vx0, vy0) is the viewport origin in HDMI output screen space
-(2750x1125). By the standard, the 1920x1080 visible region begins at (830,41).
+(w x 1125). By the standard, the 1920x1080 visible region begins at (192,41).
 
 vxDiv scales the viewport width to a 2^24-wide normalized intermediate image
 space. vyDiv = vxDiv preserves the aspect ratio.
@@ -15,7 +15,7 @@ space. vyDiv = vxDiv preserves the aspect ratio.
 The module should instantiate as two DSP48E2s, one for each axis, and a single
 LUT to combine the inViewport pattern detect signals.
 
-Copyright (C) 2019 by Shane W. Colton
+Copyright (C) 2020 by Shane W. Colton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

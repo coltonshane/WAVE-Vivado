@@ -19,7 +19,7 @@ xOut and yOut are 16b unsigned coordinates of the output value to be interpolate
 These need not be contained within the grid square, but interpolation outside of 
 the square imposes additional limits on the range of inputs.
 
-Copyright (C) 2019 by Shane W. Colton
+Copyright (C) 2020 by Shane W. Colton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

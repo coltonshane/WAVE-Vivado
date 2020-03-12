@@ -12,6 +12,8 @@ Operates on a 16-row buffer of data from a single color field:
             [ Recovered LL1  ] --> Data Out
             [ LL1 from IDWT  ] <-- [IDWT]
             [ H2/L2 to IDWT  ] --> [2/6 ]
+            [ H2/L2 Input    ]
+            [ H2/L2 Input    ]         
 Data In --> [ H2/L2 Input    ]
 Data In --> [ H2/L2 Input    ]
 
