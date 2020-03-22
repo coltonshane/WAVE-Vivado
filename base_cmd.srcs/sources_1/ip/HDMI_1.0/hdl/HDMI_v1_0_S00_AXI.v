@@ -5,6 +5,40 @@ HDMI_v1_0_S00_AXI.v
 AXI slave controller for configuring and controlling the HDMI output pipeline.
 The slave registers are mapped to PS memory, so the ARM cores have access to the 
 encoder block as a peripheral.
+
+Also includes six URAM buffers for LUTs and UI overlays. Addressing:
+
+0x00000 to 0x0004F    Peripheral Registers (20x32b)
+0x00050 to 0x07FFF    Reserved
+0x08000 to 0x0FFFF    uram0: R LUT
+0x10000 to 0x17FFF    uram1: G LUT
+0x18000 to 0x1FFFF    uram2: B LUT
+0x20000 to 0x27FFF    uram3: Top UI Overlay
+0x28000 to 0x2FFFF    uram4: Bottom UI Overlay
+0x30000 to 0x37FFF    uram5: Pop-up UI Overlay
+0x38000 to 0x3FFFF    Rserved
+
+Total address space is 256K (18-bit).
+
+Copyright (C) 2020 by Shane W. Colton
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
 =================================================================================
 */
 
@@ -18,7 +52,7 @@ module HDMI_v1_0_S00_AXI
 	// Width of S_AXI data bus
 	parameter integer C_S_AXI_DATA_WIDTH = 32,
 	// Width of S_AXI address bus
-	parameter integer C_S_AXI_ADDR_WIDTH = 7
+	parameter integer C_S_AXI_ADDR_WIDTH = 18
 )
 (
   // Users to add ports here
@@ -68,6 +102,21 @@ module HDMI_v1_0_S00_AXI
   // Slave Reg 19
   output wire [23:0] debug_shift3,
   output wire [1:0] debug_phase3,
+  // Slave Reg 20
+  output wire [11:0] pop_ui_x0,
+  output wire [11:0] pop_ui_y0,
+  output wire pop_ui_enabled,
+  output wire bot_ui_enabled,
+  output wire top_ui_enabled,
+  // URAM 3
+  input wire [11:0] top_ui_raddr,
+  output wire [63:0] top_ui_rdata,
+  // URAM 4
+  input wire [11:0] bot_ui_raddr,
+  output wire [63:0] bot_ui_rdata,
+  // URAM 5
+  input wire [11:0] pop_ui_raddr,
+  output wire [63:0] pop_ui_rdata,
   
 	// User ports ends
 	// Do not modify the ports beyond this line
@@ -156,8 +205,8 @@ localparam integer OPT_MEM_ADDR_BITS = 4;
 //----------------------------------------------
 //-- Signals for user logic register space example
 //------------------------------------------------
-//-- Number of Slave Registers: 20 <= 2^(OPT_MEM_ADDR_BITS+1)
-reg [C_S_AXI_DATA_WIDTH-1:0] slv_reg [19:0];
+//-- Number of Slave Registers: 21 <= 2^(OPT_MEM_ADDR_BITS+1)
+reg [C_S_AXI_DATA_WIDTH-1:0] slv_reg [20:0];
 wire	 slv_reg_rden;
 wire	 slv_reg_wren;
 reg [C_S_AXI_DATA_WIDTH-1:0]	 reg_data_out;
@@ -261,14 +310,14 @@ end
 // These registers are cleared when reset (active low) is applied.
 // Slave register write enable is asserted when valid address and data are available
 // and the slave is ready to accept the write address and write data.
-assign slv_reg_wren = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID;
+assign slv_reg_wren = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[17:15] == 3'h0);
 
 always @( posedge S_AXI_ACLK )
 begin
     if ( S_AXI_ARESETN == 1'b0 )
     begin : s_axi_areset_block
         integer i;
-        for(i = 0; i < 20; i = i + 1)
+        for(i = 0; i < 21; i = i + 1)
         begin
             slv_reg[i] <= 0;
         end
@@ -388,14 +437,108 @@ begin
 	end
 end    
 
+// Memory-mapped URAM buffers.
+// --------------------------------------------------------------------------------------------------------
+// Write enable switch.
+wire uram0_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[17:15] == 3'h1);
+wire uram1_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[17:15] == 3'h2);
+wire uram2_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[17:15] == 3'h3);
+wire uram3_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[17:15] == 3'h4);
+wire uram4_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[17:15] == 3'h5);
+wire uram5_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[17:15] == 3'h6);
+
+// Read data (after 64b to 32b translation).
+wire [31:0] uram0_rdata;
+wire [31:0] uram1_rdata;
+wire [31:0] uram2_rdata;
+wire [31:0] uram3_rdata;
+wire [31:0] uram4_rdata;
+wire [31:0] uram5_rdata;
+
+// URAM module instanciations.
+axi_slave_uram uram0
+(
+  .s_axi_aclk(S_AXI_ACLK),
+  .axi_wen(uram0_wen),
+  .axi_waddr(axi_awaddr),
+  .axi_wdata(S_AXI_WDATA),
+  .axi_raddr(S_AXI_ARADDR),
+  .axi_rdata(uram0_rdata),
+  .mod_raddr(),
+  .mod_rdata()
+);
+axi_slave_uram uram1
+(
+  .s_axi_aclk(S_AXI_ACLK),
+  .axi_wen(uram1_wen),
+  .axi_waddr(axi_awaddr),
+  .axi_wdata(S_AXI_WDATA),
+  .axi_raddr(S_AXI_ARADDR),
+  .axi_rdata(uram1_rdata),
+  .mod_raddr(),
+  .mod_rdata()
+);
+axi_slave_uram uram2
+(
+  .s_axi_aclk(S_AXI_ACLK),
+  .axi_wen(uram2_wen),
+  .axi_waddr(axi_awaddr),
+  .axi_wdata(S_AXI_WDATA),
+  .axi_raddr(S_AXI_ARADDR),
+  .axi_rdata(uram2_rdata),
+  .mod_raddr(),
+  .mod_rdata()
+);
+axi_slave_uram uram3
+(
+  .s_axi_aclk(S_AXI_ACLK),
+  .axi_wen(uram3_wen),
+  .axi_waddr(axi_awaddr),
+  .axi_wdata(S_AXI_WDATA),
+  .axi_raddr(S_AXI_ARADDR),
+  .axi_rdata(uram3_rdata),
+  .mod_raddr(top_ui_raddr),
+  .mod_rdata(top_ui_rdata)
+);
+axi_slave_uram uram4
+(
+  .s_axi_aclk(S_AXI_ACLK),
+  .axi_wen(uram4_wen),
+  .axi_waddr(axi_awaddr),
+  .axi_wdata(S_AXI_WDATA),
+  .axi_raddr(S_AXI_ARADDR),
+  .axi_rdata(uram4_rdata),
+  .mod_raddr(bot_ui_raddr),
+  .mod_rdata(bot_ui_rdata)
+);
+axi_slave_uram uram5
+(
+  .s_axi_aclk(S_AXI_ACLK),
+  .axi_wen(uram5_wen),
+  .axi_waddr(axi_awaddr),
+  .axi_wdata(S_AXI_WDATA),
+  .axi_raddr(S_AXI_ARADDR),
+  .axi_rdata(uram5_rdata),
+  .mod_raddr(pop_ui_raddr),
+  .mod_rdata(pop_ui_rdata)
+);
+// --------------------------------------------------------------------------------------------------------
+
 // Implement memory mapped register select and read logic generation
 // Slave register read enable is asserted when valid address is available
 // and the slave is ready to accept the read address.
 assign slv_reg_rden = axi_arready & S_AXI_ARVALID & ~axi_rvalid;
 always @(*)
 begin
-    // Address decoding for reading registers
-    reg_data_out <= slv_reg[axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB]];
+  case (axi_araddr[17:15])
+  default: reg_data_out <= slv_reg[axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB]];
+  3'h1: reg_data_out <= uram0_rdata;
+  3'h2: reg_data_out <= uram1_rdata;
+  3'h3: reg_data_out <= uram2_rdata;
+  3'h4: reg_data_out <= uram3_rdata;
+  3'h5: reg_data_out <= uram4_rdata;
+  3'h6: reg_data_out <= uram5_rdata;
+  endcase
 end
 
 // Output register or memory read data
@@ -461,6 +604,12 @@ assign debug_phase2 = slv_reg[18][25:24];
 // Slave Reg 19
 assign debug_shift3 = slv_reg[19][23:0];
 assign debug_phase3 = slv_reg[19][25:24];
+// Slave Reg 20
+assign pop_ui_x0 = slv_reg[20][11:0];
+assign pop_ui_y0 = slv_reg[20][23:12];
+assign pop_ui_enabled = slv_reg[20][24];
+assign bot_ui_enabled = slv_reg[20][25];
+assign top_ui_enabled = slv_reg[20][26];
 
 // User logic ends
 

@@ -111,12 +111,8 @@ set_property IOSTANDARD LVCMOS33 [get_ports hdmi_vsync]
 set_property PACKAGE_PIN F12 [get_ports hdmi_de]
 set_property IOSTANDARD LVCMOS33 [get_ports hdmi_de]
 
-# False (multi-cycle) paths between the 250MHz AXI clock and the 74.25MHz HDMI clock generated from it.
-# TO-DO: Can these two clocks be marked as asynchronous instead?
-set_false_path -from [get_cells -hierarchical -filter { NAME =~ "*slv_reg_reg*" && PARENT =~  "*HDMI_v1_0_S00_AXI*" }] 
-               -to   [get_cells -hierarchical -filter { PARENT !~  "*HDMI_v1_0_S00_AXI*" } ]
-set_false_path -from [get_cells -hierarchical "*dc_state_reg*"] 
-               -to   [get_cells -hierarchical "*" ]
+# Separate HDMI clock domain from AXI clock domain in timing analysis.
+set_clock_groups -asynchronous -group [get_clocks clk_pl_0] -group [get_clocks clk_out1_BoardSetupTest_clk_wiz_0_1_1]
 
 # SPI0 EMIO to CMV12000 (3.3V).
 set_property PACKAGE_PIN D10 [get_ports spi0_sclk]

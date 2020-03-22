@@ -1,14 +1,14 @@
 `timescale 1 ns / 1 ps
 /*
 ===================================================================================
-HDMI_v1_1.v
+HDMI_v1_0.v
 Top module of HDMI output pipeline. This module includes:
 - AXI Master for reading encoded image data from RAM.
 - Decoding and dequantizing of LH2, HL2, and HH2. (LL2 is raw.)
 - Vertical and horizontal IDWT for Stage 2, to recover LL1 color fields.
 - Bilinear interpolation on LL1 color fields for scaling and debayer.
-- Generation of 8b (s)RGB 4:4:4 HDMI outputs.
 - Menu overlay.
+- Generation of 8b (s)RGB 4:4:4 HDMI outputs.
 - Generation of HDMI pixel clock, HSYNC, VSYNC, and DE signals.
 
 Copyright (C) 2020 by Shane W. Colton
@@ -46,7 +46,7 @@ module HDMI_v1_0
 
 	// Parameters for AXI-Lite Slave.
 	parameter integer C_S00_AXI_DATA_WIDTH = 32,
-	parameter integer C_S00_AXI_ADDR_WIDTH = 7,
+	parameter integer C_S00_AXI_ADDR_WIDTH = 18,
 	
   // Parameters of AXI Master.
   parameter C_M00_AXI_TARGET_SLAVE_BASE_ADDR = 32'h00000000,
@@ -195,6 +195,21 @@ wire [1:0] debug_phase2;
 // Slave Reg 19
 wire [23:0] debug_shift3;
 wire [1:0] debug_phase3;
+// Slave Reg 20
+wire [11:0] pop_ui_x0;
+wire [11:0] pop_ui_y0;
+wire pop_ui_enabled;
+wire bot_ui_enabled;
+wire top_ui_enabled;
+// URAM 3
+wire [11:0] top_ui_raddr;
+wire [63:0] top_ui_rdata;
+// URAM 4
+wire [11:0] bot_ui_raddr;
+wire [63:0] bot_ui_rdata;
+// URAM 5
+wire [11:0] pop_ui_raddr;
+wire [63:0] pop_ui_rdata;
 
 // Instantiation of AXI-Lite Slave.
 HDMI_v1_0_S00_AXI 
@@ -249,6 +264,21 @@ HDMI_v1_0_S00_AXI_inst
   // Slave Reg 19
   .debug_shift3(debug_shift3),
   .debug_phase3(debug_phase3),
+  // Slave Reg 20
+  .pop_ui_x0(pop_ui_x0),
+  .pop_ui_y0(pop_ui_y0),
+  .pop_ui_enabled(pop_ui_enabled),
+  .bot_ui_enabled(bot_ui_enabled),
+  .top_ui_enabled(top_ui_enabled),
+  // URAM 3
+  .top_ui_raddr(top_ui_raddr),
+  .top_ui_rdata(top_ui_rdata),
+  // URAM 4
+  .bot_ui_raddr(bot_ui_raddr),
+  .bot_ui_rdata(bot_ui_rdata),
+  // URAM 5
+  .pop_ui_raddr(pop_ui_raddr),
+  .pop_ui_rdata(pop_ui_rdata),
    
    // AXI-Lite slave controller signals.
 	.S_AXI_ACLK(s00_axi_aclk),
@@ -390,8 +420,8 @@ localparam integer vsync_off = 5;
 localparam integer v_de_on = 41;
 localparam integer v_de_off = 1121;
 
-reg [15:0] h_count[3:0];
-reg [15:0] v_count[3:0];
+reg [15:0] h_count[4:0];
+reg [15:0] v_count[4:0];
 
 always @(posedge hdmi_clk)
 begin
@@ -417,7 +447,7 @@ begin
   // Pipeline.
   begin : hv_count_pipeline
   integer i;
-  for (i = 0; i < 3; i = i + 1)
+  for (i = 0; i < 4; i = i + 1)
   begin
     h_count[i+1] <= h_count[i];
     v_count[i+1] <= v_count[i];
@@ -427,9 +457,9 @@ begin
 end
 
 // Combinational HSYNC, VSYNC, and DE generation based on h_count and v_count.
-assign HSYNC = (h_count[3] < hsync_off);
-assign VSYNC = (v_count[3] < vsync_off);
-assign DE = (h_count[3] >= h_de_on) && (h_count[3] < h_de_off) && (v_count[3] >= v_de_on) & (v_count[3] < v_de_off);
+assign HSYNC = (h_count[4] < hsync_off);
+assign VSYNC = (v_count[4] < vsync_off);
+assign DE = (h_count[4] >= h_de_on) && (h_count[4] < h_de_off) && (v_count[4] >= v_de_on) & (v_count[4] < v_de_off);
 
 // Handle VSYNC interrupt: Set once per VSYNC rising edge, 
 // otherwise use registered value (allows software reset).
@@ -632,11 +662,27 @@ reg axi_busy_wait;
 wire axi_txn_done;
 assign axi_txn_done = axi_busy_wait & ~axi_busy;
 
+// Over?built clock domain crossing for address reset request.
+reg [1:0] dc_state_prev;
+reg dc_RAM_addr_update_request_0_hdmi;
+reg dc_RAM_addr_update_request_1_axi;
+reg dc_RAM_addr_update_request_2_axi;
+always @(posedge hdmi_clk)
+begin
+  dc_state_prev <= dc_state;
+  dc_RAM_addr_update_request_0_hdmi <= (dc_state == `DC_STATE_FIFO_RST);
+end
+always @(posedge m00_axi_aclk)
+begin
+  dc_RAM_addr_update_request_1_axi <= dc_RAM_addr_update_request_0_hdmi;
+  dc_RAM_addr_update_request_2_axi <= dc_RAM_addr_update_request_1_axi;
+end
+
 // Address generation.
 reg [31:0] dc_RAM_addr [3:0];
 // Update the RAM read base addresses during FIFO_RST state (first row after VSYNC).
 // (Wait for in-progress transactions to end first.)
-wire dc_RAM_addr_update_request = (dc_state == `DC_STATE_FIFO_RST) & (~axi_init_txn) & (~axi_busy_wait);
+wire dc_RAM_addr_update_request = dc_RAM_addr_update_request_2_axi & (~axi_init_txn) & (~axi_busy_wait);
 reg dc_RAM_addr_update_complete;
 assign fifo_rst = (dc_RAM_addr_update_request & ~dc_RAM_addr_update_complete);
 always @(posedge m00_axi_aclk)
@@ -653,7 +699,7 @@ begin
   end : axi_rst
   else
   begin
-    if(dc_RAM_addr_update_request)
+    if(fifo_rst)
     begin : axi_addr_update
       // Address update.
       integer j;
@@ -669,8 +715,8 @@ begin
       if(axi_txn_done)
       begin
         dc_RAM_addr[c_state] <= dc_RAM_addr[c_state] + 32'h200;
+        dc_RAM_addr_update_complete <= 1'b0;
       end
-      dc_RAM_addr_update_complete <= 1'b0;
     end
   end
 end
@@ -1006,14 +1052,40 @@ bilinear_16b bilinear_G2
 
 // Color outputs.
 // -------------------------------------------------------------------------------------------------
-assign R = inViewportP[1] ? (out_R1 >> 2) : 8'h00;
-assign G = inViewportP[1] ? ((out_G1 + out_G2) >> 3) : 8'h00;
-assign B = inViewportP[1] ? (out_B1 >> 2) : 8'hFF;
+wire [7:0] R_8b = (out_R1 >> 2);
+wire [7:0] G_8b = ((out_G1 + out_G2) >> 3);
+wire [7:0] B_8b = (out_B1 >> 2);
 
-// assign R = inViewportP[1] ? 8'h00 : 8'h00;
-// assign G = inViewportP[1] ? 8'h00 : 8'h00;
-// assign B = inViewportP[1] ? 8'h00 : 8'hFF;
-
+ui_mixer ui_mixer_inst
+(
+  .hdmi_clk(hdmi_clk),
+  .s00_axi_aclk(s00_axi_aclk),
+  
+  .R_8b(R_8b),
+  .G_8b(G_8b),
+  .B_8b(B_8b),
+  
+  .h_count(h_count[3]),
+  .v_count(v_count[3]),
+  .inViewport(inViewportP[1]),
+  
+  .top_ui_enabled(top_ui_enabled),
+  .bot_ui_enabled(bot_ui_enabled),
+  .pop_ui_enabled(pop_ui_enabled),
+  .pop_ui_x0(pop_ui_x0),
+  .pop_ui_y0(pop_ui_y0),
+  
+  .top_ui_rdata(top_ui_rdata),
+  .bot_ui_rdata(bot_ui_rdata),
+  .pop_ui_rdata(pop_ui_rdata),
+  .top_ui_raddr(top_ui_raddr),
+  .bot_ui_raddr(bot_ui_raddr),
+  .pop_ui_raddr(pop_ui_raddr),
+  
+  .R_out(R),
+  .G_out(G),
+  .B_out(B)
+);
 // -------------------------------------------------------------------------------------------------
 
 // User logic ends
