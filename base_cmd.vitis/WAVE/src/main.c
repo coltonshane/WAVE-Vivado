@@ -35,6 +35,7 @@
 #include "supervisor.h"
 #include "cmv12000.h"
 #include "hdmi.h"
+#include "ui.h"
 #include "usb.h"
 #include "pcie.h"
 #include "nvme.h"
@@ -66,6 +67,15 @@ int main()
 
     init_platform();
     Xil_DCacheDisable();
+
+    // QSPI Flash Setup
+    *(u32 *)((u64) 0xFF0F0014) = 0x00000000;	// Disable LQSPI.
+    *(u32 *)((u64) 0xFF0F0114) = 0x00000000;	// Disable GQSPI.
+    *(u32 *)((u64) 0xFF0F0000) = 0x800000C1;	// Master Mode.
+    *(u32 *)((u64) 0xFF0F00A0) = 0x880002EC;	// LQSPI_CFG (TRM Table 24-6).
+    *(u32 *)((u64) 0xFF0F00C0) = 0x00001A28;	// COMMAND (TRM Table 24-6).
+    *(u32 *)((u64) 0xFF0F00C8) = 0x00000001;	// DUMMY_CYCLE_EN.
+    *(u32 *)((u64) 0xFF0F0014) = 0x00000001;	// Enable LQSPI.
 
     // Configure peripherals.
     gpioInit();
@@ -114,6 +124,7 @@ int main()
 
     hdmiInit();
     usbInit();
+    uiTest();
 
     // Main loop.
     while(!triggerShutdown)

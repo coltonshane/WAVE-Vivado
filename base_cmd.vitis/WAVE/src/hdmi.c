@@ -90,6 +90,8 @@ typedef struct
 	u32 debug_shift2;	// Debug: Pixel latency offset to trigger the decompressor enable.
 	// Slave Reg 19
 	u32 debug_shift3;	// Debug: Unused.
+	// Slave Reg 20
+	u32 ui_control;		// Top, bottom, and pop-up UI control.
 } HDMI_s;
 
 // Private Function Prototypes -----------------------------------------------------------------------------------------
@@ -103,7 +105,7 @@ void hdmiPushTestPatternBits(u16 data, u8 count);
 
 // Private Global Variables --------------------------------------------------------------------------------------------
 
-HDMI_s * hdmi = (HDMI_s *) 0xA0005000;
+HDMI_s * hdmi = (HDMI_s *) 0xA0040000;
 XIicPs Iic;
 
 u8 SendBuffer[256];    /**< Buffer for Transmitting Data */
@@ -172,6 +174,7 @@ void hdmiInit(void)
 	hdmi->debug_shift0 = 0x1000;
 	hdmi->debug_shift1 = 0x2FFF;
 	hdmi->debug_shift2 = 0x48C2;
+	hdmi->ui_control = 0x000690C0;
 
 	// Arm the AXI Master, but hold the FIFOs in reset.
 	hdmi->control |= HDMI_CTRL_M00_AXI_ARM;
