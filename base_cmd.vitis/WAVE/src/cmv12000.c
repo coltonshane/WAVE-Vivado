@@ -189,7 +189,7 @@ void cmvInit(void)
 	CMV_Settings.Offset_bot = 520;
 	CMV_Settings.Offset_top = 520;
 	CMV_Settings.PGA_gain = CMV_REG_VAL_PGA_GAIN_X1;
-	CMV_Settings.Exp_time = 864;
+	CMV_Settings.Exp_time = 5760;
 	CMV_Settings.Exp_kp1 = 80;
 	CMV_Settings.Exp_kp2 = 8;
 	CMV_Settings.Vtfl = 84 * 128 + 104;

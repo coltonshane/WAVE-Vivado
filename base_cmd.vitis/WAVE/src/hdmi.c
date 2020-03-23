@@ -123,13 +123,13 @@ void isrVSYNC(void * CallbackRef)
 
 	hdmiFrame = frameLastCaptured();
 
-	if(hdmiFrame > 0)
+	if(hdmiFrame >= 0)
 	{
 		// Take a snapshot of the frame header for the HDMI frame to be displayed, to consolidate RAM read access.
-		fhSnapshot = fhBuffer[hdmiFrame];
+		memcpy(&fhSnapshot, &fhBuffer[hdmiFrame], sizeof(FrameHeader_s));
 
 		// Compute the bits to be discarded for each bitfield.
-		for(u8 i = 0; i < 3; i++)
+		for(u8 i = 0; i < 4; i++)
 		{
 			bitDiscard[i] = fhSnapshot.csFIFOState[i] + ((fhSnapshot.csFIFOFlags >> (16 + i)) & 0x1) * 64;
 		}
