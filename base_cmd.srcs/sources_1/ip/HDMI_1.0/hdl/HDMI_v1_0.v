@@ -461,14 +461,15 @@ assign HSYNC = (h_count[4] < hsync_off);
 assign VSYNC = (v_count[4] < vsync_off);
 assign DE = (h_count[4] >= h_de_on) && (h_count[4] < h_de_off) && (v_count[4] >= v_de_on) & (v_count[4] < v_de_off);
 
-// Handle VSYNC interrupt: Set once per VSYNC rising edge, 
-// otherwise use registered value (allows software reset).
-reg VSYNC_prev;
+// Handle VSYNC interrupt: Set once near the bottom of the frame scan, to give the sotware
+// a bit of time to prepare register update values for VSYNC. Cleared by software.
+wire VSYNC_coming = (v_count[4] == v_de_off);
+reg VSYNC_coming_prev;
 always @(posedge hdmi_clk)
 begin
-    VSYNC_prev <= VSYNC;
+    VSYNC_coming_prev <= VSYNC_coming;
 end
-assign VSYNC_IF_mod = (VSYNC && (~VSYNC_prev)) ? 1'b1 : VSYNC_IF_reg;
+assign VSYNC_IF_mod = (VSYNC_coming && (~VSYNC_coming_prev)) ? 1'b1 : VSYNC_IF_reg;
 assign VSYNC_int = VSYNC_IF_reg;
 // -------------------------------------------------------------------------------------------------
 
