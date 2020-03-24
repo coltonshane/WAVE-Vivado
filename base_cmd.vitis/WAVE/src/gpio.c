@@ -58,6 +58,9 @@ void gpioInit(void)
     	XGpioPs_SetOutputEnablePin(&Gpio, i, 1);
     	XGpioPs_WritePin(&Gpio, i, 0);
     }
+
+    // Select UART0 for GPIO.
+    // XGpioPs_WritePin(&Gpio, GPIO_SEL_UART0, 1);
 }
 
 // Private Function Definitions ----------------------------------------------------------------------------------------

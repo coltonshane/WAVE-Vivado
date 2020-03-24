@@ -38,7 +38,7 @@ THE SOFTWARE.
 #define GPIO4_PIN 81		// Bank 3, Pin 3, EMIO 3
 #define LVDS_CLK_EN_PIN 82	// Bank 3, Pin 4, EMIO 4
 #define PX_IN_RST_PIN 83	// Bank 3, Pin 5, EMIO 5
-// Unused 84				// Bank 3, Pin 6, EMIO 6
+#define GPIO_SEL_UART0 84	// Bank 3, Pin 6, EMIO 6
 // Unused 85				// Bank 3, Pin 7, EMIO 7
 #define CMV_NRST_PIN 86		// Bank 3, Pin 8, EMIO 8
 #define FRAME_REQ_PIN 87	// Bank 3, Pin 9, EMIO 9

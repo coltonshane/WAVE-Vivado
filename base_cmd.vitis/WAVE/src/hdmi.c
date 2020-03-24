@@ -25,6 +25,7 @@ THE SOFTWARE.
 // Include Headers -----------------------------------------------------------------------------------------------------
 
 #include "main.h"
+#include "gpio.h"
 #include "hdmi.h"
 #include "frame.h"
 #include "xiicps.h"
@@ -119,6 +120,8 @@ void isrVSYNC(void * CallbackRef)
 	FrameHeader_s fhSnapshot;
 	u32 bitDiscard[4];
 
+	XGpioPs_WritePin(&Gpio, GPIO2_PIN, 1);	// Mark ISR entry.
+
 	hdmi->control &= ~HDMI_CTRL_VSYNC_IF;	// Clear the VSYNC interrupt flag.
 
 	hdmiFrame = frameLastCaptured();
@@ -146,6 +149,15 @@ void isrVSYNC(void * CallbackRef)
 		hdmi->bit_discard_update_HL2 = bitDiscard[2];
 		hdmi->bit_discard_update_HH2 = bitDiscard[3];
 	}
+
+	// kill some time
+	int x = 0;
+	for(u32 i = 0; i < 10000; i++)
+	{
+		x++;
+	}
+
+	XGpioPs_WritePin(&Gpio, GPIO2_PIN, 0);	// Mark ISR exit.
 }
 
 // Public Function Definitions -----------------------------------------------------------------------------------------

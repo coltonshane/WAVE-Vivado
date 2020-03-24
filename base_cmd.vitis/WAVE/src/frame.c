@@ -70,7 +70,7 @@ void isrFOT(void * CallbackRef)
 	XTime tFrameIn;
 	u32 iFrameIn;
 
-	XGpioPs_WritePin(&Gpio, T_EXP1_PIN, 1);		// Mark ISR entry.
+	XGpioPs_WritePin(&Gpio, GPIO1_PIN, 1);		// Mark ISR entry.
 	CMV_Input->FOT_int = 0x00000000;			// Clear the FOT interrupt flag.
 
 	// Time-critical Encoder access. Must complete before end of FOT.
@@ -120,7 +120,7 @@ void isrFOT(void * CallbackRef)
 		fhBuffer[iFrameIn].csFIFOState[iCS] = Encoder_next.fifo_rd_count[iCS];
 	}
 
-	XGpioPs_WritePin(&Gpio, T_EXP1_PIN, 0);		// Mark ISR exit.
+	XGpioPs_WritePin(&Gpio, GPIO1_PIN, 0);		// Mark ISR exit.
 }
 
 // Public Function Definitions -----------------------------------------------------------------------------------------

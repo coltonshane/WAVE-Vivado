@@ -35,11 +35,15 @@ create_clock -name lvds_clk_in -period 3.333 [get_ports lvds_clk_in_p]
 # Separate LVDS and pixel clock domain from AXI clock domain in timing analysis.
 set_clock_groups -asynchronous -group [get_clocks -include_generated_clocks clk_pl_0] -group [get_clocks -include_generated_clocks lvds_clk_in]
 
-# UART0 EMIO to terminal (3.3V).
-set_property PACKAGE_PIN J10 [get_ports uart0_txd]
-set_property IOSTANDARD LVCMOS33 [get_ports uart0_txd]
-set_property PACKAGE_PIN F10 [get_ports uart0_rxd]
-set_property IOSTANDARD LVCMOS33 [get_ports uart0_rxd]
+# GPIO incl. UART0 to terminal (3.3V).
+set_property PACKAGE_PIN J10 [get_ports {gpo[0]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {gpo[0]}]
+set_property PACKAGE_PIN J11 [get_ports {gpo[1]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {gpo[1]}]
+set_property PACKAGE_PIN F10 [get_ports {gpi[0]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {gpi[0]}]
+set_property PACKAGE_PIN G11 [get_ports {gpi[1]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {gpi[1]}]
 
 # UART1 EMIO to supervisor (3.3V).
 set_property PACKAGE_PIN K12 [get_ports uart1_txd]
