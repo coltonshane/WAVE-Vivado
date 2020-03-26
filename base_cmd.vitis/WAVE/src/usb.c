@@ -36,11 +36,70 @@ THE SOFTWARE.
 // #define MEMORY_SIZE (64U * 1024U)
 #define MEMORY_SIZE 64U
 
+// GT Lane 0 Initialization
+#define SERDES_PLL_REF_SEL0_OFFSET                                                 0XFD410000
+#define SERDES_L0_L0_REF_CLK_SEL_OFFSET                                            0XFD402860
+#define SERDES_L0_TM_PLL_DIG_37_OFFSET                                             0XFD402094
+#define SERDES_L0_PLL_SS_STEPS_0_LSB_OFFSET                                        0XFD402368
+#define SERDES_L0_PLL_SS_STEPS_1_MSB_OFFSET                                        0XFD40236C
+#define SERDES_L0_PLL_SS_STEP_SIZE_0_LSB_OFFSET                                    0XFD402370
+#define SERDES_L0_PLL_SS_STEP_SIZE_1_OFFSET                                        0XFD402374
+#define SERDES_L0_PLL_SS_STEP_SIZE_2_OFFSET                                        0XFD402378
+#define SERDES_L0_PLL_SS_STEP_SIZE_3_MSB_OFFSET                                    0XFD40237C
+#define SERDES_L0_TM_DIG_6_OFFSET                                                  0XFD40106C
+#define SERDES_L0_TX_DIG_TM_61_OFFSET                                              0XFD4000F4
+#define SERDES_L0_TM_AUX_0_OFFSET                                                  0XFD4010CC
+#define SERDES_L0_TM_MISC2_OFFSET                                                  0XFD40189C
+#define SERDES_L0_TM_IQ_ILL1_OFFSET                                                0XFD4018F8
+#define SERDES_L0_TM_IQ_ILL2_OFFSET                                                0XFD4018FC
+#define SERDES_L0_TM_ILL12_OFFSET                                                  0XFD401990
+#define SERDES_L0_TM_E_ILL1_OFFSET                                                 0XFD401924
+#define SERDES_L0_TM_E_ILL2_OFFSET                                                 0XFD401928
+#define SERDES_L0_TM_IQ_ILL3_OFFSET                                                0XFD401900
+#define SERDES_L0_TM_E_ILL3_OFFSET                                                 0XFD40192C
+#define SERDES_L0_TM_ILL8_OFFSET                                                   0XFD401980
+#define SERDES_L0_TM_IQ_ILL8_OFFSET                                                0XFD401914
+#define SERDES_L0_TM_IQ_ILL9_OFFSET                                                0XFD401918
+#define SERDES_L0_TM_E_ILL8_OFFSET                                                 0XFD401940
+#define SERDES_L0_TM_E_ILL9_OFFSET                                                 0XFD401944
+
+#define SERDES_PLL_REF_SEL1_OFFSET                                                 0XFD410004
+#define SERDES_L0_L1_REF_CLK_SEL_OFFSET                                            0XFD402864
+#define SERDES_L1_TM_PLL_DIG_37_OFFSET                                             0XFD406094
+#define SERDES_L1_PLL_SS_STEPS_0_LSB_OFFSET                                        0XFD406368
+#define SERDES_L1_PLL_SS_STEPS_1_MSB_OFFSET                                        0XFD40636C
+#define SERDES_L1_PLL_SS_STEP_SIZE_0_LSB_OFFSET                                    0XFD406370
+#define SERDES_L1_PLL_SS_STEP_SIZE_1_OFFSET                                        0XFD406374
+#define SERDES_L1_PLL_SS_STEP_SIZE_2_OFFSET                                        0XFD406378
+#define SERDES_L1_PLL_SS_STEP_SIZE_3_MSB_OFFSET                                    0XFD40637C
+#define SERDES_L1_TM_DIG_6_OFFSET                                                  0XFD40506C
+#define SERDES_L1_TX_DIG_TM_61_OFFSET                                              0XFD4040F4
+#define SERDES_L1_TM_AUX_0_OFFSET                                                  0XFD4050CC
+#define SERDES_L1_TM_MISC2_OFFSET                                                  0XFD40589C
+#define SERDES_L1_TM_IQ_ILL1_OFFSET                                                0XFD4058F8
+#define SERDES_L1_TM_IQ_ILL2_OFFSET                                                0XFD4058FC
+#define SERDES_L1_TM_ILL12_OFFSET                                                  0XFD405990
+#define SERDES_L1_TM_E_ILL1_OFFSET                                                 0XFD405924
+#define SERDES_L1_TM_E_ILL2_OFFSET                                                 0XFD405928
+#define SERDES_L1_TM_IQ_ILL3_OFFSET                                                0XFD405900
+#define SERDES_L1_TM_E_ILL3_OFFSET                                                 0XFD40592C
+#define SERDES_L1_TM_ILL8_OFFSET                                                   0XFD405980
+#define SERDES_L1_TM_IQ_ILL8_OFFSET                                                0XFD405914
+#define SERDES_L1_TM_IQ_ILL9_OFFSET                                                0XFD405918
+#define SERDES_L1_TM_E_ILL8_OFFSET                                                 0XFD405940
+#define SERDES_L1_TM_E_ILL9_OFFSET                                                 0XFD405944
+
+#define SERDES_ICM_CFG0_OFFSET                                                     0XFD410010
+
 // Private Type Definitions --------------------------------------------------------------------------------------------
 
 // Private Function Prototypes -----------------------------------------------------------------------------------------
 
 // USB function prototypes.
+void usbInitLane0(void);
+void usbInitLane1(void);
+void usbPSU_Mask_Write(unsigned long offset, unsigned long mask, unsigned long val);
+
 void BulkOutHandler(void *CallBackRef, u32 RequestedBytes,
 							u32 BytesTxed);
 void BulkInHandler(void *CallBackRef, u32 RequestedBytes,
@@ -95,6 +154,13 @@ static USBCH9_DATA storage_data = {
 
 void usbInit(void)
 {
+	// Initialize both GT Lane 0 and GT Lane 1.
+	usbInitLane0();
+	usbInitLane1();
+
+	// TO-DO: Select active GT Lane based on CC levels.
+	usbPSU_Mask_Write(SERDES_ICM_CFG0_OFFSET, 0x00000077U, 0x00000003U);
+
 	// Get the disk size from NVMe.
 	VFLASH_NUM_BLOCKS = nvmeGetLBACount();
 
@@ -139,6 +205,74 @@ void usbPoll(void)
 * @note		None.
 *
 *****************************************************************************/
+void usbInitLane0(void)
+{
+	usbPSU_Mask_Write(SERDES_PLL_REF_SEL0_OFFSET, 0x0000001FU, 0x0000000DU);
+	usbPSU_Mask_Write(SERDES_L0_L0_REF_CLK_SEL_OFFSET, 0x00000084U, 0x00000004U);
+	usbPSU_Mask_Write(SERDES_L0_TM_PLL_DIG_37_OFFSET, 0x00000010U, 0x00000010U);
+	usbPSU_Mask_Write(SERDES_L0_PLL_SS_STEPS_0_LSB_OFFSET, 0x000000FFU, 0x00000022U);
+	usbPSU_Mask_Write(SERDES_L0_PLL_SS_STEPS_1_MSB_OFFSET, 0x00000007U, 0x00000004U);
+	usbPSU_Mask_Write(SERDES_L0_PLL_SS_STEP_SIZE_0_LSB_OFFSET, 0x000000FFU, 0x000000EDU);
+	usbPSU_Mask_Write(SERDES_L0_PLL_SS_STEP_SIZE_1_OFFSET, 0x000000FFU, 0x00000055U);
+	usbPSU_Mask_Write(SERDES_L0_PLL_SS_STEP_SIZE_2_OFFSET, 0x000000FFU, 0x00000001U);
+	usbPSU_Mask_Write(SERDES_L0_PLL_SS_STEP_SIZE_3_MSB_OFFSET, 0x00000033U, 0x00000030U);
+	usbPSU_Mask_Write(SERDES_L0_TM_DIG_6_OFFSET, 0x00000003U, 0x00000003U);
+	usbPSU_Mask_Write(SERDES_L0_TX_DIG_TM_61_OFFSET, 0x00000003U, 0x00000003U);
+	usbPSU_Mask_Write(SERDES_L0_TM_AUX_0_OFFSET, 0x00000020U, 0x00000020U);
+	usbPSU_Mask_Write(SERDES_L0_TM_MISC2_OFFSET, 0x00000080U, 0x00000080U);
+	usbPSU_Mask_Write(SERDES_L0_TM_IQ_ILL1_OFFSET, 0x000000FFU, 0x00000064U);
+	usbPSU_Mask_Write(SERDES_L0_TM_IQ_ILL2_OFFSET, 0x000000FFU, 0x00000064U);
+	usbPSU_Mask_Write(SERDES_L0_TM_ILL12_OFFSET, 0x000000FFU, 0x00000010U);
+	usbPSU_Mask_Write(SERDES_L0_TM_E_ILL1_OFFSET, 0x000000FFU, 0x000000FEU);
+	usbPSU_Mask_Write(SERDES_L0_TM_E_ILL2_OFFSET, 0x000000FFU, 0x00000000U);
+	usbPSU_Mask_Write(SERDES_L0_TM_IQ_ILL3_OFFSET, 0x000000FFU, 0x00000064U);
+	usbPSU_Mask_Write(SERDES_L0_TM_E_ILL3_OFFSET, 0x000000FFU, 0x00000000U);
+	usbPSU_Mask_Write(SERDES_L0_TM_ILL8_OFFSET, 0x000000FFU, 0x000000FFU);
+	usbPSU_Mask_Write(SERDES_L0_TM_IQ_ILL8_OFFSET, 0x000000FFU, 0x000000F7U);
+	usbPSU_Mask_Write(SERDES_L0_TM_IQ_ILL9_OFFSET, 0x00000001U, 0x00000001U);
+	usbPSU_Mask_Write(SERDES_L0_TM_E_ILL8_OFFSET, 0x000000FFU, 0x000000F7U);
+	usbPSU_Mask_Write(SERDES_L0_TM_E_ILL9_OFFSET, 0x00000001U, 0x00000001U);
+}
+
+void usbInitLane1(void)
+{
+	usbPSU_Mask_Write(SERDES_PLL_REF_SEL1_OFFSET, 0x0000001FU, 0x0000000DU);
+	usbPSU_Mask_Write(SERDES_L0_L1_REF_CLK_SEL_OFFSET, 0x00000084U, 0x00000004U);
+	usbPSU_Mask_Write(SERDES_L1_TM_PLL_DIG_37_OFFSET, 0x00000010U, 0x00000010U);
+	usbPSU_Mask_Write(SERDES_L1_PLL_SS_STEPS_0_LSB_OFFSET, 0x000000FFU, 0x00000022U);
+	usbPSU_Mask_Write(SERDES_L1_PLL_SS_STEPS_1_MSB_OFFSET, 0x00000007U, 0x00000004U);
+	usbPSU_Mask_Write(SERDES_L1_PLL_SS_STEP_SIZE_0_LSB_OFFSET, 0x000000FFU, 0x000000EDU);
+	usbPSU_Mask_Write(SERDES_L1_PLL_SS_STEP_SIZE_1_OFFSET, 0x000000FFU, 0x00000055U);
+	usbPSU_Mask_Write(SERDES_L1_PLL_SS_STEP_SIZE_2_OFFSET, 0x000000FFU, 0x00000001U);
+	usbPSU_Mask_Write(SERDES_L1_PLL_SS_STEP_SIZE_3_MSB_OFFSET, 0x00000033U, 0x00000030U);
+	usbPSU_Mask_Write(SERDES_L1_TM_DIG_6_OFFSET, 0x00000003U, 0x00000003U);
+	usbPSU_Mask_Write(SERDES_L1_TX_DIG_TM_61_OFFSET, 0x00000003U, 0x00000003U);
+	usbPSU_Mask_Write(SERDES_L1_TM_AUX_0_OFFSET, 0x00000020U, 0x00000020U);
+	usbPSU_Mask_Write(SERDES_L1_TM_MISC2_OFFSET, 0x00000080U, 0x00000080U);
+	usbPSU_Mask_Write(SERDES_L1_TM_IQ_ILL1_OFFSET, 0x000000FFU, 0x00000064U);
+	usbPSU_Mask_Write(SERDES_L1_TM_IQ_ILL2_OFFSET, 0x000000FFU, 0x00000064U);
+	usbPSU_Mask_Write(SERDES_L1_TM_ILL12_OFFSET, 0x000000FFU, 0x00000010U);
+	usbPSU_Mask_Write(SERDES_L1_TM_E_ILL1_OFFSET, 0x000000FFU, 0x000000FEU);
+	usbPSU_Mask_Write(SERDES_L1_TM_E_ILL2_OFFSET, 0x000000FFU, 0x00000000U);
+	usbPSU_Mask_Write(SERDES_L1_TM_IQ_ILL3_OFFSET, 0x000000FFU, 0x00000064U);
+	usbPSU_Mask_Write(SERDES_L1_TM_E_ILL3_OFFSET, 0x000000FFU, 0x00000000U);
+	usbPSU_Mask_Write(SERDES_L1_TM_ILL8_OFFSET, 0x000000FFU, 0x000000FFU);
+	usbPSU_Mask_Write(SERDES_L1_TM_IQ_ILL8_OFFSET, 0x000000FFU, 0x000000F7U);
+	usbPSU_Mask_Write(SERDES_L1_TM_IQ_ILL9_OFFSET, 0x00000001U, 0x00000001U);
+	usbPSU_Mask_Write(SERDES_L1_TM_E_ILL8_OFFSET, 0x000000FFU, 0x000000F7U);
+	usbPSU_Mask_Write(SERDES_L1_TM_E_ILL9_OFFSET, 0x00000001U, 0x00000001U);
+}
+
+void usbPSU_Mask_Write(unsigned long offset, unsigned long mask, unsigned long val)
+{
+	unsigned long RegVal = 0x0;
+
+	RegVal = Xil_In32(offset);
+	RegVal &= ~(mask);
+	RegVal |= (val & mask);
+	Xil_Out32(offset, RegVal);
+}
+
 void BulkOutHandler(void *CallBackRef, u32 RequestedBytes,
 							u32 BytesTxed)
 {
