@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "xusb_ch9_storage.h"
 #include "xusb_class_storage.h"
 #include "xusb_wrapper.h"
+#include "nvme.h"
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
@@ -55,14 +56,13 @@ Usb_Config *UsbConfigPtr;
 // Scratch Buffer (OCM)
 u8 Buffer[MEMORY_SIZE] ALIGNMENT_CACHELINE;
 
-// Virtual Flash Space (DDR4 RAM)
-u8 VirtFlash[VFLASH_SIZE] __attribute__((section(".virtflash")));
 USB_CBW CBW ALIGNMENT_CACHELINE;
 USB_CSW CSW ALIGNMENT_CACHELINE;
+u32 VFLASH_NUM_BLOCKS;
 
 u8	Phase;
 u32	rxBytesLeft;
-u8	*VirtFlashWritePointer = VirtFlash;
+u8	*VirtFlashWritePointer = (u8 *)((u64) USB2SSD_BUFFER_ADDR);
 
 /* Initialize a DFU data structure */
 static USBCH9_DATA storage_data = {
@@ -95,6 +95,9 @@ static USBCH9_DATA storage_data = {
 
 void usbInit(void)
 {
+	// Get the disk size from NVMe.
+	VFLASH_NUM_BLOCKS = nvmeGetLBACount();
+
 	UsbConfigPtr = LookupConfig(USB_DEVICE_ID);
 	CfgInitialize(&UsbInstance, UsbConfigPtr, UsbConfigPtr->BaseAddress);
 
@@ -147,9 +150,21 @@ void BulkOutHandler(void *CallBackRef, u32 RequestedBytes,
 		/* WRITE command */
 		switch (CBW.CBWCB[0U]) {
 		case USB_RBC_WRITE:
+		{
+			// NVMe Bridge Write
+			// ----------------------------------------------------------------------------
+			u32 Offset = htonl(((SCSI_READ_WRITE *) &CBW.CBWCB)->block) * VFLASH_BLOCK_SIZE;
+			u32 wLength = BytesTxed;
+			nvmeWrite(VirtFlashWritePointer, Offset >> 9, wLength >> 9);
+			while(nvmeGetIOSlip() > 0)
+			{
+				nvmeServiceIOCompletions(16);
+			}
+			// ----------------------------------------------------------------------------
 			VirtFlashWritePointer += BytesTxed;
 			rxBytesLeft -= BytesTxed;
 			break;
+		}
 		default:
 			break;
 		}

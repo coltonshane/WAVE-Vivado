@@ -75,16 +75,11 @@ extern "C" {
 #define USB_RBC_VERIFY				0x2f
 #define USB_SYNC_SCSI				0x35
 
-/* Virtual Flash memory related definitions.
- */
-#ifdef __MICROBLAZE__
-/* 16MB due to limited memory on AXIUSB platform. */
-#define VFLASH_SIZE			0x1000000	/* 16MB space */
-#else
-#define VFLASH_SIZE			0x60000000	/* 1.5GiB space */
-#endif
 #define VFLASH_BLOCK_SIZE	0x200
-#define VFLASH_NUM_BLOCKS	1953405824 // (VFLASH_SIZE/VFLASH_BLOCK_SIZE)
+
+// NVME bridge buffer space.
+#define SSD2USB_BUFFER_ADDR 0x70000000
+#define USB2SSD_BUFFER_ADDR 0x78000000
 
 /* Class request opcodes.
  */

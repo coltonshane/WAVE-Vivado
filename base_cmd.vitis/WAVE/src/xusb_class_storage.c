@@ -66,7 +66,6 @@
 
 /************************** Variable Definitions *****************************/
 extern u8 Phase;
-extern u8 VirtFlash[];
 
 /*
  * Pre-manufactured response to the SCSI Inquiry command.
@@ -96,16 +95,16 @@ const static SCSI_INQUIRY scsiInquiry[] ALIGNMENT_CACHELINE = {
 	},
 	{
 		0x00,
-		0x00, // 0x80,
+		0x80,
 		0x02,
 		0x02,
 		0x1F,
 		0x00,
 		0x00,
 		0x00,
-		{"Linux  "},			/* Vendor ID:  must be  8 characters long. */
-		{"File-Stor Gadget"},	/* Product ID: must be 16 characters long. */
-		{"0404"}				/* Revision:   must be  4 characters long. */
+		{"Keiryou "},			/* Vendor ID:  must be  8 characters long. */
+		{"WAVE            "},	/* Product ID: must be 16 characters long. */
+		{"1.0 "}				/* Revision:   must be  4 characters long. */
 	}
 };
 
@@ -117,6 +116,7 @@ static u8 MaxLUN ALIGNMENT_CACHELINE = 0;
 
 extern USB_CBW CBW;
 extern USB_CSW CSW;
+extern u32 VFLASH_NUM_BLOCKS;
 
 extern u32	rxBytesLeft;
 extern u8	*VirtFlashWritePointer;
@@ -180,7 +180,6 @@ void ClassReq(struct Usb_DevData *InstancePtr, SetupPacket *SetupData)
 ******************************************************************************/
 void ParseCBW(struct Usb_DevData *InstancePtr)
 {
-	u32	Offset;
 	u8 Array[50];
 	u8 Index;
 	s32 Status;
@@ -240,16 +239,16 @@ void ParseCBW(struct Usb_DevData *InstancePtr)
 		break;
 
 	case USB_RBC_READ:
-		Offset = htonl(((SCSI_READ_WRITE *) &CBW.CBWCB)-> block) *
-					VFLASH_BLOCK_SIZE;
+	{
 #ifdef CLASS_STORAGE_DEBUG
 		printf("SCSI: READ Offset 0x%08x\r\n", Offset);
 #endif
 
-		// NVMe Bridge Read Test
+		// NVMe Bridge Read
 		// ----------------------------------------------------------------------------
-		u32 Length = htons(((SCSI_READ_WRITE *) &CBW.CBWCB)->length) * VFLASH_BLOCK_SIZE;
-		nvmeRead((u8 *) 0x70000000, Offset >> 9, Length >> 9);
+		u32 Offset = htonl(((SCSI_READ_WRITE *) &CBW.CBWCB)->block) * VFLASH_BLOCK_SIZE;
+		u32 rLength = htons(((SCSI_READ_WRITE *) &CBW.CBWCB)->length) * VFLASH_BLOCK_SIZE;
+		nvmeRead((u8 *)((u64) SSD2USB_BUFFER_ADDR), Offset >> 9, rLength >> 9);
 		while(nvmeGetIOSlip() > 0)
 		{
 			nvmeServiceIOCompletions(16);
@@ -257,17 +256,14 @@ void ParseCBW(struct Usb_DevData *InstancePtr)
 		// ----------------------------------------------------------------------------
 
 		Phase = USB_EP_STATE_DATA_IN;
-		u32 RetVal = EpBufferSend(InstancePtr->PrivateData, 1,
-						// &VirtFlash[Offset],
-						(u8 *)(0x70000000),
-						htons(((SCSI_READ_WRITE *) &CBW.CBWCB)->
-							 length) * VFLASH_BLOCK_SIZE);
+		u32 RetVal = EpBufferSend(InstancePtr->PrivateData, 1, (u8 *)((u64) SSD2USB_BUFFER_ADDR), rLength);
+
 		if (RetVal != XST_SUCCESS) {
 			xil_printf("Failed: READ Offset 0x%08x\n", Offset);
 			return;
 		}
 		break;
-
+	}
 	case USB_RBC_MODE_SENSE:
 #ifdef CLASS_STORAGE_DEBUG
 		printf("SCSI: MODE SENSE\r\n");
@@ -308,19 +304,14 @@ void ParseCBW(struct Usb_DevData *InstancePtr)
 		break;
 
 	case USB_RBC_WRITE:
-		Offset = htonl(((SCSI_READ_WRITE *) &CBW.CBWCB)->
-				       block) * VFLASH_BLOCK_SIZE;
 #ifdef CLASS_STORAGE_DEBUG
 		printf("SCSI: WRITE Offset 0x%08x\r\n", Offset);
 #endif
-		VirtFlashWritePointer = &VirtFlash[Offset];
-
-		rxBytesLeft = htons(((SCSI_READ_WRITE *) &CBW.CBWCB)->length)
-							* VFLASH_BLOCK_SIZE;
+		VirtFlashWritePointer = (u8 *)((u64) USB2SSD_BUFFER_ADDR);
+		rxBytesLeft = htons(((SCSI_READ_WRITE *) &CBW.CBWCB)->length) * VFLASH_BLOCK_SIZE;
 
 		Phase = USB_EP_STATE_DATA_OUT;
-		EpBufferRecv(InstancePtr->PrivateData, 1, &VirtFlash[Offset],
-							rxBytesLeft);
+		EpBufferRecv(InstancePtr->PrivateData, 1, VirtFlashWritePointer, rxBytesLeft);
 		break;
 
 	case USB_RBC_STARTSTOP_UNIT:
@@ -350,6 +341,14 @@ void ParseCBW(struct Usb_DevData *InstancePtr)
 #ifdef CLASS_STORAGE_DEBUG
 		printf("SCSI: SYNCHRONISE_SCSI\r\n");
 #endif
+		// NVMe Bridge Sync
+		/// ----------------------------------------------------------------------------
+		nvmeFlush();
+		while(nvmeGetIOSlip() > 0)
+		{
+			nvmeServiceIOCompletions(16);
+		}
+		// ----------------------------------------------------------------------------
 		SendCSW(InstancePtr, 0);
 		break;
 	}
