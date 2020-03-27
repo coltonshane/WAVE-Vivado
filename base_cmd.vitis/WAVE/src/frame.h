@@ -67,6 +67,7 @@ typedef struct __attribute__((packed))
 
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
+void frameInit(void);
 void frameService(void);
 int frameLastCaptured(void);
 

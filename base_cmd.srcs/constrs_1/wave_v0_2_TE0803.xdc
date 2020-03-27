@@ -131,12 +131,12 @@ set_property IOSTANDARD LVCMOS33 [get_ports spi0_en[0]]
 # CMV control outputs (3.3V).
 set_property PACKAGE_PIN C11 [get_ports {cmv_control[0]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {cmv_control[0]}]
-set_property PACKAGE_PIN B10 [get_ports {cmv_control[1]}]
+set_property PACKAGE_PIN D12 [get_ports {cmv_control[1]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {cmv_control[1]}]
-set_property PACKAGE_PIN D12 [get_ports {cmv_control[2]}]
+set_property PACKAGE_PIN C12 [get_ports {cmv_control[2]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {cmv_control[2]}]
-set_property PACKAGE_PIN C12 [get_ports {cmv_control[3]}]
-set_property IOSTANDARD LVCMOS33 [get_ports {cmv_control[3]}]
+set_property PACKAGE_PIN B10 [get_ports {pwm_out[0]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {pwm_out[0]}]
 
 # Control channel from CMV12000. LVDS inverted.
 set_property PACKAGE_PIN G1 [get_ports cmv_ctr_p]

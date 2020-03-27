@@ -39,6 +39,14 @@ THE SOFTWARE.
 
 #define US_PER_COUNT 1000 / (COUNTS_PER_SECOND / 1000)
 
+// Frame Request Timer Control Flags
+#define FRAME_REQ_CONTROL_WAVE_POL 	0x40	// Indicates wave output level between reset and match.
+#define FRAME_REQ_CONTROL_WAVE_DIS 	0x20	// Active low output enable.
+#define FRAME_REQ_CONTROL_RST		0x10	// Force reset counter (cleared automatically).
+#define FRAME_REQ_CONTROL_MATCH		0x08	// Enable match.
+#define FRAME_REQ_CONTROL_INT		0x02	// Enable interval.
+#define FRAME_REQ_CONTROL_DIS		0x01	// Active low counter enable.
+
 // Private Type Definitions --------------------------------------------------------------------------------------------
 
 // Private Function Prototypes -----------------------------------------------------------------------------------------
@@ -54,6 +62,11 @@ FrameHeader_s * fhBuffer = (FrameHeader_s *) (0x18000000);
 
 s32 nFramesIn = -1;
 s32 nFramesOut = 0;
+
+// Frame Request Timer (TTC0, Channel 1)
+u32 * frameReqControl = (u32 *)((u64) 0xFF11000C);
+u32 * frameReqInterval = (u32 *)((u64) 0xFF110024);
+u32 * frameReqPulseWidth = (u32 *)((u64) 0xFF110030);
 
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 
@@ -124,6 +137,17 @@ void isrFOT(void * CallbackRef)
 }
 
 // Public Function Definitions -----------------------------------------------------------------------------------------
+
+void frameInit(void)
+{
+	*frameReqPulseWidth = 100;		// [0.01us]
+	*frameReqInterval = 3333333;	// [0.01us]
+	*frameReqControl |= FRAME_REQ_CONTROL_WAVE_POL;
+	*frameReqControl |= FRAME_REQ_CONTROL_MATCH;
+	*frameReqControl |= FRAME_REQ_CONTROL_INT;
+	*frameReqControl &= ~FRAME_REQ_CONTROL_DIS;
+	*frameReqControl &= ~FRAME_REQ_CONTROL_WAVE_DIS;
+}
 
 void frameService(void)
 {

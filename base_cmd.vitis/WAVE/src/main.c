@@ -54,7 +54,6 @@ void isrVSYNC(void * CallbackRef);
 XScuGic Gic;
 
 u32 triggerShutdown = 0;
-u32 requestFrames = 0;
 u32 updateCMVRegs = 0;
 u32 formatFileSystem = 0;
 u32 closeFileSystem = 0;
@@ -125,21 +124,13 @@ int main()
     hdmiInit();
     usbInit();
     uiTest();
+    frameInit();
 
     // Main loop.
     while(!triggerShutdown)
     {
     	usbPoll();
     	// frameService();
-
-    	if(requestFrames)
-    	{
-    		XGpioPs_WritePin(&Gpio, FRAME_REQ_PIN, 1);
-    	}
-    	else
-    	{
-    		XGpioPs_WritePin(&Gpio, FRAME_REQ_PIN, 0);
-    	}
 
     	if(updateCMVRegs)
     	{

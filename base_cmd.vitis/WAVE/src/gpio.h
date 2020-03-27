@@ -41,9 +41,8 @@ THE SOFTWARE.
 #define GPIO_SEL_UART0 84	// Bank 3, Pin 6, EMIO 6
 // Unused 85				// Bank 3, Pin 7, EMIO 7
 #define CMV_NRST_PIN 86		// Bank 3, Pin 8, EMIO 8
-#define FRAME_REQ_PIN 87	// Bank 3, Pin 9, EMIO 9
-#define T_EXP1_PIN 88		// Bank 3, Pin 10, EMIO 10
-#define T_EXP2_PIN 89		// Bank 3, Pin 11, EMIO 11
+#define T_EXP1_PIN 87		// Bank 3, Pin 9, EMIO 9
+#define T_EXP2_PIN 88		// Bank 3, Pin 10, EMIO 10
 
 // Public Type Definitions ---------------------------------------------------------------------------------------------
 
