@@ -34,6 +34,7 @@ THE SOFTWARE.
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
 void uiTest(void);
+void uiService(void);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
 

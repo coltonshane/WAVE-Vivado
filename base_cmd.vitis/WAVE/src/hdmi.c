@@ -169,7 +169,7 @@ void hdmiInit(void)
 	hdmiWriteTestPattern();
 
 	// Load HDMI peripheral registers with initial values.
-	hdmi->vx0 = 192;
+	hdmi->vx0 = 186;
 	hdmi->vy0 = 41;
 	hdmi->vxDiv = 0x2133;
 	hdmi->vyDiv = 0x2133;

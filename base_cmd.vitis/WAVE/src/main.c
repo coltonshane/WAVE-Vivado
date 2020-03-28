@@ -51,6 +51,9 @@
 void isrFOT(void * CallbackRef);
 void isrVSYNC(void * CallbackRef);
 
+u16 * psTemp = (u16 *)((u64) 0xFFA50800);
+u16 * plTemp = (u16 *)((u64) 0xFFA50C00);
+
 XScuGic Gic;
 
 u32 triggerShutdown = 0;
@@ -136,6 +139,7 @@ int main()
     	{
     		cmvServiceFlag = 0;
     		cmvService();
+    		uiService();
     	}
 
     	if(formatFileSystem)
@@ -157,3 +161,24 @@ int main()
     return 0;
 }
 
+float psplGetTemp(u16 * psplTemp)
+{
+	// TO-DO: Move to calibration.
+	static float psDN0 = 0.0f;
+	static float psT0 = -280.2f;
+	static float psTSlope = 7.772E-3f;
+
+	static float psTf = -100.0f;
+
+	float psT = (*psplTemp - psDN0) * psTSlope + psT0;
+	if(psTf == -100.0f)
+	{
+		psTf = psT;
+	}
+	else
+	{
+		psTf = 0.95f * psTf + 0.05f * psT;
+	}
+
+	return psTf;
+}

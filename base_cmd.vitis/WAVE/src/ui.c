@@ -25,6 +25,7 @@ THE SOFTWARE.
 // Include Headers -----------------------------------------------------------------------------------------------------
 
 #include "main.h"
+#include "cmv12000.h"
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
@@ -78,7 +79,7 @@ u16 uiRowY0(u8 row);
 // Private Global Variables --------------------------------------------------------------------------------------------
 
 u32 * uiControl = (u32 *)((u64) 0xA0040050);
-const u32 uiBaseAddr[] = {0xA0060000, 0xA006C000, 0xA0070000};
+const u32 uiBaseAddr[] = {0xA0060000, 0xA0068000, 0xA0070000};
 
 const u16 uiW[] = {1024, 1024, 128};
 const u16 uiH[] = {32, 32, 256};
@@ -99,7 +100,7 @@ void uiTest(void)
 	uiDrawStringColRow(UI_ID_TOP, " ISO100 ", 32, 0);
 	uiDrawStringColRow(UI_ID_TOP, " Linear ", 40, 0);
 	uiDrawStringColRow(UI_ID_TOP, "  5000K ", 48, 0);
-	uiInvertRectColRow(UI_ID_TOP, 16, 0, 8, 1);
+	// uiInvertRectColRow(UI_ID_TOP, 16, 0, 8, 1);
 	uiShow(UI_ID_TOP, 0, 0);
 
 	uiDrawStringColRow(UI_ID_POP, "    4:3 ", 0, 0);
@@ -108,8 +109,27 @@ void uiTest(void)
 	uiDrawStringColRow(UI_ID_POP, "    2:1 ", 0, 3);
 	uiDrawStringColRow(UI_ID_POP, " 2.35:1 ", 0, 4);
 	uiInvertRectColRow(UI_ID_POP, 0, 1, 8, 1);
-	uiShow(UI_ID_POP, 0x2C0, 0x69);
+	// uiShow(UI_ID_POP, 0x2C0, 0x69);
 
+	uiDrawStringColRow(UI_ID_BOT, "PS: 35*C", 0, 0);
+	uiDrawStringColRow(UI_ID_BOT, "PL: 35*C", 16, 0);
+	uiDrawStringColRow(UI_ID_BOT, "IS: 35*C", 32, 0);
+	uiDrawStringColRow(UI_ID_BOT, "SD: 35*C", 48, 0);
+	uiShow(UI_ID_BOT, 0, 0);
+}
+
+void uiService(void)
+{
+	char strResult[9];
+
+	sprintf(strResult, "PS:%3.0f*C", psplGetTemp(psTemp));
+	uiDrawStringColRow(UI_ID_BOT, strResult, 0, 0);
+
+	sprintf(strResult, "PL:%3.0f*C", psplGetTemp(plTemp));
+	uiDrawStringColRow(UI_ID_BOT, strResult, 16, 0);
+
+	sprintf(strResult, "IS:%3.0f*C", cmvGetTemp());
+	uiDrawStringColRow(UI_ID_BOT, strResult, 32, 0);
 }
 
 // Private Function Definitions ----------------------------------------------------------------------------------------

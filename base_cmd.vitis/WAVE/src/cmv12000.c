@@ -195,6 +195,28 @@ void cmvService(void)
 	}
 }
 
+float cmvGetTemp(void)
+{
+	// TO-DO: Move to calibration.
+	static float cmvDN0 = 1556.0f;
+	static float cmvT0 = 30.0f;
+	static float cmvTSlope = 0.143f;
+
+	static float cmvTf = -100.0f;
+
+	float cmvT = ((float)(CMV_Settings_R.Temp_sensor) - cmvDN0) * cmvTSlope + cmvT0;
+	if(cmvTf == -100.0f)
+	{
+		cmvTf = cmvT;
+	}
+	else
+	{
+		cmvTf = 0.95f * cmvTf + 0.05f * cmvT;
+	}
+
+	return cmvTf;
+}
+
 // Private Function Definitions ----------------------------------------------------------------------------------------
 
 // CMV12000 Link Training Routine

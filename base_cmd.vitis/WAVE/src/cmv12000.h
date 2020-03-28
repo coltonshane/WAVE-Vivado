@@ -103,6 +103,7 @@ typedef struct __attribute__((packed))
 
 void cmvInit(void);
 void cmvService(void);
+float cmvGetTemp(void);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
 
