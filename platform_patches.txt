@@ -1,0 +1,44 @@
+1) Enable nested interrupts.
+
+xscugic_intr.c
+
+/*
+* If pre-eption is required:
+* Re-enable pre-emption by setting the CPSR I bit for non-secure ,
+* interrupts or the F bit for secure interrupts
+*/
+
+__asm("MSR DAIFClr, #2");
+
+/*
+* If we need to change security domains, issue a SMC
+* instruction here.
+*/
+
+/*
+* Execute the ISR. Jump into the Interrupt service routine
+* based on the IRQSource. A software trigger is cleared by
+*.the ACK.
+*/
+TablePtr = &(InstancePtr->Config->HandlerTable[InterruptID]);
+if (TablePtr != NULL) {
+	TablePtr->Handler(TablePtr->CallBackRef);
+}
+
+__asm("MSR DAIFSet, #2");
+
+2) Don't assign BAR address during PCIe init.
+
+xdmapcie.c
+
+/*
+* Write Address to PCIe BAR
+*/
+/*
+Ret = XDmaPcie_AllocBarSpace(
+	InstancePtr, PCIeHeaderType,
+	BusNum, PCIeDevNum,
+	PCIeFunNum);
+if (Ret != 0)
+	return;
+*/

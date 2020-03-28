@@ -25,6 +25,10 @@ set_property IOSTANDARD LVDS [get_ports lvds_clk_out_p]
 set_property PACKAGE_PIN AD4 [get_ports lvds_clk_out_n]
 set_property IOSTANDARD LVDS [get_ports lvds_clk_out_n]
 
+# Temperature Sensor Clock Output to CMV12000 (60MHz).
+set_property PACKAGE_PIN E10 [get_ports ts_clk]
+set_property IOSTANDARD LVCMOS33 [get_ports ts_clk]
+
 # LVDS Clock Input from CMV12000 (300MHz).
 set_property PACKAGE_PIN L7 [get_ports lvds_clk_in_p]
 set_property IOSTANDARD LVDS [get_ports lvds_clk_in_p]

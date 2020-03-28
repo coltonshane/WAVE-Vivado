@@ -58,6 +58,8 @@ THE SOFTWARE.
 #define CMV_REG_VAL_TEST_PATTERN_OFF 32
 #define CMV_REG_VAL_TEST_PATTERN_ON 35
 
+#define CMV_REG_ADDR_TEMP_SENSOR 127
+
 // Public Type Definitions ---------------------------------------------------------------------------------------------
 
 typedef struct
@@ -68,28 +70,43 @@ typedef struct
 	u32 FOT_int;			// Frame Overhead Time (FOT) interrupt flag.
 } CMV_Input_s;
 
-typedef struct
+typedef struct __attribute__((packed))
 {
-	u16 Offset_bot;
-	u16 Offset_top;
-	u16 PGA_gain;
-	u16 Exp_time;
-	u16 Exp_kp1;
-	u16 Exp_kp2;
-	u16 Vtfl;
-	u16 Number_slopes;
-	u16 Number_frames;
+	u16 Number_lines_tot;		// Register 1
+	u16 Y_start_1;				// Register 2
+	u16 Sub_offset;				// Register 66
+	u16 Sub_step;				// Register 67
+	u16 Sub_en;					// Register 68
+	u16 Exp_time_L;				// Register 71
+	u16 Exp_time_H;				// Register 72
+	u16 Exp_kp1_L;				// Register 75
+	u16 Exp_kp1_H;				// Register 76
+	u16 Exp_kp2_L;				// Register 77
+	u16 Exp_kp2_H;				// Register 78
+	u16 Number_slopes;			// Register 79
+	u16 Setting_1;				// Register 82
+	u16 Setting_2;				// Register 83
+	u16 Setting_3;				// Register 84
+	u16 Setting_4;				// Register 85
+	u16 Setting_5;				// Register 86
+	u16 Offset_bot;				// Register 87
+	u16 Offset_top;				// Register 88
+	u16 Reg_98;					// Register 98
+	u16 Vtfl;					// Register 106
+	u16 Setting_6;				// Register 113
+	u16 Setting_7;				// Register 114
+	u16 PGA_gain;				// Register 115
+	u16 Temp_sensor;			// Register 127
 } CMV_Settings_s;
 
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
 void cmvInit(void);
-void cmvUpdateSettings(void);
+void cmvService(void);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
 
 extern CMV_Input_s * CMV_Input;
-extern CMV_Settings_s CMV_Settings;
 
 #endif
 

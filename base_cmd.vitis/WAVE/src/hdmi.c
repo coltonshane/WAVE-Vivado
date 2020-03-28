@@ -157,6 +157,8 @@ void isrVSYNC(void * CallbackRef)
 		x++;
 	}
 
+	cmvServiceFlag = 1;
+
 	XGpioPs_WritePin(&Gpio, GPIO2_PIN, 0);	// Mark ISR exit.
 }
 

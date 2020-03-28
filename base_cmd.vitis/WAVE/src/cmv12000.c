@@ -45,8 +45,8 @@ THE SOFTWARE.
 #define CMV_WR_REG 0x80
 #define CMV_ADDR_MASK 0x7F
 
-#define CMV_REG_COUNT_INIT 10
-#define CMV_REG_COUNT_MODE 17
+#define CMV_REG_COUNT_INIT 12
+#define CMV_REG_COUNT_SETTINGS 25
 
 // Bit patterns for link training.
 #define CMV_TP1 0x0055
@@ -67,7 +67,6 @@ void cmvRegWrite(XSpiPs * spiDevice, u8 addr, u16 val);
 // Public Global Variables ---------------------------------------------------------------------------------------------
 
 CMV_Input_s * CMV_Input = (CMV_Input_s *) 0xA0000000;
-CMV_Settings_s CMV_Settings;
 
 // Private Global Variables --------------------------------------------------------------------------------------------
 
@@ -81,7 +80,9 @@ u8 cmvRegAddrInit[] =
 	89,
 	99,
 	102,
+	107,
 	108,
+	109,
 	110,
 	112,
 	116,
@@ -94,7 +95,9 @@ u16 cmvRegValInit[] =
 	32853,
 	34956,
 	8302,
+	11614,
 	12381,
+	13416,
 	12368,
 	277,
 	421,
@@ -102,49 +105,9 @@ u16 cmvRegValInit[] =
 	15
 };
 
-// Registers that must be written when changing modes between Normal and Subsampled.
-u8 cmvRegAddrMode[] =
-{
-	1,
-	2,
-	66,
-	67,
-	68,
-	82,
-	83,
-	84,
-	85,
-	86,
-	87,
-	88,
-	98,
-	107,
-	109,
-	113,
-	114
-};
-
-// 10-bit Normal (Color)
-u16 cmvRegValModeNormal[] =
-{
-	2304,
-	0,
-	0,
-	1,
-	0,		// 9 for Monochrome
-	3099,
-	5893,
-	128,
-	128,
-	128,
-	520,
-	520,
-	44812,
-	11614,
-	13416,
-	789,
-	84
-};
+// Registers that are accessible via the UI.
+CMV_Settings_s CMV_Settings_W, CMV_Settings_R;
+u8 cmvRegAddrSettings[] = {1,2,66,67,68,71,72,75,76,77,78,79,82,83,84,85,86,87,88,98,106,113,114,115,127};
 
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 
@@ -184,34 +147,52 @@ void cmvInit(void)
 	usleep(1000);
 
 	cmvRegInit(&Spi0);
-	cmvRegSetMode(&Spi0);
 
-	CMV_Settings.Offset_bot = 520;
-	CMV_Settings.Offset_top = 520;
-	CMV_Settings.PGA_gain = CMV_REG_VAL_PGA_GAIN_X1;
-	CMV_Settings.Exp_time = 5760;
-	CMV_Settings.Exp_kp1 = 80;
-	CMV_Settings.Exp_kp2 = 8;
-	CMV_Settings.Vtfl = 84 * 128 + 104;
-	CMV_Settings.Number_slopes = 1;
-	CMV_Settings.Number_frames = 1;
-	cmvUpdateSettings();
+	CMV_Settings_W.Number_lines_tot = 2304;
+	CMV_Settings_W.Y_start_1 = 384;
+	CMV_Settings_W.Sub_offset = 0;
+	CMV_Settings_W.Sub_step = 1;
+	CMV_Settings_W.Sub_en = 0;
+	CMV_Settings_W.Exp_time_L = 5760;
+	CMV_Settings_W.Exp_time_H = 0;
+	CMV_Settings_W.Exp_kp1_L = 80;
+	CMV_Settings_W.Exp_kp1_H = 0;
+	CMV_Settings_W.Exp_kp2_L = 8;
+	CMV_Settings_W.Exp_kp2_H = 0;
+	CMV_Settings_W.Number_slopes = 1;
+	CMV_Settings_W.Setting_1 = 3099;
+	CMV_Settings_W.Setting_2 = 5893;
+	CMV_Settings_W.Setting_3 = 128;
+	CMV_Settings_W.Setting_4 = 128;
+	CMV_Settings_W.Setting_5 = 128;
+	CMV_Settings_W.Offset_bot = 520;
+	CMV_Settings_W.Offset_top = 520;
+	CMV_Settings_W.Reg_98 = 44812;
+	CMV_Settings_W.Vtfl = 84 * 128 + 104;
+	CMV_Settings_W.Setting_6 = 789;
+	CMV_Settings_W.Setting_7 = 84;
+	CMV_Settings_W.PGA_gain = CMV_REG_VAL_PGA_GAIN_X1;
+	CMV_Settings_W.Temp_sensor = 0;
 
-	// cmvRegWrite(&Spi0, CMV_REG_ADDR_TEST_PATTERN, CMV_REG_VAL_TEST_PATTERN_ON);
-	// cmvRegWrite(&Spi0, CMV_REG_ADDR_DIG_GAIN, 16);
+	cmvService();
 }
 
-void cmvUpdateSettings(void)
+void cmvService(void)
 {
-	cmvRegWrite(&Spi0, CMV_REG_ADDR_OFFSET_BOT, CMV_Settings.Offset_bot);
-	cmvRegWrite(&Spi0, CMV_REG_ADDR_OFFSET_TOP, CMV_Settings.Offset_top);
-	cmvRegWrite(&Spi0, CMV_REG_ADDR_PGA_GAIN, CMV_Settings.PGA_gain);
-	cmvRegWrite(&Spi0, CMV_REG_ADDR_EXP_TIME_L, CMV_Settings.Exp_time);
-	cmvRegWrite(&Spi0, CMV_REG_ADDR_EXP_KP1_L, CMV_Settings.Exp_kp1);
-	cmvRegWrite(&Spi0, CMV_REG_ADDR_EXP_KP2_L, CMV_Settings.Exp_kp2);
-	cmvRegWrite(&Spi0, CMV_REG_ADDR_VTFL, CMV_Settings.Vtfl);
-	cmvRegWrite(&Spi0, CMV_REG_ADDR_NUMBER_SLOPES, CMV_Settings.Number_slopes);
-	cmvRegWrite(&Spi0, CMV_REG_ADDR_NUMBER_FRAMES, CMV_Settings.Number_frames);
+	// Read CMV12000 settings in CMV_Settings_s packed order.
+	for(u8 i = 0; i < CMV_REG_COUNT_SETTINGS; i++)
+	{
+		*((u16 *)(&CMV_Settings_R) + i) = cmvRegRead(&Spi0, cmvRegAddrSettings[i]);
+	}
+
+	// Write modified CMV12000 settings (that don't match reads), except for Temp_sensor.
+	for(u8 i = 0; i < (CMV_REG_COUNT_SETTINGS - 1); i++)
+	{
+		if(*((u16 *)(&CMV_Settings_R) + i) != *((u16 *)(&CMV_Settings_W) + i))
+		{
+			cmvRegWrite(&Spi0, cmvRegAddrSettings[i], *((u16 *)(&CMV_Settings_W) + i));
+		}
+	}
 }
 
 // Private Function Definitions ----------------------------------------------------------------------------------------
@@ -384,15 +365,6 @@ void cmvRegInit(XSpiPs * spiDevice)
 	for(u8 i = 0; i < CMV_REG_COUNT_INIT; i++)
 	{
 		cmvRegWrite(spiDevice, cmvRegAddrInit[i], cmvRegValInit[i]);
-		usleep(10);
-	}
-}
-
-void cmvRegSetMode(XSpiPs * spiDevice)
-{
-	for(u8 i = 0; i < CMV_REG_COUNT_MODE; i++)
-	{
-		cmvRegWrite(spiDevice, cmvRegAddrMode[i], cmvRegValModeNormal[i]);
 		usleep(10);
 	}
 }

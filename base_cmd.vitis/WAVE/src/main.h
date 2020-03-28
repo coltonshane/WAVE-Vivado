@@ -42,4 +42,6 @@ THE SOFTWARE.
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
 
+extern u32 cmvServiceFlag;
+
 #endif

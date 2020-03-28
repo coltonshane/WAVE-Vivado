@@ -46,7 +46,9 @@ module CMV_Input_v1_0
     input wire [63:0] cmv_ch_n,
     
     // 1:10 Pixel clock (60MHz), derived from the 300MHz LVDS input clock.
+    // Also used to drive CMV12000 CLK_IN for temperature sensor, through ODDRE1/OBUF.
     output wire px_clk,
+    output wire ts_clk,
                    
     // Master pixel counter. Increments by one every px_clk with valid pixel data.
     // Normal Mode: 2 Rows x 4096px = 8192px = 128 px_count increments.
@@ -176,6 +178,23 @@ lvds_clk_in lvds_clk_in_0
    .lvds_clk(lvds_clk),
    .lvds_clk_div4(lvds_clk_div4),
    .px_clk(px_clk)
+);
+
+// Buffer 60MHz px_clk for output to CMV12000 CLK_IN (temperature sensor clock).
+wire ts_clk_out;
+ODDRE1 ODDRE1_inst 
+(
+  .Q(ts_clk_out),     // 1-bit output: Data output to IOB
+  .C(px_clk),         // 1-bit input: High-speed clock input
+  .D1(1'b0),          // 1-bit input: Parallel data input 1
+  .D2(1'b1),          // 1-bit input: Parallel data input 2
+  .SR(1'b0)           // 1-bit input: Active High Async Reset
+);
+  
+OBUF OBUF_inst 
+(
+  .O(ts_clk),         // 1-bit output: Buffer output
+  .I(ts_clk_out)      // 1-bit input: Buffer input
 );
 
 // Make array views of the CMV12000 pixel channel I/O ports.

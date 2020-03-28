@@ -171,7 +171,7 @@ void frameRecord()
 	u32 csAddrBuffer[16];
 	u32 csSizeBuffer[16];
 
-	// XGpioPs_WritePin(&Gpio, T_EXP1_PIN, 1);		// Mark frame recorder entry.
+	// XGpioPs_WritePin(&Gpio, GPIO2_PIN, 1);		// Mark frame recorder entry.
 
 	// Fill in write-time frame header data.
 	XTime_GetTime(&tFrameOut);
@@ -196,6 +196,6 @@ void frameRecord()
 
 	nFramesOut++;
 
-	// XGpioPs_WritePin(&Gpio, T_EXP1_PIN, 0);		// Mark frame recorder exit.
+	// XGpioPs_WritePin(&Gpio, GPIO2_PIN, 0);		// Mark frame recorder exit.
 }
 

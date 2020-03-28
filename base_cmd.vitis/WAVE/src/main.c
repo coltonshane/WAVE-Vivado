@@ -54,7 +54,7 @@ void isrVSYNC(void * CallbackRef);
 XScuGic Gic;
 
 u32 triggerShutdown = 0;
-u32 updateCMVRegs = 0;
+u32 cmvServiceFlag = 0;
 u32 formatFileSystem = 0;
 u32 closeFileSystem = 0;
 
@@ -132,10 +132,10 @@ int main()
     	usbPoll();
     	// frameService();
 
-    	if(updateCMVRegs)
+    	if(cmvServiceFlag)
     	{
-    		updateCMVRegs = 0;
-    	    cmvUpdateSettings();
+    		cmvServiceFlag = 0;
+    		cmvService();
     	}
 
     	if(formatFileSystem)
