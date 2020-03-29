@@ -26,6 +26,7 @@ THE SOFTWARE.
 
 #include "main.h"
 #include "cmv12000.h"
+#include "nvme.h"
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
@@ -130,6 +131,9 @@ void uiService(void)
 
 	sprintf(strResult, "IS:%3.0f*C", cmvGetTemp());
 	uiDrawStringColRow(UI_ID_BOT, strResult, 32, 0);
+
+	sprintf(strResult, "SD:%3.0f*C", nvmeGetTemp());
+	uiDrawStringColRow(UI_ID_BOT, strResult, 48, 0);
 }
 
 // Private Function Definitions ----------------------------------------------------------------------------------------

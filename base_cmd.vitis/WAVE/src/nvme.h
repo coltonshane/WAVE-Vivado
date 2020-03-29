@@ -58,6 +58,8 @@ int nvmeInit(void);
 int nvmeGetStatus(void);
 u64 nvmeGetLBACount(void);
 u16 nvmeGetLBASize(void);
+int nvmeGetMetrics(void);
+float nvmeGetTemp(void);
 
 int nvmeWrite(const u8 * srcByte, u64 destLBA, u32 numLBA);
 int nvmeFlush();

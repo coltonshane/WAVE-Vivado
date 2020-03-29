@@ -298,4 +298,44 @@ typedef struct __attribute__((packed))
 	u32 LBAF[16];      // LBA Format N Support
 } idNamespace_type;
 
+// Log Page 02: SMART / Health Information
+typedef struct __attribute__((packed))
+{
+	u8 Critical_Warning;
+	u16 Composite_Temperature;		// [K]
+	u8 Available_Spare;				// [%]
+	u8 Available_Spare_Threshold;	// [%]
+	u8 Percentage_Used;				// [%]
+	u8 Endurance_Group_Critical_Warning_Summary;
+	u8 reserved1[25];
+	u64 Data_Units_Read_L;			// [1000 * 512B]
+	u64 Data_Units_Read_H;
+	u64 Data_Units_Written_L;		// [1000 * 512B]
+	u64 Data_Units_Written_H;
+	u64 Host_Read_Commands_L;
+	u64 Host_Read_Commands_H;
+	u64 Host_Write_Commands_L;
+	u64 Host_Write_Commands_H;
+	u64 Controller_Busy_Time_L;		// [min]
+	u64 Controller_Busy_Time_H;
+	u64 Power_Cycles_L;
+	u64 Power_Cycles_H;
+	u64 Power_On_Hours_L;			// [hr]
+	u64 Power_On_Hours_H;
+	u64 Unsafe_Shutdowns_L;
+	u64 Unsafe_Shutdowns_H;
+	u64 Media_and_Data_Integrity_Errors_L;
+	u64 Media_and_Data_Integrity_Errors_H;
+	u64 Number_of_Error_Information_Log_Entries_L;
+	u64 Number_of_Error_Information_Log_Entries_H;
+	u32 Warning_Composite_Temperature_Time;			// [min]
+	u32 Critical_Composite_Temperature_Time;		// [min]
+	u16 Temperature_Sensor[8];
+	u32 Thermal_Management_Temperature_1_Transition_Count;
+	u32 Thermal_Management_Temperature_2_Transition_Count;
+	u32 Total_Time_For_Thermal_Management_Temperature_1;		// [s]
+	u32 Total_Time_For_Thermal_Management_Temperature_2;		// [s]
+	u8 reserved2[280];
+} logSMARTHealth_type;
+
 #endif

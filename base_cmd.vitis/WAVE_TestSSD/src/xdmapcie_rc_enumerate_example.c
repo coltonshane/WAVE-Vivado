@@ -86,12 +86,11 @@
 #define GPIO4_PIN 81		// Bank 3, Pin 3, EMIO 3
 #define LVDS_CLK_EN_PIN 82	// Bank 3, Pin 4, EMIO 4
 #define PX_IN_RST_PIN 83	// Bank 3, Pin 5, EMIO 5
-// Unused 84				// Bank 3, Pin 6, EMIO 6
+#define GPIO_SEL_UART0 84	// Bank 3, Pin 6, EMIO 6
 // Unused 85				// Bank 3, Pin 7, EMIO 7
 #define CMV_NRST_PIN 86		// Bank 3, Pin 8, EMIO 8
-#define FRAME_REQ_PIN 87	// Bank 3, Pin 9, EMIO 9
-#define T_EXP1_PIN 88		// Bank 3, Pin 10, EMIO 10
-#define T_EXP2_PIN 89		// Bank 3, Pin 11, EMIO 11
+#define T_EXP1_PIN 87		// Bank 3, Pin 9, EMIO 9
+#define T_EXP2_PIN 88		// Bank 3, Pin 10, EMIO 10
 
 #define UART0_DEVICE_ID XPAR_XUARTPS_0_DEVICE_ID
 
@@ -222,6 +221,9 @@ int main(void)
 
 	// Hold the pixel input blocks in reset until the LVDS clock is available.
 	XGpioPs_WritePin(&Gpio, PX_IN_RST_PIN, 1);
+
+	// Select UART0 for GPI0.
+	XGpioPs_WritePin(&Gpio, GPIO_SEL_UART0, 1);
 
 	// Tell the supervisor to enable the SSD power supply.
 	while(!ssdPowerReady)
@@ -604,6 +606,8 @@ u32 testFatFsWrite(u32 numFiles, u32 numBlocksPerFile, u32 numBytesPerBlock)
 			sprintf(strWorking, "c%04d\n", d);
 			res = f_mkdir(strWorking);
 		}
+
+		nvmeGetMetrics();
 
 		// Create a file.
 		sprintf(strWorking, "/c%04d/f%06d.bin\n", d, f);

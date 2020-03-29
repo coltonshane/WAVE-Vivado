@@ -57,6 +57,7 @@ int nvmeIdentifyController(u32 tTimeout_ms);
 int nvmeIdentifyNamespace(u32 tTimeout_ms);
 int nvmeSetPowerState(u8 PS, u8 WH, u32 tTimeout_ms);
 int nvmeCreateIOQueues(u32 tTimeout_ms);
+int nvmeGetSMARTHealth(void);
 
 void nvmeParsePowerStates();
 
@@ -101,10 +102,11 @@ cqe_type * iocq =         (cqe_type *)(0x10003000);		// I/O Completion Queue
 // Identify Structures
 idController_type * idController = (idController_type *)(0x10004000);
 idNamespace_type * idNamespace = (idNamespace_type *)(0x10005000);
+logSMARTHealth_type * logSMARTHealth = (logSMARTHealth_type *)(0x10006000);
 
 // Heap space for PRP lists for IO Transfers.
 // Heap size is (IOSQ_SIZE + 1) * DDR_PAGE_SIZE.
-u64 * prpListHeap = (u64 *)(0x10006000);
+u64 * prpListHeap = (u64 *)(0x10008000);
 
 descPowerState_type descPowerState[32];
 
@@ -152,6 +154,8 @@ int nvmeInit(void)
 	nvmeStatus |= nvmeCreateIOQueues(10);
 	if(nvmeStatus != NVME_OK) { return nvmeStatus; }
 
+	nvmeGetMetrics();
+
 	return nvmeStatus;
 }
 
@@ -174,6 +178,33 @@ u16 nvmeGetLBASize(void)
 	{ return (1 << lba_exp); }
 	else
 	{ return 0; }
+}
+
+int nvmeGetMetrics(void)
+{
+	return nvmeGetSMARTHealth();
+}
+
+float nvmeGetTemp(void)
+{
+	// TO-DO: Move to calibration.
+	static float nvmeDN0 = 0.0f;
+	static float nvmeT0 = -273.15f;
+	static float nvmeTSlope = 1.0f;
+
+	static float nvmeTf = -100.0f;
+
+	float nvmeT = (logSMARTHealth->Composite_Temperature - nvmeDN0) * nvmeTSlope + nvmeT0;
+	if(nvmeTf == -100.0f)
+	{
+		nvmeTf = nvmeT;
+	}
+	else
+	{
+		nvmeTf = 0.95f * nvmeTf + 0.05f * nvmeT;
+	}
+
+	return nvmeTf;
 }
 
 int nvmeWrite(const u8 * srcByte, u64 destLBA, u32 numLBA)
@@ -495,6 +526,25 @@ int nvmeCreateIOQueues(u32 tTimeout_ms)
 	return NVME_OK;
 }
 
+int nvmeGetSMARTHealth(void)
+{
+	u32 nvmeStatus = NVME_OK;
+	sqe_prp_type sqe;
+	cqe_type cqe;
+
+	// Get Log Page 02: SMART / Health Information
+	memset(&sqe, 0, sizeof(sqe_prp_type));
+	sqe.CID = admin_cid;
+	sqe.OPC = 0x02;
+	sqe.NSID = 0xFFFFFFFF;	// Scope: Controller
+	sqe.PRP1 = (u64) logSMARTHealth;
+	sqe.CDW10 = 0x007F0002;	// 128DWORD (512B) of Log Identifier 0x02
+	nvmeStatus = nvmeAdminCommand(&sqe, &cqe, 0);
+	if(nvmeStatus != NVME_OK) { return nvmeStatus; }
+
+	return NVME_OK;
+}
+
 void nvmeParsePowerStates(void)
 {
 	u32 powerScale;
@@ -561,6 +611,10 @@ int nvmeAdminCommand(const sqe_prp_type * sqe, cqe_type * cqe, u32 tTimeout_ms)
 	XTime_GetTime(&tStart);
 
 	nvmeSubmitAdminCommand(sqe);
+
+	// Don't wait for completion if tTimeout_ms == 0.
+	if(tTimeout_ms == 0) { return NVME_OK; }
+
 	do
 	{
 		nvmeStatus |= nvmeCompleteAdminCommand(cqe, tTimeout_ms);
@@ -663,6 +717,6 @@ int nvmeCheckTimeout(XTime tStart, u32 tTimeout_ms)
 	XTime_GetTime(&tNow);
 	tElapsed_ms = (tNow - tStart) / (COUNTS_PER_SECOND / 1000);
 
-	return (tElapsed_ms > tTimeout_ms);
+	return (tElapsed_ms >= tTimeout_ms);
 }
 

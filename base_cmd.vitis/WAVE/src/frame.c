@@ -29,6 +29,7 @@ THE SOFTWARE.
 #include "cmv12000.h"
 #include "encoder.h"
 #include "fs.h"
+#include "nvme.h"
 #include "xtime_l.h"
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
@@ -183,7 +184,11 @@ void frameRecord()
 	memcpy(csAddrBuffer, fhBuffer[iFrameOut].csAddr, 16 * sizeof(u32));
 	memcpy(csSizeBuffer, fhBuffer[iFrameOut].csSize, 16 * sizeof(u32));
 
-	if((nFramesOut % FRAMES_PER_FILE) == 0) { fsCreateFile(); }
+	if((nFramesOut % FRAMES_PER_FILE) == 0)
+	{
+		nvmeGetMetrics();	// Grab SSD metrics (incl. temperature).
+		fsCreateFile();		// Create a new file in the clip.
+	}
 
 	// Write frame header.
 	fsWriteFile((u64)(&fhBuffer[iFrameOut]), 512);
