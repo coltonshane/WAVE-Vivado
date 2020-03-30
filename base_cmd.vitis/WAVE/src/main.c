@@ -56,7 +56,8 @@ u16 * plTemp = (u16 *)((u64) 0xFFA50C00);
 
 XScuGic Gic;
 
-u32 record = 0;
+u32 triggerRecordStartStop = 0;
+u32 recording = 0;
 u32 triggerShutdown = 0;
 u32 cmvServiceFlag = 0;
 u32 formatFileSystem = 0;
@@ -135,9 +136,16 @@ int main()
     {
     	usbPoll();
 
-    	if(record)
+    	if(triggerRecordStartStop)
     	{
-    		frameService();
+    		triggerRecordStartStop = 0;
+    		recording = 1 - recording;
+    		if(recording)
+    		{ frameService(FRAME_REC_STATE_START); }
+    	}
+    	else if(recording)
+    	{
+    		frameService(FRAME_REC_STATE_CONTINUE);
     	}
 
     	if(cmvServiceFlag)

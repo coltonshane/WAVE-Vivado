@@ -24,6 +24,7 @@ THE SOFTWARE.
 
 // Include Headers -----------------------------------------------------------------------------------------------------
 
+#include "main.h"
 #include "frame.h"
 #include "gpio.h"
 #include "cmv12000.h"
@@ -53,6 +54,7 @@ THE SOFTWARE.
 // Private Function Prototypes -----------------------------------------------------------------------------------------
 
 void frameRecord(void);
+void frameUpdateTemps(void);
 
 // Public Global Variables ---------------------------------------------------------------------------------------------
 
@@ -62,12 +64,18 @@ FrameHeader_s * fhBuffer = (FrameHeader_s *) (0x18000000);
 // Private Global Variables --------------------------------------------------------------------------------------------
 
 s32 nFramesIn = -1;
+s32 nFramesOutStart = 0;
 s32 nFramesOut = 0;
 
 // Frame Request Timer (TTC0, Channel 1)
 u32 * frameReqControl = (u32 *)((u64) 0xFF11000C);
 u32 * frameReqInterval = (u32 *)((u64) 0xFF110024);
 u32 * frameReqPulseWidth = (u32 *)((u64) 0xFF110030);
+
+u8 frameTempPS = 0x00;
+u8 frameTempPL = 0x00;
+u8 frameTempCMV = 0x00;
+u8 frameTempSSD = 0x00;
 
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 
@@ -142,7 +150,7 @@ void isrFOT(void * CallbackRef)
 void frameInit(void)
 {
 	*frameReqPulseWidth = 100;		// [0.01us]
-	*frameReqInterval = 3333333;	// [0.01us]
+	*frameReqInterval = 250000;		// [0.01us]
 	*frameReqControl |= FRAME_REQ_CONTROL_WAVE_POL;
 	*frameReqControl |= FRAME_REQ_CONTROL_MATCH;
 	*frameReqControl |= FRAME_REQ_CONTROL_INT;
@@ -150,10 +158,17 @@ void frameInit(void)
 	*frameReqControl &= ~FRAME_REQ_CONTROL_WAVE_DIS;
 }
 
-void frameService(void)
+void frameService(u8 recState)
 {
-	// Record.
-	if(nFramesOut + 3 < nFramesIn) { frameRecord(); }
+	if(recState == FRAME_REC_STATE_START)
+	{
+		nFramesOutStart = nFramesIn;
+		nFramesOut = nFramesOutStart;
+	}
+	else if(recState == FRAME_REC_STATE_CONTINUE)
+	{
+		if(nFramesOut + 3 < nFramesIn) { frameRecord(); }
+	}
 }
 
 int frameLastCaptured(void)
@@ -180,13 +195,20 @@ void frameRecord()
 	fhBuffer[iFrameOut].nFrameBacklog = nFramesIn - nFramesOut;
 	fhBuffer[iFrameOut].tFrameWrite_us = tFrameOut * US_PER_COUNT;
 
+	// Fill in temperature sensor data.
+	fhBuffer[iFrameOut].tempPS = frameTempPS;
+	fhBuffer[iFrameOut].tempPL = frameTempPL;
+	fhBuffer[iFrameOut].tempCMV = frameTempCMV;
+	fhBuffer[iFrameOut].tempSSD = frameTempSSD;
+
 	// Copy the codestream addresses and sizes once to minimize DDR access.
 	memcpy(csAddrBuffer, fhBuffer[iFrameOut].csAddr, 16 * sizeof(u32));
 	memcpy(csSizeBuffer, fhBuffer[iFrameOut].csSize, 16 * sizeof(u32));
 
-	if((nFramesOut % FRAMES_PER_FILE) == 0)
+	if(((nFramesOut - nFramesOutStart) % FRAMES_PER_FILE) == 0)
 	{
-		nvmeGetMetrics();	// Grab SSD metrics (incl. temperature).
+		nvmeGetMetrics();	// Sample SSD metrics (incl. temperature).
+		frameUpdateTemps();	// Update temperature sensor frame header-logged values.
 		fsCreateFile();		// Create a new file in the clip.
 	}
 
@@ -202,5 +224,13 @@ void frameRecord()
 	nFramesOut++;
 
 	// XGpioPs_WritePin(&Gpio, GPIO2_PIN, 0);		// Mark frame recorder exit.
+}
+
+void frameUpdateTemps(void)
+{
+	frameTempPS = (u8)(psplGetTemp(psTemp) + 100.0f);
+	frameTempPL = (u8)(psplGetTemp(plTemp) + 100.0f);
+	frameTempCMV = (u8)(cmvGetTemp() + 100.0f);
+	frameTempSSD = (u8)(nvmeGetTemp() + 100.0f);
 }
 

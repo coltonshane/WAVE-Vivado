@@ -31,6 +31,11 @@ THE SOFTWARE.
 
 // Public Pre-Processor Definitions ------------------------------------------------------------------------------------
 
+// Recording States
+#define FRAME_REC_STATE_IDLE 		0x00
+#define FRAME_REC_STATE_START 		0x01
+#define FRAME_REC_STATE_CONTINUE 	0x02
+
 // Public Type Definitions ---------------------------------------------------------------------------------------------
 
 // 512B Frame Header Structure
@@ -61,14 +66,20 @@ typedef struct __attribute__((packed))
 	// Codestream start-of-frame FIFO and buffer state [32B].
 	u16 csFIFOState[16];
 
-	// Padding [288B]
-	u8 reserved2[288];
+	// Temperature Sensors [4B]
+	u8 tempPS;
+	u8 tempPL;
+	u8 tempCMV;
+	u8 tempSSD;
+
+	// Padding [284B];
+	u8 reserved2[284];
 } FrameHeader_s;
 
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
 void frameInit(void);
-void frameService(void);
+void frameService(u8 recState);
 int frameLastCaptured(void);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------

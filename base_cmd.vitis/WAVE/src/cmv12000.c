@@ -153,7 +153,7 @@ void cmvInit(void)
 	CMV_Settings_W.Sub_offset = 0;
 	CMV_Settings_W.Sub_step = 1;
 	CMV_Settings_W.Sub_en = 0;
-	CMV_Settings_W.Exp_time_L = 5760;
+	CMV_Settings_W.Exp_time_L = 800;
 	CMV_Settings_W.Exp_time_H = 0;
 	CMV_Settings_W.Exp_kp1_L = 80;
 	CMV_Settings_W.Exp_kp1_H = 0;
