@@ -287,9 +287,9 @@ void BulkOutHandler(void *CallBackRef, u32 RequestedBytes,
 		{
 			// NVMe Bridge Write
 			// ----------------------------------------------------------------------------
-			u32 Offset = htonl(((SCSI_READ_WRITE *) &CBW.CBWCB)->block) * VFLASH_BLOCK_SIZE;
+			u32 lbOffset = htonl(((SCSI_READ_WRITE *) &CBW.CBWCB)->block);
 			u32 wLength = BytesTxed;
-			nvmeWrite(VirtFlashWritePointer, Offset >> 9, wLength >> 9);
+			nvmeWrite(VirtFlashWritePointer, lbOffset, wLength >> 9);
 			while(nvmeGetIOSlip() > 0)
 			{
 				nvmeServiceIOCompletions(16);

@@ -246,9 +246,9 @@ void ParseCBW(struct Usb_DevData *InstancePtr)
 
 		// NVMe Bridge Read
 		// ----------------------------------------------------------------------------
-		u32 Offset = htonl(((SCSI_READ_WRITE *) &CBW.CBWCB)->block) * VFLASH_BLOCK_SIZE;
+		u32 lbOffset = htonl(((SCSI_READ_WRITE *) &CBW.CBWCB)->block);
 		u32 rLength = htons(((SCSI_READ_WRITE *) &CBW.CBWCB)->length) * VFLASH_BLOCK_SIZE;
-		nvmeRead((u8 *)((u64) SSD2USB_BUFFER_ADDR), Offset >> 9, rLength >> 9);
+		nvmeRead((u8 *)((u64) SSD2USB_BUFFER_ADDR), lbOffset, rLength >> 9);
 		while(nvmeGetIOSlip() > 0)
 		{
 			nvmeServiceIOCompletions(16);
@@ -259,7 +259,7 @@ void ParseCBW(struct Usb_DevData *InstancePtr)
 		u32 RetVal = EpBufferSend(InstancePtr->PrivateData, 1, (u8 *)((u64) SSD2USB_BUFFER_ADDR), rLength);
 
 		if (RetVal != XST_SUCCESS) {
-			xil_printf("Failed: READ Offset 0x%08x\n", Offset);
+			xil_printf("Failed: READ LB Offset 0x%08x\n", lbOffset);
 			return;
 		}
 		break;
