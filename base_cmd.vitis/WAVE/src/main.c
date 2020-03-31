@@ -60,7 +60,7 @@ u32 triggerRecordStartStop = 0;
 u32 recording = 0;
 u32 triggerShutdown = 0;
 u32 cmvServiceFlag = 0;
-u32 formatFileSystem = 0;
+u32 formatFileSystem = 1;
 u32 closeFileSystem = 0;
 
 int main()
@@ -111,18 +111,25 @@ int main()
     gicConfig = XScuGic_LookupConfig(INTC_DEVICE_ID);
     XScuGic_CfgInitialize(&Gic, gicConfig, gicConfig->CpuBaseAddress);
     Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_INT, (Xil_ExceptionHandler) XScuGic_InterruptHandler, &Gic);
-    Xil_ExceptionEnable();
 
-    // Configure and enable FOT interrupt (Highest Priority: 0).
+    // NOTE: By default, XScuGic DOES NOT support nested interrupts.
+
+    // Configure and enable FOT interrupt (Highest Priority: 0x00).
     XScuGic_Connect(&Gic, 124, (Xil_ExceptionHandler) isrFOT, (void *) &Gic);
     XScuGic_SetPriorityTriggerType(&Gic, 124, 0x00, 0x03);
     XScuGic_Enable(&Gic, 124);
 
-    // Configure and enable VSYNC interrupt (Second Highest Priority: 8).
-    // NOTE: By default, XScuGic DOES NOT support nested interrupts.
+    // Configure and enable VSYNC interrupt (Second Highest Priority: 0x08).
     XScuGic_Connect(&Gic, 125, (Xil_ExceptionHandler) isrVSYNC, (void *) &Gic);
     XScuGic_SetPriorityTriggerType(&Gic, 125, 0x08, 0x03);
     XScuGic_Enable(&Gic, 125);
+
+    // Configure and enable the UI interrupt (Third Highest Priority: 0x10).
+    XScuGic_Connect(&Gic, 48, (Xil_ExceptionHandler)XGpioPs_IntrHandler, (void *) &Gpio);
+    XScuGic_SetPriorityTriggerType(&Gic, 48, 0x10, 0x03);
+    XScuGic_Enable(&Gic, 48);
+
+    Xil_ExceptionEnable();
 
     usleep(1000);
 

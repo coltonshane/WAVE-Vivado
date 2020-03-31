@@ -34,6 +34,8 @@ THE SOFTWARE.
 
 // Private Function Prototypes -----------------------------------------------------------------------------------------
 
+void isrUI(void *CallBackRef, u32 Bank, u32 Status);
+
 // Public Global Variables ---------------------------------------------------------------------------------------------
 
 XGpioPs Gpio;
@@ -43,6 +45,11 @@ XGpioPs Gpio;
 XGpioPs_Config *gpioConfig;
 
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
+extern u32 triggerRecordStartStop;
+void isrUI(void *CallBackRef, u32 Bank, u32 Status)
+{
+	triggerRecordStartStop = 1;
+}
 
 // Public Function Definitions -----------------------------------------------------------------------------------------
 
@@ -50,6 +57,11 @@ void gpioInit(void)
 {
 	gpioConfig = XGpioPs_LookupConfig(GPIO_DEVICE_ID);
 	XGpioPs_CfgInitialize(&Gpio, gpioConfig, gpioConfig->BaseAddr);
+
+	// Set up MIO UI input falling-edge interrupts.
+    XGpioPs_SetIntrType(&Gpio, UI_BANK, 0x3FFFFFFF, 0x00000000, 0x00000000);
+    XGpioPs_SetCallbackHandler(&Gpio, (void *) &Gpio, isrUI);
+    XGpioPs_IntrEnable(&Gpio, UI_BANK, UI_MASK);
 
     // Set all EMIO GPIO to output low.
     for(u32 i = GPIO1_PIN; i <= T_EXP2_PIN; i++)
