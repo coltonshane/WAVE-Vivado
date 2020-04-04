@@ -59,6 +59,13 @@ module Encoder_v1_0_S00_AXI
     input wire [15:0] fifo_overfull_concat,
     input wire [255:0] fifo_rd_count_concat,
     
+  output wire signed [23:0] px_count_c_XX1_G1B1_offset,
+  output wire signed [23:0] px_count_e_XX1_G1B1_offset,
+  output wire signed [23:0] px_count_c_XX1_R1G2_offset,
+  output wire signed [23:0] px_count_e_XX1_R1G2_offset,
+  output wire signed [23:0] px_count_c_XX2_offset,
+  output wire signed [23:0] px_count_e_XX2_offset,    
+    
 	// User ports ends
 	// Do not modify the ports beyond this line
 
@@ -146,8 +153,8 @@ localparam integer OPT_MEM_ADDR_BITS = 5;
 //----------------------------------------------
 //-- Signals for user logic register space example
 //------------------------------------------------
-//-- Number of Slave Registers: 44 <= 2^(OPT_MEM_ADDR_BITS+1)
-reg [C_S_AXI_DATA_WIDTH-1:0] slv_reg [43:0];
+//-- Number of Slave Registers: 48 <= 2^(OPT_MEM_ADDR_BITS+1)
+reg [C_S_AXI_DATA_WIDTH-1:0] slv_reg [47:0];
 wire	 slv_reg_rden;
 wire	 slv_reg_wren;
 reg [C_S_AXI_DATA_WIDTH-1:0]	 reg_data_out;
@@ -258,7 +265,7 @@ begin
     if ( S_AXI_ARESETN == 1'b0 )
     begin : s_axi_areset_block
         integer i;
-        for(i = 0; i < 44; i = i + 1)
+        for(i = 0; i < 48; i = i + 1)
         begin
             slv_reg[i] <= 0;
         end
@@ -443,6 +450,14 @@ assign q_mult_HL2_LH2 = slv_reg[33][0+:10];
 assign m00_axi_armed = slv_reg[34][28];
 assign c_RAM_addr_update_request = slv_reg[34][24];
 assign debug_c_state = slv_reg[34][20:16];
+
+// Slave Registers 45-47: Pixel counter latency offsets.
+assign px_count_c_XX1_G1B1_offset[15:0] = slv_reg[45][15:0];
+assign px_count_e_XX1_G1B1_offset[15:0] = slv_reg[45][31:16];
+assign px_count_c_XX1_R1G2_offset[15:0] = slv_reg[46][15:0];
+assign px_count_e_XX1_R1G2_offset[15:0] = slv_reg[46][31:16];
+assign px_count_c_XX2_offset[15:0] = slv_reg[47][15:0];
+assign px_count_e_XX2_offset[15:0] = slv_reg[47][31:16];
 
 // User logic ends
 

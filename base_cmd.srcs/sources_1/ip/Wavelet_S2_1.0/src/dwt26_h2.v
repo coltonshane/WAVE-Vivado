@@ -19,6 +19,8 @@ module dwt26_h2
     parameter integer PX_MATH_WIDTH = 16
 )
 (
+    input wire SS,
+
     input wire px_clk,                 // Pixel clock.
     input wire [5:0] px_idx,           // 64 pixel pairs per column per row for w = 4096px.
     input wire px_idx_updated,         // Flag indicating the px_idx has been updated.
@@ -52,9 +54,9 @@ reg signed [(PX_MATH_WIDTH-1):0] S_2;      // Local sum of pixel pair N-2.
 // Create signals for whether the next pixel pair out is the first/last of a row.
 // TO-DO: These are offset for latency through the shift stages. Any way to make it easier to follow?
 wire last_out;
-assign last_out = (px_idx == 5'b00001);
+assign last_out = SS ? (px_idx[4:0] == 5'b00001) : (px_idx[5:0] == 6'b000001);
 wire first_out;
-assign first_out = (px_idx == 5'b00010);
+assign first_out = SS ? (px_idx[4:0] == 5'b00010) : (px_idx[5:0] == 6'b000010);
 
 // Combinational logic for local sum/difference.
 wire signed [(PX_MATH_WIDTH-1):0] D_0_next;

@@ -22,9 +22,12 @@ All operations and operands are signed 16-bit unless otherwise noted.
 module dwt26_h1
 #(
     parameter integer PX_MATH_WIDTH = 16,
-    parameter [1:0] COLOR = `COLOR_G1
+    parameter [1:0] COLOR = `COLOR_G1,
+    parameter SS_ODD_ROW = 0
 )
 (
+    input wire SS,              // 2K Mode switch.
+    
     input wire px_clk,          // Pixel clock.
     input wire px_dval,         // Pixel data valid flag.
     input wire [6:0] px_idx,    // 128 pixels per column per row for w = 4096px.
@@ -59,23 +62,31 @@ wire signed [(PX_MATH_WIDTH-1):0] X_odd;    // Latest odd input pixel.
 assign X_odd = px_data;
 
 // Create an enable signal based on this core's color and the current pixel index.
-//   R1 and G2 are enabled on globally even pixels.
-//   G1 and B1 are enabled on globally odd pixels.
+//   G1 and B1 are enabled on globally even pixels.
+//   R1 and G2 are enabled on globally odd pixels.
 wire color_en;
 assign color_en = (px_idx[0] == COLOR[0]);
+
+// Create an enable signal based on this core's subsampled row assignement, if in 2K Mode.
+wire ss_row_en;
+assign ss_row_en = SS ? (px_idx[1] == SS_ODD_ROW) : 1'b1;
     
 // Create a signal for whether a pixel is even or odd within a given color field.
+// 4K Mode:
 //   Global pixels {0, 1, 4, 5, ...} are locally even.
-//   Global pixels {2, 3, 6, 7, ...} are locally odd.     
+//   Global pixels {2, 3, 6, 7, ...} are locally odd.
+// 2K Mode:  
+//   Global pixels {0, 1, 2, 3, 8, 9, 10, 11, ...} are locally even.
+//   Global pixels {4, 5, 6, 7, 12, 13, 14, 15...} are locally odd.
 wire locally_odd;
-assign locally_odd = px_idx[1];
+assign locally_odd = SS ? px_idx[2] : px_idx[1];
 
 // Create signals for whether the next pixel pair out is the first/last of a row.
 // TO-DO: These are offset for latency through the shift stages. Any way to make it easier to follow?
 wire last_out;
-assign last_out = (px_idx[6:2] == 5'b00001);
+assign last_out = SS ? (px_idx[6:3] == 4'b0001) : (px_idx[6:2] == 5'b00001);
 wire first_out;
-assign first_out = (px_idx[6:2] == 5'b00010);
+assign first_out = SS ? (px_idx[6:3] == 4'b0010) : (px_idx[6:2] == 5'b00010);
 
 // Combinational logic for local sum/difference.
 wire signed [(PX_MATH_WIDTH-1):0] D_0_next;
@@ -96,7 +107,7 @@ assign D_out_next = D_1_temp + ((S_2 - S_0_temp + 16'sh0002) >>> 2);
 // Sequential logic.
 always @(posedge px_clk)
 begin
-    if (px_dval & color_en)
+    if (px_dval & color_en & ss_row_en)
     begin
         if (locally_odd)
         begin

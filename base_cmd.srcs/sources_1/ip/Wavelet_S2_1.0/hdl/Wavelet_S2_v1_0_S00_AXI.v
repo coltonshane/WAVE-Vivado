@@ -23,6 +23,11 @@ module Wavelet_S2_v1_0_S00_AXI
 (
 	// Users to add ports here
 	
+  // AXI Slave module control signals.
+  output wire SS,
+  output wire signed [23:0] px_count_h2_offset,
+  output wire signed [23:0] px_count_v2_offset,
+	
 	// Debug port for peeking at wavelet core data through AXI.
 	output wire signed [23:0] debug_px_count_trig,
 	output wire [31:0] debug_core_addr,
@@ -380,8 +385,11 @@ begin
 end    
 
 // Add user logic here
-assign debug_px_count_trig = slv_reg[0][23:0];
-assign debug_core_addr = slv_reg[1];
+assign SS = slv_reg[0][0];
+assign px_count_h2_offset[15:0] = slv_reg[1][15:0];
+assign px_count_v2_offset[15:0] = slv_reg[1][31:16];
+assign debug_px_count_trig = slv_reg[2][23:0];
+assign debug_core_addr = slv_reg[3];
 
 // User logic ends
 

@@ -33,6 +33,8 @@ module dwt26_v2
     parameter integer PX_MATH_WIDTH = 16
 )
 (
+    input wire SS,
+
     input wire px_clk,
     input wire signed [23:0] px_count_v2,
     input wire signed [15:0] S_in_0,
@@ -67,12 +69,13 @@ assign wr_en = (px_count_v2[1] ^ px_count_v2_prev_LSB);
 
 // Write address generation.
 // -------------------------------------------------------------------------------------------------
-wire [9:0] wr_addr;
-
 // The write address is driven by px_count_v2, which is offset from px_count by the known latency
 // of the first-stage horizontal wavelet cores feeding this vertical wavelet core. It distributes
 // the two channels' data into the correct position in the two input rows.
-assign wr_addr = {px_count_v2[10:8], px_count_v2[1], px_count_v2[7:2]};    // 4096px mode
+
+wire [9:0] wr_addr_4K = {px_count_v2[10:8], px_count_v2[1], px_count_v2[7:2]};   // 4K Mode
+wire [9:0] wr_addr_2K = {px_count_v2[10:7], px_count_v2[1], px_count_v2[6:2]};   // 2K Mode
+wire [9:0] wr_addr = SS ? wr_addr_2K : wr_addr_4K;
 // -------------------------------------------------------------------------------------------------
 
 // Write data switch.
@@ -140,7 +143,8 @@ assign rd_state = {px_count_v2[2:1], (px_count_v2[1] == px_count_v2_prev_LSB)};
 
 // Read address generation (combinational).
 // -------------------------------------------------------------------------------------------------
-wire [8:0] rd_addr;
+wire [8:0] rd_addr_4K;
+wire [8:0] rd_addr_2K;
 wire [2:0] row_offset[7:0];
 assign row_offset[0] = 2;   // State 0: Request Row N-6 = Row N+2
 assign row_offset[1] = 3;   // State 1: Request Row N-5 = Row N+3
@@ -151,8 +155,13 @@ assign row_offset[5] = 5;   // State 5: Request Row N-3 = Row N+5
 assign row_offset[6] = 5;   // Don't care, leave unchanged.
 assign row_offset[7] = 5;   // Don't care, leave unchanged.
 
-assign rd_addr[8:6] = {px_count_v2[10:9], 1'b0} + row_offset[rd_state];
-assign rd_addr[5:0] = px_count_v2[8:3];
+assign rd_addr_4K[8:6] = {px_count_v2[10:9], 1'b0} + row_offset[rd_state];
+assign rd_addr_4K[5:0] = px_count_v2[8:3];
+
+assign rd_addr_2K[8:5] = {px_count_v2[10:8], 1'b0} + {1'b0, row_offset[rd_state]};
+assign rd_addr_2K[4:0] = px_count_v2[7:3];
+
+wire [8:0] rd_addr = SS ? rd_addr_2K : rd_addr_4K;
 // -------------------------------------------------------------------------------------------------
 
 // Read operation. (One clock cycle latency between updating rd_addr and latching rd_data.)

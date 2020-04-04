@@ -68,6 +68,11 @@ module Wavelet_S2_v1_0 #
 	input wire  s00_axi_rready
 );
 
+// AXI Slave module control signals.
+wire SS;
+wire signed [23:0] px_count_h2_offset;
+wire signed [23:0] px_count_v2_offset;
+
 // Debug port for peeking at wavelet core data through AXI.
 wire signed [23:0] debug_px_count_trig;
 wire [31:0] debug_core_addr;
@@ -84,6 +89,9 @@ Wavelet_S2_v1_0_S00_AXI
 ) 
 Wavelet_S2_v1_0_S00_AXI_inst 
 (
+  .SS(SS),
+  .px_count_h2_offset(px_count_h2_offset),
+  .px_count_v2_offset(px_count_v2_offset),
     .debug_px_count_trig(debug_px_count_trig),
     .debug_core_addr(debug_core_addr),
     .debug_core_HH2_data(debug_core_HH2_data),
@@ -124,7 +132,7 @@ genvar i;
 // Both color fields are valid at 534 px_clk, so using that as the common latency for S1. 
 // This synchronizes the color fields, and they should remain synchronized downstream.
 wire signed [23:0] px_count_h2;
-assign px_count_h2 = px_count - 24'sh000216;
+assign px_count_h2 = px_count - px_count_h2_offset;
 
 // Extract pixel pair index within a row from the pixel counter. This increments every
 // four pixels, when a new pixel pair is available from S1. When it increments, a flag is
@@ -209,6 +217,7 @@ begin : dwt26_h2_array
     )
     R1
     (
+        .SS(SS),
         .px_clk(px_clk),
         .px_idx(px_idx),
         .px_idx_updated(px_idx_updated),
@@ -230,6 +239,7 @@ begin : dwt26_h2_array
     )
     G1
     (
+        .SS(SS),
         .px_clk(px_clk),
         .px_idx(px_idx),
         .px_idx_updated(px_idx_updated),
@@ -251,6 +261,7 @@ begin : dwt26_h2_array
     )
     G2
     (
+        .SS(SS),
         .px_clk(px_clk),
         .px_idx(px_idx),
         .px_idx_updated(px_idx_updated),
@@ -272,6 +283,7 @@ begin : dwt26_h2_array
     )
     B1
     (
+        .SS(SS),
         .px_clk(px_clk),
         .px_idx(px_idx),
         .px_idx_updated(px_idx_updated),
@@ -294,7 +306,7 @@ endgenerate
 // This is offset for the known latency of the pipeline up to the second-stage: 
 // horizontal cores. All color fields have the same latency here: 548 px_clk.
 wire signed [23:0] px_count_v2;
-assign px_count_v2 = px_count - 24'sh000224;
+assign px_count_v2 = px_count - px_count_v2_offset;
 
 // Arrays for second-stage vertical core output data.
 wire [31:0] HH2_R1 [3:0];
@@ -348,6 +360,7 @@ begin : dwt26_v2_array
     )
     R1
     (
+        .SS(SS),
         .px_clk(px_clk),
         .px_count_v2(px_count_v2),
         .S_in_0(S_out_R1[2*i+0]),
@@ -367,6 +380,7 @@ begin : dwt26_v2_array
     )
     G1
     (
+        .SS(SS),
         .px_clk(px_clk),
         .px_count_v2(px_count_v2),
         .S_in_0(S_out_G1[2*i+0]),
@@ -386,6 +400,7 @@ begin : dwt26_v2_array
     )
     G2
     (
+        .SS(SS),
         .px_clk(px_clk),
         .px_count_v2(px_count_v2),
         .S_in_0(S_out_G2[2*i+0]),
@@ -405,6 +420,7 @@ begin : dwt26_v2_array
     )
     B1
     (
+        .SS(SS),
         .px_clk(px_clk),
         .px_count_v2(px_count_v2),
         .S_in_0(S_out_B1[2*i+0]),

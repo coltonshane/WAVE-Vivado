@@ -68,6 +68,11 @@ module Wavelet_S1_v1_0 #
 	input wire  s00_axi_rready
 );
 
+// AXI Slave module control signals.
+wire SS;
+wire signed [23:0] px_count_v1_G1B1_offset;
+wire signed [23:0] px_count_v1_R1G2_offset;
+
 // Debug port for peeking at wavelet core data through AXI.
 wire signed [23:0] debug_px_count_trig;
 wire [31:0] debug_core_addr;
@@ -84,6 +89,9 @@ Wavelet_S1_v1_0_S00_AXI
 ) 
 Wavelet_S1_v1_0_S00_AXI_inst 
 (
+  .SS(SS),
+  .px_count_v1_G1B1_offset(px_count_v1_G1B1_offset),
+  .px_count_v1_R1G2_offset(px_count_v1_R1G2_offset),
     .debug_px_count_trig(debug_px_count_trig),
     .debug_core_addr(debug_core_addr),
     .debug_core_HH1_data(debug_core_HH1_data),
@@ -171,6 +179,45 @@ wire signed [15:0] S_pp1_toL_B1 [31:0];
 wire signed [15:0] S_out_B1 [31:0];
 wire signed [15:0] D_out_B1 [31:0];
 
+// 2K Mode: Four rows are read in at once, so each color field needs two cores per channel.
+// ---------------------------------------------------------------------------------------------------------------------
+wire signed [15:0] S_pp0_fromR_R1_SS [31:0];
+wire signed [15:0] D_pp0_fromR_R1_SS [31:0];
+wire signed [15:0] S_pp1_fromR_R1_SS [31:0];
+wire signed [15:0] S_pp0_toL_R1_SS [31:0];
+wire signed [15:0] D_pp0_toL_R1_SS [31:0];
+wire signed [15:0] S_pp1_toL_R1_SS [31:0];
+wire signed [15:0] S_out_R1_SS [31:0];
+wire signed [15:0] D_out_R1_SS [31:0];
+
+wire signed [15:0] S_pp0_fromR_G1_SS [31:0];
+wire signed [15:0] D_pp0_fromR_G1_SS [31:0];
+wire signed [15:0] S_pp1_fromR_G1_SS [31:0];
+wire signed [15:0] S_pp0_toL_G1_SS [31:0];
+wire signed [15:0] D_pp0_toL_G1_SS [31:0];
+wire signed [15:0] S_pp1_toL_G1_SS [31:0];
+wire signed [15:0] S_out_G1_SS [31:0];
+wire signed [15:0] D_out_G1_SS [31:0];
+
+wire signed [15:0] S_pp0_fromR_G2_SS [31:0];
+wire signed [15:0] D_pp0_fromR_G2_SS [31:0];
+wire signed [15:0] S_pp1_fromR_G2_SS [31:0];
+wire signed [15:0] S_pp0_toL_G2_SS [31:0];
+wire signed [15:0] D_pp0_toL_G2_SS [31:0];
+wire signed [15:0] S_pp1_toL_G2_SS [31:0];
+wire signed [15:0] S_out_G2_SS [31:0];
+wire signed [15:0] D_out_G2_SS [31:0];
+
+wire signed [15:0] S_pp0_fromR_B1_SS [31:0];
+wire signed [15:0] D_pp0_fromR_B1_SS [31:0];
+wire signed [15:0] S_pp1_fromR_B1_SS [31:0];
+wire signed [15:0] S_pp0_toL_B1_SS [31:0];
+wire signed [15:0] D_pp0_toL_B1_SS [31:0];
+wire signed [15:0] S_pp1_toL_B1_SS [31:0];
+wire signed [15:0] S_out_B1_SS [31:0];
+wire signed [15:0] D_out_B1_SS [31:0];
+// ---------------------------------------------------------------------------------------------------------------------
+
 // Tie adjacent cores together (in circular fashion).
 for(i = 0; i < 32; i = i + 1)
 begin
@@ -193,9 +240,31 @@ begin
     assign S_pp1_fromR_B1[i] = S_pp1_toL_B1[(i+1) & 32'h1F];
 end
 
+// 2K Mode: Tie the extra cores for odd subsampled rows together in the same fasion.
+// ---------------------------------------------------------------------------------------------------------------------
+for(i = 0; i < 32; i = i + 1)
+begin
+    // Link data from pixel pairs 0 and 1 across cores from right to left.
+    // The link is circular, i.e. core 31 is linked to core 0.
+    assign S_pp0_fromR_R1_SS[i] = S_pp0_toL_R1_SS[(i+1) & 32'h1F];
+    assign D_pp0_fromR_R1_SS[i] = D_pp0_toL_R1_SS[(i+1) & 32'h1F];
+    assign S_pp1_fromR_R1_SS[i] = S_pp1_toL_R1_SS[(i+1) & 32'h1F];
+    
+    assign S_pp0_fromR_G1_SS[i] = S_pp0_toL_G1_SS[(i+1) & 32'h1F];
+    assign D_pp0_fromR_G1_SS[i] = D_pp0_toL_G1_SS[(i+1) & 32'h1F];
+    assign S_pp1_fromR_G1_SS[i] = S_pp1_toL_G1_SS[(i+1) & 32'h1F];
+    
+    assign S_pp0_fromR_G2_SS[i] = S_pp0_toL_G2_SS[(i+1) & 32'h1F];
+    assign D_pp0_fromR_G2_SS[i] = D_pp0_toL_G2_SS[(i+1) & 32'h1F];
+    assign S_pp1_fromR_G2_SS[i] = S_pp1_toL_G2_SS[(i+1) & 32'h1F];
+    
+    assign S_pp0_fromR_B1_SS[i] = S_pp0_toL_B1_SS[(i+1) & 32'h1F];
+    assign D_pp0_fromR_B1_SS[i] = D_pp0_toL_B1_SS[(i+1) & 32'h1F];
+    assign S_pp1_fromR_B1_SS[i] = S_pp1_toL_B1_SS[(i+1) & 32'h1F];
+end
+// ---------------------------------------------------------------------------------------------------------------------
+
 // Instantiate 128 horizontal wavelet cores (32 each for R1, G1, G2, and B1 color fields).
-// TO-DO: This needs to be 256 for subsampled mode. Might be a resource bottleneck.
-//        Horizontal cores need to be stripped down to the bare minimum!
 generate
 for (i = 0; i < 32; i = i + 1)
 begin : dwt26_h1_array
@@ -204,10 +273,12 @@ begin : dwt26_h1_array
     dwt26_h1
     #(
         .PX_MATH_WIDTH(PX_MATH_WIDTH),
-        .COLOR(`COLOR_R1)
+        .COLOR(`COLOR_R1),
+        .SS_ODD_ROW(1'b0)
     ) 
     R1
     (
+        .SS(SS),
         .px_clk(px_clk),
         .px_dval(px_dval),
         .px_idx(px_idx),
@@ -225,10 +296,12 @@ begin : dwt26_h1_array
     dwt26_h1
     #(
         .PX_MATH_WIDTH(PX_MATH_WIDTH),
-        .COLOR(`COLOR_G1)
+        .COLOR(`COLOR_G1),
+        .SS_ODD_ROW(1'b0)
     )
     G1
     (
+        .SS(SS),
         .px_clk(px_clk),
         .px_dval(px_dval),
         .px_idx(px_idx),
@@ -247,10 +320,12 @@ begin : dwt26_h1_array
     dwt26_h1
     #(
         .PX_MATH_WIDTH(PX_MATH_WIDTH),
-        .COLOR(`COLOR_G2)
+        .COLOR(`COLOR_G2),
+        .SS_ODD_ROW(1'b0)
     )
     G2
     (
+        .SS(SS),
         .px_clk(px_clk),
         .px_dval(px_dval),
         .px_idx(px_idx),
@@ -268,10 +343,12 @@ begin : dwt26_h1_array
     dwt26_h1
     #(
         .PX_MATH_WIDTH(PX_MATH_WIDTH),
-        .COLOR(`COLOR_B1)
+        .COLOR(`COLOR_B1),
+        .SS_ODD_ROW(1'b0)
     )
     B1
     (
+        .SS(SS),
         .px_clk(px_clk),
         .px_dval(px_dval),
         .px_idx(px_idx),
@@ -289,14 +366,119 @@ begin : dwt26_h1_array
 end : dwt26_h1_array
 endgenerate
 
+// 2K Mode: 128 more cores for the odd subsampled rows.
+// Merge Safe: Yes.
+// ---------------------------------------------------------------------------------------------------------------------
+generate
+for (i = 0; i < 32; i = i + 1)
+begin : dwt26_h1_array_SS
+
+    // Bottom channel pixels drive the R1 and G1 color fields.
+    dwt26_h1
+    #(
+        .PX_MATH_WIDTH(PX_MATH_WIDTH),
+        .COLOR(`COLOR_R1),
+        .SS_ODD_ROW(1'b1)
+    ) 
+    R1
+    (
+        .SS(SS),
+        .px_clk(px_clk),
+        .px_dval(px_dval),
+        .px_idx(px_idx),
+        .px_data(px_data[i]),
+        .S_pp0_fromR(S_pp0_fromR_R1_SS[i]),
+        .D_pp0_fromR(D_pp0_fromR_R1_SS[i]),
+        .S_pp1_fromR(S_pp1_fromR_R1_SS[i]),
+        .S_pp0_toL(S_pp0_toL_R1_SS[i]),
+        .D_pp0_toL(D_pp0_toL_R1_SS[i]),
+        .S_pp1_toL(S_pp1_toL_R1_SS[i]),
+        .S_out(S_out_R1_SS[i]),
+        .D_out(D_out_R1_SS[i])
+    );
+    
+    dwt26_h1
+    #(
+        .PX_MATH_WIDTH(PX_MATH_WIDTH),
+        .COLOR(`COLOR_G1),
+        .SS_ODD_ROW(1'b1)
+    )
+    G1
+    (
+        .SS(SS),
+        .px_clk(px_clk),
+        .px_dval(px_dval),
+        .px_idx(px_idx),
+        .px_data(px_data[i]),
+        .S_pp0_fromR(S_pp0_fromR_G1_SS[i]),
+        .D_pp0_fromR(D_pp0_fromR_G1_SS[i]),
+        .S_pp1_fromR(S_pp1_fromR_G1_SS[i]),
+        .S_pp0_toL(S_pp0_toL_G1_SS[i]),
+        .D_pp0_toL(D_pp0_toL_G1_SS[i]),
+        .S_pp1_toL(S_pp1_toL_G1_SS[i]),
+        .S_out(S_out_G1_SS[i]),
+        .D_out(D_out_G1_SS[i])
+    );
+    
+    // Top channel pixels drive the G2 and B1 color fields.
+    dwt26_h1
+    #(
+        .PX_MATH_WIDTH(PX_MATH_WIDTH),
+        .COLOR(`COLOR_G2),
+        .SS_ODD_ROW(1'b1)
+    )
+    G2
+    (
+        .SS(SS),
+        .px_clk(px_clk),
+        .px_dval(px_dval),
+        .px_idx(px_idx),
+        .px_data(px_data[i+32]),
+        .S_pp0_fromR(S_pp0_fromR_G2_SS[i]),
+        .D_pp0_fromR(D_pp0_fromR_G2_SS[i]),
+        .S_pp1_fromR(S_pp1_fromR_G2_SS[i]),
+        .S_pp0_toL(S_pp0_toL_G2_SS[i]),
+        .D_pp0_toL(D_pp0_toL_G2_SS[i]),
+        .S_pp1_toL(S_pp1_toL_G2_SS[i]),
+        .S_out(S_out_G2_SS[i]),
+        .D_out(D_out_G2_SS[i])
+    );
+    
+    dwt26_h1
+    #(
+        .PX_MATH_WIDTH(PX_MATH_WIDTH),
+        .COLOR(`COLOR_B1),
+        .SS_ODD_ROW(1'b1)
+    )
+    B1
+    (
+        .SS(SS),
+        .px_clk(px_clk),
+        .px_dval(px_dval),
+        .px_idx(px_idx),
+        .px_data(px_data[i+32]),
+        .S_pp0_fromR(S_pp0_fromR_B1_SS[i]),
+        .D_pp0_fromR(D_pp0_fromR_B1_SS[i]),
+        .S_pp1_fromR(S_pp1_fromR_B1_SS[i]),
+        .S_pp0_toL(S_pp0_toL_B1_SS[i]),
+        .D_pp0_toL(D_pp0_toL_B1_SS[i]),
+        .S_pp1_toL(S_pp1_toL_B1_SS[i]),
+        .S_out(S_out_B1_SS[i]),
+        .D_out(D_out_B1_SS[i])
+    );
+    
+end : dwt26_h1_array_SS
+endgenerate
+// ---------------------------------------------------------------------------------------------------------------------
+
 // Pixel counters at the interface between the vertical and horizontal first-stage cores.
 // These are offset for the known latency of the horizontal cores:
 // G1 and B1 color field horizontal cores: 15 px_clk.
 // R1 and G2 color field horizontal cores: 16 px_clk.
 wire signed [23:0] px_count_v1_G1B1;
-assign px_count_v1_G1B1 = px_count - 24'sh00000F;
+assign px_count_v1_G1B1 = px_count - px_count_v1_G1B1_offset;
 wire signed [23:0] px_count_v1_R1G2;
-assign px_count_v1_R1G2 = px_count - 24'sh000010;
+assign px_count_v1_R1G2 = px_count - px_count_v1_R1G2_offset;
 
 // Arrays for first-stage vertical core output data.
 wire [31:0] HH1_R1 [7:0];
@@ -350,6 +532,7 @@ begin : dwt26_v1_array
     )
     R1
     (
+        .SS(SS),
         .px_clk(px_clk),
         .px_clk_2x(px_clk_2x),
         .px_count_v1(px_count_v1_R1G2),
@@ -361,6 +544,14 @@ begin : dwt26_v1_array
         .D_in_2(D_out_R1[4*i+2]),
         .S_in_3(S_out_R1[4*i+3]),
         .D_in_3(D_out_R1[4*i+3]),
+        .S_in_0_SS(S_out_R1_SS[4*i+0]),
+        .D_in_0_SS(D_out_R1_SS[4*i+0]),
+        .S_in_1_SS(S_out_R1_SS[4*i+1]),
+        .D_in_1_SS(D_out_R1_SS[4*i+1]),
+        .S_in_2_SS(S_out_R1_SS[4*i+2]),
+        .D_in_2_SS(D_out_R1_SS[4*i+2]),
+        .S_in_3_SS(S_out_R1_SS[4*i+3]),
+        .D_in_3_SS(D_out_R1_SS[4*i+3]),
 
         .HH1_out(HH1_R1[i]),
         .HL1_out(HL1_R1[i]),
@@ -374,6 +565,7 @@ begin : dwt26_v1_array
     )
     G1
     (
+        .SS(SS),
         .px_clk(px_clk),
         .px_clk_2x(px_clk_2x),
         .px_count_v1(px_count_v1_G1B1),
@@ -385,6 +577,14 @@ begin : dwt26_v1_array
         .D_in_2(D_out_G1[4*i+2]),
         .S_in_3(S_out_G1[4*i+3]),
         .D_in_3(D_out_G1[4*i+3]),
+        .S_in_0_SS(S_out_G1_SS[4*i+0]),
+        .D_in_0_SS(D_out_G1_SS[4*i+0]),
+        .S_in_1_SS(S_out_G1_SS[4*i+1]),
+        .D_in_1_SS(D_out_G1_SS[4*i+1]),
+        .S_in_2_SS(S_out_G1_SS[4*i+2]),
+        .D_in_2_SS(D_out_G1_SS[4*i+2]),
+        .S_in_3_SS(S_out_G1_SS[4*i+3]),
+        .D_in_3_SS(D_out_G1_SS[4*i+3]),
 
         .HH1_out(HH1_G1[i]),
         .HL1_out(HL1_G1[i]),
@@ -398,6 +598,7 @@ begin : dwt26_v1_array
     )
     G2
     (
+        .SS(SS),
         .px_clk(px_clk),
         .px_clk_2x(px_clk_2x),
         .px_count_v1(px_count_v1_R1G2),
@@ -409,6 +610,14 @@ begin : dwt26_v1_array
         .D_in_2(D_out_G2[4*i+2]),
         .S_in_3(S_out_G2[4*i+3]),
         .D_in_3(D_out_G2[4*i+3]),
+        .S_in_0_SS(S_out_G2_SS[4*i+0]),
+        .D_in_0_SS(D_out_G2_SS[4*i+0]),
+        .S_in_1_SS(S_out_G2_SS[4*i+1]),
+        .D_in_1_SS(D_out_G2_SS[4*i+1]),
+        .S_in_2_SS(S_out_G2_SS[4*i+2]),
+        .D_in_2_SS(D_out_G2_SS[4*i+2]),
+        .S_in_3_SS(S_out_G2_SS[4*i+3]),
+        .D_in_3_SS(D_out_G2_SS[4*i+3]),
 
         .HH1_out(HH1_G2[i]),
         .HL1_out(HL1_G2[i]),
@@ -422,6 +631,7 @@ begin : dwt26_v1_array
     )
     B1
     (
+        .SS(SS),
         .px_clk(px_clk),
         .px_clk_2x(px_clk_2x),
         .px_count_v1(px_count_v1_G1B1),
@@ -433,6 +643,14 @@ begin : dwt26_v1_array
         .D_in_2(D_out_B1[4*i+2]),
         .S_in_3(S_out_B1[4*i+3]),
         .D_in_3(D_out_B1[4*i+3]),
+        .S_in_0_SS(S_out_B1_SS[4*i+0]),
+        .D_in_0_SS(D_out_B1_SS[4*i+0]),
+        .S_in_1_SS(S_out_B1_SS[4*i+1]),
+        .D_in_1_SS(D_out_B1_SS[4*i+1]),
+        .S_in_2_SS(S_out_B1_SS[4*i+2]),
+        .D_in_2_SS(D_out_B1_SS[4*i+2]),
+        .S_in_3_SS(S_out_B1_SS[4*i+3]),
+        .D_in_3_SS(D_out_B1_SS[4*i+3]),
 
         .HH1_out(HH1_B1[i]),
         .HL1_out(HL1_B1[i]),

@@ -151,6 +151,13 @@ wire [15:0] fifo_halfword_concat;
 wire [15:0] fifo_overfull_concat;
 wire [255:0] fifo_rd_count_concat;
 
+wire signed [23:0] px_count_c_XX1_G1B1_offset;
+wire signed [23:0] px_count_e_XX1_G1B1_offset;
+wire signed [23:0] px_count_c_XX1_R1G2_offset;
+wire signed [23:0] px_count_e_XX1_R1G2_offset;
+wire signed [23:0] px_count_c_XX2_offset;
+wire signed [23:0] px_count_e_XX2_offset;
+
 // AXI Master 00 signals.
 reg axi_init_txn;
 reg [(C_M00_AXI_ADDR_WIDTH-1):0] axi_awaddr_init;
@@ -182,6 +189,13 @@ Encoder_v1_0_S00_AXI_inst
   .fifo_halfword_concat(fifo_halfword_concat),
   .fifo_overfull_concat(fifo_overfull_concat),
   .fifo_rd_count_concat(fifo_rd_count_concat),
+  
+  .px_count_c_XX1_G1B1_offset(px_count_c_XX1_G1B1_offset),
+  .px_count_e_XX1_G1B1_offset(px_count_e_XX1_G1B1_offset),
+  .px_count_c_XX1_R1G2_offset(px_count_c_XX1_R1G2_offset),
+  .px_count_e_XX1_R1G2_offset(px_count_e_XX1_R1G2_offset),
+  .px_count_c_XX2_offset(px_count_c_XX2_offset),
+  .px_count_e_XX2_offset(px_count_e_XX2_offset),
 
     // AXI-Lite slave controller signals.
 	.S_AXI_ACLK(s00_axi_aclk),
@@ -283,11 +297,11 @@ Encoder_v1_0_M00_AXI_inst
 // {HH1, HL1, LH1, LL1} R1 and G2 color field wavelet stage: 533 px_clk.
 // {HH2, HL2, LH2, LL2} All four color fields wavelet stage: 1582 px_clk.
 wire signed [23:0] px_count_c_XX1_G1B1;
-assign px_count_c_XX1_G1B1 = px_count - 24'sh000214;
+assign px_count_c_XX1_G1B1 = px_count - px_count_c_XX1_G1B1_offset;
 wire signed [23:0] px_count_c_XX1_R1G2;
-assign px_count_c_XX1_R1G2 = px_count - 24'sh000215;
+assign px_count_c_XX1_R1G2 = px_count - px_count_c_XX1_R1G2_offset;
 wire signed [23:0] px_count_c_XX2;
-assign px_count_c_XX2 = px_count - 24'sh00062E;
+assign px_count_c_XX2 = px_count - px_count_c_XX2_offset;
 
 // Pixel counters at the interface between the encoders and their output buffer.
 // These are offset for the known latency of the wavelet stage(s) + the encoder and quantizer:
@@ -295,11 +309,11 @@ assign px_count_c_XX2 = px_count - 24'sh00062E;
 // {HH1, HL1, LH1, LL1} R1 and G2 color field: 539 px_clk. (+6 for compressor)
 // {HH2, HL2, LH2, LL2} All four color fields: 1592 px_clk. (+10 for compressor_16in)
 wire signed [23:0] px_count_e_XX1_G1B1;
-assign px_count_e_XX1_G1B1 = px_count - 24'sh00021A;
+assign px_count_e_XX1_G1B1 = px_count - px_count_e_XX1_G1B1_offset;
 wire signed [23:0] px_count_e_XX1_R1G2;
-assign px_count_e_XX1_R1G2 = px_count - 24'sh00021B;
+assign px_count_e_XX1_R1G2 = px_count - px_count_e_XX1_R1G2_offset;
 wire signed [23:0] px_count_e_XX2;
-assign px_count_e_XX2 = px_count - 24'sh000638;
+assign px_count_e_XX2 = px_count - px_count_e_XX2_offset;
 
 // Create a shared phase flag for px_clk_2x, px_clk_2x_phase:
 // 0: The previous px_clk_2x rising edge was aligned with a px_clk rising edge.
