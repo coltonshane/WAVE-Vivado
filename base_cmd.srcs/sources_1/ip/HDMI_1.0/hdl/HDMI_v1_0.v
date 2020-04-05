@@ -184,17 +184,13 @@ wire [23:0] bit_discard_update_HL2;
 // Slave Reg 15
 wire [23:0] bit_discard_update_HH2;
 // Slave Reg 16
-wire [23:0] debug_shift0;
-wire [1:0] debug_phase0;
+wire signed [23:0] opx_count_iv2_out_offset;
 // Slave Reg 17
-wire [23:0] debug_shift1;
-wire [1:0] debug_phase1;
+wire signed [23:0] opx_count_iv2_in_offset;
 // Slave Reg 18
-wire [23:0] debug_shift2;
-wire [1:0] debug_phase2;
+wire signed [23:0] opx_count_dc_en_offset;
 // Slave Reg 19
-wire [23:0] debug_shift3;
-wire [1:0] debug_phase3;
+wire SS;
 // Slave Reg 20
 wire [11:0] pop_ui_x0;
 wire [11:0] pop_ui_y0;
@@ -253,17 +249,13 @@ HDMI_v1_0_S00_AXI_inst
   // Slave Reg 15
   .bit_discard_update_HH2(bit_discard_update_HH2),
   // Slave Reg 16
-  .debug_shift0(debug_shift0),
-  .debug_phase0(debug_phase0),
+  .opx_count_iv2_out_offset(opx_count_iv2_out_offset),
   // Slave Reg 17
-  .debug_shift1(debug_shift1),
-  .debug_phase1(debug_phase1),
+  .opx_count_iv2_in_offset(opx_count_iv2_in_offset),
   // Slave Reg 18
-  .debug_shift2(debug_shift2),
-  .debug_phase2(debug_phase2),
+  .opx_count_dc_en_offset(opx_count_dc_en_offset),
   // Slave Reg 19
-  .debug_shift3(debug_shift3),
-  .debug_phase3(debug_phase3),
+  .SS(SS),
   // Slave Reg 20
   .pop_ui_x0(pop_ui_x0),
   .pop_ui_y0(pop_ui_y0),
@@ -517,19 +509,30 @@ end
 // -------------------------------------------------------------------------------------------------
 wire [9:0] vx10b_G1B1 = (vxNorm - 16'h10) >> 6;       // Rollover is okay in X.
 wire [9:0] vx10b_R1G2 = (vxNorm - 16'h30) >> 6;       
-wire signed [19:0] vy16b_G1R1 = (vyNorm - 17'sh10);   // Using signed 19b intermediate result to
-wire signed [19:0] vy16b_B1G2 = (vyNorm - 17'sh30);   // get the required sign extension.
+wire signed [23:0] vy16b_G1R1 = (vyNorm - 17'sh10);   // Using signed 24b intermediate result to
+wire signed [23:0] vy16b_B1G2 = (vyNorm - 17'sh30);   // get the required sign extension.
 
 // Color field-specific pixel counts for IV2 -> IH2 -> Output.
-wire signed [23:0] opx_count_G1 = {vy16b_G1R1[19:6], vx10b_G1B1};
-wire signed [23:0] opx_count_R1 = {vy16b_G1R1[19:6], vx10b_R1G2};
-wire signed [23:0] opx_count_B1 = {vy16b_B1G2[19:6], vx10b_G1B1};
-wire signed [23:0] opx_count_G2 = {vy16b_B1G2[19:6], vx10b_R1G2};
+// 4K Mode: X dimension is 1024.
+wire signed [23:0] opx_count_G1_4K = {vy16b_G1R1[19:6], vx10b_G1B1[9:0]};
+wire signed [23:0] opx_count_R1_4K = {vy16b_G1R1[19:6], vx10b_R1G2[9:0]};
+wire signed [23:0] opx_count_B1_4K = {vy16b_B1G2[19:6], vx10b_G1B1[9:0]};
+wire signed [23:0] opx_count_G2_4K = {vy16b_B1G2[19:6], vx10b_R1G2[9:0]};
+// 2K Mode: X dimension is 512.
+wire signed [23:0] opx_count_G1_2K = {vy16b_G1R1[21:7], vx10b_G1B1[9:1]};
+wire signed [23:0] opx_count_R1_2K = {vy16b_G1R1[21:7], vx10b_R1G2[9:1]};
+wire signed [23:0] opx_count_B1_2K = {vy16b_B1G2[21:7], vx10b_G1B1[9:1]};
+wire signed [23:0] opx_count_G2_2K = {vy16b_B1G2[21:7], vx10b_R1G2[9:1]};
+// 4K/2K Mode Switch:
+wire signed [23:0] opx_count_G1 = SS ? opx_count_G1_2K : opx_count_G1_4K;
+wire signed [23:0] opx_count_R1 = SS ? opx_count_R1_2K : opx_count_R1_4K;
+wire signed [23:0] opx_count_B1 = SS ? opx_count_B1_2K : opx_count_B1_4K;
+wire signed [23:0] opx_count_G2 = SS ? opx_count_G2_2K : opx_count_G2_4K;
 
 // Synchronized pixel counnts for Decompressor -> IV2.
 wire signed [23:0] opx_count_sync = opx_count_G1;
-wire signed [23:0] opx_count_iv2_in = opx_count_sync + debug_shift1;
-wire signed [23:0] opx_count_dc_en = opx_count_sync + debug_shift2;
+wire signed [23:0] opx_count_iv2_in = opx_count_sync + opx_count_iv2_in_offset;
+wire signed [23:0] opx_count_dc_en = opx_count_sync + opx_count_dc_en_offset;
 
 // Global pixel enable when opx_count_sync hits a new value.
 // (LSB increments AND not in a repeated row.)
@@ -822,7 +825,7 @@ idwt26_v2
 iv2_G1
 (
   .opx_clk(hdmi_clk),
-  .opx_count_iv2_out(opx_count_G1 + debug_shift0),
+  .opx_count_iv2_out(opx_count_G1 + opx_count_iv2_out_offset),
   .wr_en(iv2_wr_en_G1),
   .wr_addr(iv2_wr_addr),
   .wr_data(iv2_wr_data),
@@ -837,7 +840,7 @@ idwt26_v2
 iv2_R1
 (
   .opx_clk(hdmi_clk),
-  .opx_count_iv2_out(opx_count_R1 + debug_shift0),
+  .opx_count_iv2_out(opx_count_R1 + opx_count_iv2_out_offset),
   .wr_en(iv2_wr_en_R1),
   .wr_addr(iv2_wr_addr),
   .wr_data(iv2_wr_data),
@@ -852,7 +855,7 @@ idwt26_v2
 iv2_B1
 (
   .opx_clk(hdmi_clk),
-  .opx_count_iv2_out(opx_count_B1 + debug_shift0),
+  .opx_count_iv2_out(opx_count_B1 + opx_count_iv2_out_offset),
   .wr_en(iv2_wr_en_B1),
   .wr_addr(iv2_wr_addr),
   .wr_data(iv2_wr_data),
@@ -867,7 +870,7 @@ idwt26_v2
 iv2_G2
 (
   .opx_clk(hdmi_clk),
-  .opx_count_iv2_out(opx_count_G2 + debug_shift0),
+  .opx_count_iv2_out(opx_count_G2 + opx_count_iv2_out_offset),
   .wr_en(iv2_wr_en_G2),
   .wr_addr(iv2_wr_addr),
   .wr_data(iv2_wr_data),
@@ -905,10 +908,22 @@ always @(posedge hdmi_clk)
 begin
 if (iv2_en)
 begin
-  iv2_wr_addr[11:8] <= opx_count_iv2_in[14:11] + {opx_count_iv2_in[1], 3'b0};
-  iv2_wr_addr[7:6] <= opx_count_iv2_in[3:2];
-  iv2_wr_addr[5:1] <= opx_count_iv2_in[10:6];
-  iv2_wr_addr[0] <= opx_count_iv2_in[0];
+  if(SS)
+  begin
+    // 2K Mode
+    iv2_wr_addr[11:7] <= opx_count_iv2_in[14:10] + {opx_count_iv2_in[1], 3'b0};
+    iv2_wr_addr[6:5] <= opx_count_iv2_in[3:2];
+    iv2_wr_addr[4:1] <= opx_count_iv2_in[9:6];
+    iv2_wr_addr[0] <= opx_count_iv2_in[0];
+  end
+  else
+  begin
+    // 4K Mode
+    iv2_wr_addr[11:8] <= opx_count_iv2_in[14:11] + {opx_count_iv2_in[1], 3'b0};
+    iv2_wr_addr[7:6] <= opx_count_iv2_in[3:2];
+    iv2_wr_addr[5:1] <= opx_count_iv2_in[10:6];
+    iv2_wr_addr[0] <= opx_count_iv2_in[0];
+  end
 end
 end
 
@@ -982,12 +997,16 @@ idwt26_h2 ih2_G2
 
 // Bilinear ineterpolators.
 // -------------------------------------------------------------------------------------------------
+// Switch in extra 2x scaling for 2K Mode (SS == 1).
+wire vxNormP_SW = SS ? (vxNormP >> 1) : vxNormP;
+wire vyNormP_SW = SS ? (vyNormP >> 1) : vyNormP;
+
 // Calculate (x0, y0), the upper-left corner of the grid square used to interpolate within a given
 // color field, outside of the interpolators to avoid redundant shared-edge logic.
-wire [15:0] x0_G1B1 = ((vxNormP - 16'h10) & 16'hFFC0) + 16'h10;
-wire [15:0] x0_R1G2 = ((vxNormP - 16'h30) & 16'hFFC0) + 16'h30;
-wire [15:0] y0_G1R1 = ((vyNormP - 16'h10) & 16'hFFC0) + 16'h10;
-wire [15:0] y0_B1G2 = ((vyNormP - 16'h30) & 16'hFFC0) + 16'h30;
+wire [15:0] x0_G1B1 = ((vxNormP_SW - 16'h10) & 16'hFFC0) + 16'h10;
+wire [15:0] x0_R1G2 = ((vxNormP_SW - 16'h30) & 16'hFFC0) + 16'h30;
+wire [15:0] y0_G1R1 = ((vyNormP_SW - 16'h10) & 16'hFFC0) + 16'h10;
+wire [15:0] y0_B1G2 = ((vyNormP_SW - 16'h30) & 16'hFFC0) + 16'h30;
 
 wire [15:0] out_G1;
 wire [15:0] out_R1;
@@ -999,8 +1018,8 @@ bilinear_16b bilinear_G1
   .clk(hdmi_clk),
   .x0(x0_G1B1),
   .y0(y0_G1R1),
-  .xOut(vxNormP),
-  .yOut(vyNormP),
+  .xOut(vxNormP_SW),
+  .yOut(vyNormP_SW),
   .in00(out_2px_row0_G1[15:0]),
   .in10(out_2px_row0_G1[31:16]),
   .in01(out_2px_row1_G1[15:0]),
@@ -1013,8 +1032,8 @@ bilinear_16b bilinear_R1
   .clk(hdmi_clk),
   .x0(x0_R1G2),
   .y0(y0_G1R1),
-  .xOut(vxNormP),
-  .yOut(vyNormP),
+  .xOut(vxNormP_SW),
+  .yOut(vyNormP_SW),
   .in00(out_2px_row0_R1[15:0]),
   .in10(out_2px_row0_R1[31:16]),
   .in01(out_2px_row1_R1[15:0]),
@@ -1027,8 +1046,8 @@ bilinear_16b bilinear_B1
   .clk(hdmi_clk),
   .x0(x0_G1B1),
   .y0(y0_B1G2),
-  .xOut(vxNormP),
-  .yOut(vyNormP),
+  .xOut(vxNormP_SW),
+  .yOut(vyNormP_SW),
   .in00(out_2px_row0_B1[15:0]),
   .in10(out_2px_row0_B1[31:16]),
   .in01(out_2px_row1_B1[15:0]),
@@ -1041,8 +1060,8 @@ bilinear_16b bilinear_G2
   .clk(hdmi_clk),
   .x0(x0_R1G2),
   .y0(y0_B1G2),
-  .xOut(vxNormP),
-  .yOut(vyNormP),
+  .xOut(vxNormP_SW),
+  .yOut(vyNormP_SW),
   .in00(out_2px_row0_G2[15:0]),
   .in10(out_2px_row0_G2[31:16]),
   .in01(out_2px_row1_G2[15:0]),

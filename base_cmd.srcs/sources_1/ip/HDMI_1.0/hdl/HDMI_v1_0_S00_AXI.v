@@ -91,17 +91,13 @@ module HDMI_v1_0_S00_AXI
   // Slave Reg 15
   output wire [23:0] bit_discard_update_HH2,
   // Slave Reg 16
-  output wire [23:0] debug_shift0,
-  output wire [1:0] debug_phase0,
+  output wire signed [23:0] opx_count_iv2_out_offset,
   // Slave Reg 17
-  output wire [23:0] debug_shift1,
-  output wire [1:0] debug_phase1,
+  output wire signed [23:0] opx_count_iv2_in_offset,
   // Slave Reg 18
-  output wire [23:0] debug_shift2,
-  output wire [1:0] debug_phase2,
+  output wire signed [23:0] opx_count_dc_en_offset,
   // Slave Reg 19
-  output wire [23:0] debug_shift3,
-  output wire [1:0] debug_phase3,
+  output wire SS,
   // Slave Reg 20
   output wire [11:0] pop_ui_x0,
   output wire [11:0] pop_ui_y0,
@@ -593,17 +589,13 @@ assign bit_discard_update_HL2 = slv_reg[14][23:0];
 // Slave Reg 15
 assign bit_discard_update_HH2 = slv_reg[15][23:0];
 // Slave Reg 16
-assign debug_shift0 = slv_reg[16][23:0];
-assign debug_phase0 = slv_reg[16][25:24];
+assign opx_count_iv2_out_offset = slv_reg[16][23:0];
 // Slave Reg 17
-assign debug_shift1 = slv_reg[17][23:0];
-assign debug_phase1 = slv_reg[17][25:24];
+assign opx_count_iv2_in_offset = slv_reg[17][23:0];
 // Slave Reg 18
-assign debug_shift2 = slv_reg[18][23:0];
-assign debug_phase2 = slv_reg[18][25:24];
+assign opx_count_dc_en_offset = slv_reg[18][23:0];
 // Slave Reg 19
-assign debug_shift3 = slv_reg[19][23:0];
-assign debug_phase3 = slv_reg[19][25:24];
+assign SS = slv_reg[19][0];
 // Slave Reg 20
 assign pop_ui_x0 = slv_reg[20][11:0];
 assign pop_ui_y0 = slv_reg[20][23:12];

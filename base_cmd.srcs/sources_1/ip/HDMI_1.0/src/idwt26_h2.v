@@ -41,6 +41,8 @@ THE SOFTWARE.
 
 module idwt26_h2
 (
+  input wire SS,
+
   input wire opx_clk,
   input wire signed [23:0] opx_count,
   input wire [63:0] in_4px_row0,
@@ -77,14 +79,21 @@ wire en = (opx_count[0] ^ opx_count_prev_LSB);
 
 // Read address generation (combinational).
 // -------------------------------------------------------------------------------------------------
-wire [11:0] rd_addr;
+wire [11:0] rd_addr_4K;
+wire [11:0] rd_addr_2K;
 wire [3:0] rd_row_offset[3:0];
 assign rd_row_offset[0] = 3;   // State 0: Request Row N+3 for H2.
 assign rd_row_offset[1] = 0;   // State 1: Request Row N+0 for Output.
 assign rd_row_offset[2] = 1;   // State 2: Request Row N+1 for Output.
 assign rd_row_offset[3] = 3;   // State 3: Unused.
-assign rd_addr[11:8] = opx_count_ih2_rd[13:10] + rd_row_offset[state];
-assign rd_addr[7:0] = opx_count_ih2_rd[9:2];
+
+assign rd_addr_4K[11:8] = opx_count_ih2_rd[13:10] + rd_row_offset[state];
+assign rd_addr_4K[7:0] = opx_count_ih2_rd[9:2];
+
+assign rd_addr_2K[11:7] = opx_count_ih2_rd[13:9] + rd_row_offset[state];
+assign rd_addr_2K[6:0] = opx_count_ih2_rd[8:2];
+
+wire [11:0] rd_addr = SS ? rd_addr_2K : rd_addr_4K;
 // -------------------------------------------------------------------------------------------------
 
 // Read operation. (One clock cycle latency between updating rd_addr and latching rd_data.)
@@ -209,19 +218,26 @@ end
 
 // Write address generation (combinational).
 // -------------------------------------------------------------------------------------------------
-wire [11:0] wr_addr;
+wire [11:0] wr_addr_4K;
+wire [11:0] wr_addr_2K;
 wire [3:0] wr_row_offset[3:0];
 assign wr_row_offset[0] = 2;   // State 0: Write IDWT H2 output to Row N+2.
 assign wr_row_offset[1] = 6;   // State 1: Write data from IDWT V2 output to Row N+6.
 assign wr_row_offset[2] = 6;   // State 2: Unused, leave unchnaged.
 assign wr_row_offset[3] = 6;   // State 3: Unused, leave unchnaged.
 
-assign wr_addr[11:8] = opx_count_ih2_wr[13:10] + wr_row_offset[state];
-assign wr_addr[7:0] = opx_count_ih2_wr[9:2];
+assign wr_addr_4K[11:8] = opx_count_ih2_wr[13:10] + wr_row_offset[state];
+assign wr_addr_4K[7:0] = opx_count_ih2_wr[9:2];
+
+assign wr_addr_2K[11:7] = opx_count_ih2_wr[13:9] + wr_row_offset[state];
+assign wr_addr_2K[6:0] = opx_count_ih2_wr[8:2];
+
+wire [11:0] wr_addr = SS ? wr_addr_2K : wr_addr_4K;
 // -------------------------------------------------------------------------------------------------
 
 // Write operation.
 // -------------------------------------------------------------------------------------------------
+wire wr_odd_row = SS ? opx_count_ih2_wr[9] : opx_count_ih2_wr[10];
 always @(posedge opx_clk)
 begin
 if(en)
@@ -236,7 +252,7 @@ begin
   
   2'b01:
   begin
-    if(opx_count_ih2_wr[10])
+    if(wr_odd_row)
     begin // Write odd row from IDWT V2 output.
       mem[wr_addr] <= in_4px_row1;
     end
