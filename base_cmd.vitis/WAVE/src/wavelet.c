@@ -28,7 +28,37 @@ THE SOFTWARE.
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
+// Latency Offsets
+#define PX_COUNT_V1_G1B1_OFFSET_4K 		0x000F
+#define PX_COUNT_V1_R1G2_OFFSET_4K		0x0010
+#define PX_COUNT_H2_OFFSET_4K			0x0216
+#define PX_COUNT_V2_OFFSET_4K			0x0224
+
 // Private Type Definitions --------------------------------------------------------------------------------------------
+
+typedef struct
+{
+	u32 SS;
+	u32 px_count_v1_R1G2_G1B1_offsets;
+	u32 debug_XX1_px_count_trig;
+	u32 debug_core_XX1_addr;
+	u32 debug_core_HH1_data;
+	u32 debug_core_HL1_data;
+	u32 debug_core_LH1_data;
+	u32 debug_core_LL1_data;
+} Wavelet_S1_s;
+
+typedef struct
+{
+	u32 SS;
+	u32 px_count_v2_h2_offsets;
+	u32 debug_XX2_px_count_trig;
+	u32 debug_core_XX2_addr;
+	u32 debug_core_HH2_data;
+	u32 debug_core_HL2_data;
+	u32 debug_core_LH2_data;
+	u32 debug_core_LL2_data;
+} Wavelet_S2_s;
 
 // Private Function Prototypes -----------------------------------------------------------------------------------------
 
@@ -36,24 +66,33 @@ THE SOFTWARE.
 
 // Private Global Variables --------------------------------------------------------------------------------------------
 
-// Wavelet S1
-u32 * debug_XX1_px_count_trig = (u32 *)(0xA0001000);
-u32 * debug_core_XX1_addr  = (u32 *)(0xA0001004);
-u32 * debug_core_HH1_data = (u32 *)(0xA0001010);
-u32 * debug_core_HL1_data = (u32 *)(0xA0001014);
-u32 * debug_core_LH1_data = (u32 *)(0xA0001018);
-u32 * debug_core_LL1_data = (u32 *)(0xA000101C);
-
-// Wavelet S2
-u32 * debug_XX2_px_count_trig = (u32 *)(0xA0002000);
-u32 * debug_core_XX2_addr  = (u32 *)(0xA0002004);
-u32 * debug_core_HH2_data = (u32 *)(0xA0002010);
-u32 * debug_core_HL2_data = (u32 *)(0xA0002014);
-u32 * debug_core_LH2_data = (u32 *)(0xA0002018);
-u32 * debug_core_LL2_data = (u32 *)(0xA000201C);
+Wavelet_S1_s * Wavelet_S1 = (Wavelet_S1_s *)(0xA0001000);
+Wavelet_S2_s * Wavelet_S2 = (Wavelet_S2_s *)(0xA0002000);
 
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 
 // Public Function Definitions -----------------------------------------------------------------------------------------
+
+void waveletInit(void)
+{
+	waveletSetMode(0);
+}
+
+void waveletSetMode(u8 SS)
+{
+	if(SS)
+	{
+		// 2K Mode
+	}
+	else
+	{
+		// 4K Mode
+		Wavelet_S1->SS = 0;
+		Wavelet_S1->px_count_v1_R1G2_G1B1_offsets = (PX_COUNT_V1_R1G2_OFFSET_4K << 16) | PX_COUNT_V1_G1B1_OFFSET_4K;
+
+		Wavelet_S2->SS = 0;
+		Wavelet_S2->px_count_v2_h2_offsets = (PX_COUNT_V2_OFFSET_4K << 16) | PX_COUNT_H2_OFFSET_4K;
+	}
+}
 
 // Private Function Definitions ----------------------------------------------------------------------------------------

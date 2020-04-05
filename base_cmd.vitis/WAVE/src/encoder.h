@@ -42,11 +42,16 @@ typedef struct __attribute__((packed))
 	u32 control;
 	u32 fifo_flags;
 	u16 fifo_rd_count[16];
+	u32 reserved0;
+	u32 px_count_XX1_G1B1_offsets;
+	u32 px_count_XX1_R1G2_offsets;
+	u32 px_count_XX2_offsets;
 } Encoder_s;
 
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
 void encoderInit(void);
+void encoderSetMode(u8 SS);
 void encoderServiceRAMAddr(Encoder_s * Encoder_snapshot);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------

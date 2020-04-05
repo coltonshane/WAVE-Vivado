@@ -28,6 +28,14 @@ THE SOFTWARE.
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
+// Latency Offsets
+#define PX_COUNT_C_XX1_G1B1_OFFSET_4K	0x00214
+#define PX_COUNT_E_XX1_G1B1_OFFSET_4K	0x0021A
+#define PX_COUNT_C_XX1_R1G2_OFFSET_4K	0x00215
+#define PX_COUNT_E_XX1_R1G2_OFFSET_4K	0x0021B
+#define PX_COUNT_C_XX2_OFFSET_4K		0x0062E
+#define PX_COUNT_E_XX2_OFFSET_4K		0x00638
+
 #define ENC_CTRL_M00_AXI_ARM                0x10000000
 #define ENC_CTRL_C_RAM_ADDR_UPDATE_REQUEST  0x01000000
 #define ENC_CTRL_C_RAM_ADDR_UPDATE_COMPLETE 0x02000000
@@ -65,7 +73,24 @@ void encoderInit(void)
 	Encoder->q_mult_HH2_HL2_LH2 = 0x00200040;
 	Encoder->control = ENC_CTRL_M00_AXI_ARM;
 
+	encoderSetMode(0);
+
 	encoderResetRAMAddr(Encoder, 0xFFFF);
+}
+
+void encoderSetMode(u8 SS)
+{
+	if(SS)
+	{
+		// 2K Mode
+	}
+	else
+	{
+		// 4K Mode
+		Encoder->px_count_XX1_G1B1_offsets = (PX_COUNT_E_XX1_G1B1_OFFSET_4K << 16) | PX_COUNT_C_XX1_G1B1_OFFSET_4K;
+		Encoder->px_count_XX1_R1G2_offsets = (PX_COUNT_E_XX1_R1G2_OFFSET_4K << 16) | PX_COUNT_C_XX1_R1G2_OFFSET_4K;
+		Encoder->px_count_XX2_offsets = (PX_COUNT_E_XX2_OFFSET_4K << 16) | PX_COUNT_C_XX2_OFFSET_4K;
+	}
 }
 
 void encoderServiceRAMAddr(Encoder_s * Encoder_snapshot)

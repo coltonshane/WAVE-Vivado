@@ -34,6 +34,8 @@
 #include "gpio.h"
 #include "supervisor.h"
 #include "cmv12000.h"
+#include "wavelet.h"
+#include "encoder.h"
 #include "hdmi.h"
 #include "ui.h"
 #include "usb.h"
@@ -41,7 +43,6 @@
 #include "nvme.h"
 #include "fs.h"
 #include "frame.h"
-#include "encoder.h"
 
 #include "xscugic.h"
 #include "xil_cache.h"
@@ -86,6 +87,7 @@ int main()
     supervisorInit();
     xil_printf("WAVE HELLO!\r\n");
     cmvInit();
+    waveletInit();
     encoderInit();
     pcieInit();
 

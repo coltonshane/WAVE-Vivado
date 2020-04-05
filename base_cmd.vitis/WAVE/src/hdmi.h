@@ -34,6 +34,7 @@ THE SOFTWARE.
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
 void hdmiInit(void);
+void hdmiSetMode(u8 SS);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
 

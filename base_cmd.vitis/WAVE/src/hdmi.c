@@ -32,6 +32,11 @@ THE SOFTWARE.
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
+// Latency Offsets
+#define OPX_COUNT_IV2_OUT_OFFSET_4K		0x1000
+#define OPX_COUNT_IV2_IN_OFFSET_4K		0x2FFF
+#define OPX_COUNT_DC_EN_OFFFSET_4K		0x48C2
+
 // HDMI PHY I2C Device
 #define IIC_DEVICE_ID		XPAR_XIICPS_0_DEVICE_ID
 #define IIC_SLAVE_ADDR		0x39
@@ -84,13 +89,13 @@ typedef struct
 	// Slave Reg 15
 	u32 bit_discard_update_HH2; // Bits to discard from the start of the HH2 codestream.
 	// Slave Reg 16
-	u32 debug_shift0;	// Debug: Pixel latency offset at the Inverse DWT Vertical Stage 2 (IV2) output.
+	u32 opx_count_iv2_out_offset;	// Pixel latency offset at the Inverse DWT Vertical Stage 2 (IV2) output.
 	// Slave Reg 17
-	u32 debug_shift1;	// Debug: Pixel latency offset at the Invsere DWT Vertical Stage 2 (IV2) input.
+	u32 opx_count_iv2_in_offset;	// Pixel latency offset at the Invsere DWT Vertical Stage 2 (IV2) input.
 	// Slave Reg 18
-	u32 debug_shift2;	// Debug: Pixel latency offset to trigger the decompressor enable.
+	u32 opx_count_dc_en_offset;		// Pixel latency offset to trigger the decompressor enable.
 	// Slave Reg 19
-	u32 debug_shift3;	// Debug: Unused.
+	u32 SS;							// 4K/2K switch.
 	// Slave Reg 20
 	u32 ui_control;		// Top, bottom, and pop-up UI control.
 } HDMI_s;
@@ -178,9 +183,9 @@ void hdmiInit(void)
 	hdmi->bit_discard_update_LH2 = 0;
 	hdmi->bit_discard_update_HL2 = 0;
 	hdmi->bit_discard_update_HH2 = 0;
-	hdmi->debug_shift0 = 0x1000;
-	hdmi->debug_shift1 = 0x2FFF;
-	hdmi->debug_shift2 = 0x48C2;
+
+	hdmiSetMode(0);
+
 	hdmi->ui_control = 0x000690C0;
 
 	// Arm the AXI Master, but hold the FIFOs in reset.
@@ -227,6 +232,22 @@ void hdmiInit(void)
 
 	// Set output mode to HDMI.
 	hdmiI2CWriteMasked(0xAF, 0x02, 0x02);
+}
+
+void hdmiSetMode(u8 SS)
+{
+	if(SS)
+	{
+		// 2K Mode
+	}
+	else
+	{
+		// 4K Mode
+		hdmi->SS = 0;
+		hdmi->opx_count_iv2_out_offset = OPX_COUNT_IV2_OUT_OFFSET_4K;
+		hdmi->opx_count_iv2_in_offset = OPX_COUNT_IV2_IN_OFFSET_4K;
+		hdmi->opx_count_dc_en_offset = OPX_COUNT_DC_EN_OFFFSET_4K;
+	}
 }
 
 // Private Function Definitions ----------------------------------------------------------------------------------------

@@ -35,6 +35,9 @@ THE SOFTWARE.
 
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
+void waveletInit(void);
+void waveletSetMode(u8 SS);
+
 // Externed Public Global Variables ------------------------------------------------------------------------------------
 
 #endif
