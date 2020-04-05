@@ -174,6 +174,23 @@ void cmvInit(void)
 	CMV_Settings_W.PGA_gain = CMV_REG_VAL_PGA_GAIN_X1;
 	CMV_Settings_W.Temp_sensor = 0;
 
+	// 2K Mode
+	CMV_Settings_W.Number_lines_tot = 576;
+	CMV_Settings_W.Y_start_1 = 96;
+	CMV_Settings_W.Sub_offset = 0;
+	CMV_Settings_W.Sub_step = 2;
+	CMV_Settings_W.Sub_en = 2;
+	CMV_Settings_W.Setting_1 = 2843;
+	CMV_Settings_W.Setting_2 = 5891;
+	CMV_Settings_W.Setting_3 = 143;
+	CMV_Settings_W.Setting_4 = 143;
+	CMV_Settings_W.Setting_5 = 71;
+	CMV_Settings_W.Offset_bot = 520;
+	CMV_Settings_W.Offset_top = 520;
+	CMV_Settings_W.Reg_98 = 44815;
+	CMV_Settings_W.Setting_6 = 798;
+	CMV_Settings_W.Setting_7 = 90;
+
 	cmvService();
 }
 

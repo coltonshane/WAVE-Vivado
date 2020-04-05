@@ -28,11 +28,17 @@ THE SOFTWARE.
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
-// Latency Offsets
+// Latency Offsets, 4K Mode
 #define PX_COUNT_V1_G1B1_OFFSET_4K 		0x000F
 #define PX_COUNT_V1_R1G2_OFFSET_4K		0x0010
 #define PX_COUNT_H2_OFFSET_4K			0x0216
 #define PX_COUNT_V2_OFFSET_4K			0x0224
+
+// Latency Offsets, 2K Mode
+#define PX_COUNT_V1_G1B1_OFFSET_2K 		0x001D
+#define PX_COUNT_V1_R1G2_OFFSET_2K		0x001E
+#define PX_COUNT_H2_OFFSET_2K			0x0124
+#define PX_COUNT_V2_OFFSET_2K			0x0132
 
 // Private Type Definitions --------------------------------------------------------------------------------------------
 
@@ -75,7 +81,7 @@ Wavelet_S2_s * Wavelet_S2 = (Wavelet_S2_s *)(0xA0002000);
 
 void waveletInit(void)
 {
-	waveletSetMode(0);
+	waveletSetMode(1);
 }
 
 void waveletSetMode(u8 SS)
@@ -83,6 +89,11 @@ void waveletSetMode(u8 SS)
 	if(SS)
 	{
 		// 2K Mode
+		Wavelet_S1->SS = 1;
+		Wavelet_S1->px_count_v1_R1G2_G1B1_offsets = (PX_COUNT_V1_R1G2_OFFSET_2K << 16) | PX_COUNT_V1_G1B1_OFFSET_2K;
+
+		Wavelet_S2->SS = 1;
+		Wavelet_S2->px_count_v2_h2_offsets = (PX_COUNT_V2_OFFSET_2K << 16) | PX_COUNT_H2_OFFSET_2K;
 	}
 	else
 	{

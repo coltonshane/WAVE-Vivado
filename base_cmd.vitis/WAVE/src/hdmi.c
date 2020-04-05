@@ -32,10 +32,15 @@ THE SOFTWARE.
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
-// Latency Offsets
+// Latency Offsets, 4K Mode
 #define OPX_COUNT_IV2_OUT_OFFSET_4K		0x1000
 #define OPX_COUNT_IV2_IN_OFFSET_4K		0x2FFF
 #define OPX_COUNT_DC_EN_OFFFSET_4K		0x48C2
+
+// Latency Offsets, 2K Mode
+#define OPX_COUNT_IV2_OUT_OFFSET_2K		0x0800
+#define OPX_COUNT_IV2_IN_OFFSET_2K		0x17FF
+#define OPX_COUNT_DC_EN_OFFFSET_2K		0x24FA
 
 // HDMI PHY I2C Device
 #define IIC_DEVICE_ID		XPAR_XIICPS_0_DEVICE_ID
@@ -184,7 +189,7 @@ void hdmiInit(void)
 	hdmi->bit_discard_update_HL2 = 0;
 	hdmi->bit_discard_update_HH2 = 0;
 
-	hdmiSetMode(0);
+	hdmiSetMode(1);
 
 	hdmi->ui_control = 0x000690C0;
 
@@ -239,6 +244,10 @@ void hdmiSetMode(u8 SS)
 	if(SS)
 	{
 		// 2K Mode
+		hdmi->SS = 1;
+		hdmi->opx_count_iv2_out_offset = OPX_COUNT_IV2_OUT_OFFSET_2K;
+		hdmi->opx_count_iv2_in_offset = OPX_COUNT_IV2_IN_OFFSET_2K;
+		hdmi->opx_count_dc_en_offset = OPX_COUNT_DC_EN_OFFFSET_2K;
 	}
 	else
 	{
