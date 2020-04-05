@@ -150,13 +150,6 @@ void isrVSYNC(void * CallbackRef)
 		hdmi->bit_discard_update_HH2 = bitDiscard[3];
 	}
 
-	// kill some time
-	int x = 0;
-	for(u32 i = 0; i < 10000; i++)
-	{
-		x++;
-	}
-
 	cmvServiceFlag = 1;
 
 	XGpioPs_WritePin(&Gpio, GPIO2_PIN, 0);	// Mark ISR exit.
