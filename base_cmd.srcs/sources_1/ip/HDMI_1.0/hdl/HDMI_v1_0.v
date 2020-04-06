@@ -536,18 +536,23 @@ wire signed [23:0] opx_count_dc_en = opx_count_sync + opx_count_dc_en_offset;
 
 // Global pixel enable when opx_count_sync hits a new value.
 // (LSB increments AND not in a repeated row.)
-reg opx_count_sync_prev_LSB;
-reg opx_count_sync_prev_row;
-wire x_inc = (opx_count_sync[0] ^ opx_count_sync_prev_LSB);
-wire y_inc = (opx_count_sync[10] ^ opx_count_sync_prev_row);
+wire opx_count_sync_x_LSB = opx_count_sync[0];
+wire opx_count_sync_y_LSB = SS ? opx_count_sync[9] : opx_count_sync[10];
+reg opx_count_sync_x_LSB_prev;
+reg opx_count_sync_y_LSB_prev;
+wire x_inc = (opx_count_sync_x_LSB ^ opx_count_sync_x_LSB_prev);
+wire y_inc = (opx_count_sync_y_LSB ^ opx_count_sync_y_LSB_prev);
+wire last_px_in_row = SS ? (opx_count_sync[8:0] == 9'h1FF) : (opx_count_sync[9:0] == 10'h3FF);
+
 always @(posedge hdmi_clk)
 begin
-    opx_count_sync_prev_LSB <= opx_count_sync[0];
-    if(x_inc & (opx_count_sync[9:0] == 10'h3FF))
+    opx_count_sync_x_LSB_prev <= opx_count_sync_x_LSB;
+    if(x_inc & last_px_in_row)
     begin
-      opx_count_sync_prev_row <= opx_count_sync[10];
+      opx_count_sync_y_LSB_prev<= opx_count_sync_y_LSB;
     end
 end
+
 wire px_en = x_inc & y_inc;
 wire px_en_div4 = px_en & (opx_count_sync[1:0] == 2'b00);
 
