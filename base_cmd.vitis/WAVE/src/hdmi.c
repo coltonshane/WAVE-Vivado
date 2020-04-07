@@ -108,7 +108,8 @@ typedef struct
 // Private Function Prototypes -----------------------------------------------------------------------------------------
 
 void hdmiI2CWriteMasked(u8 addr, u8 data, u8 mask);
-void hdmiWriteTestPattern(void);
+void hdmiWriteTestPattern4K(void);
+void hdmiWriteTestPattern2K(void);
 void hdmiResetTestPatternState(u32 wrAddr);
 void hdmiPushTestPatternBits(u16 data, u8 count);
 
@@ -169,13 +170,18 @@ void isrVSYNC(void * CallbackRef)
 
 void hdmiInit(void)
 {
-	hdmiWriteTestPattern();
+	// hdmiWriteTestPattern4K();
+	hdmiWriteTestPattern2K();
 
 	// Load HDMI peripheral registers with initial values.
-	hdmi->vx0 = 186;
-	hdmi->vy0 = 41;
-	hdmi->vxDiv = 0x2133;
-	hdmi->vyDiv = 0x2133;
+	// hdmi->vx0 = 186;
+	// hdmi->vy0 = 41;
+	// hdmi->vxDiv = 0x2133;
+	// hdmi->vyDiv = 0x2133;
+	hdmi->vx0 = 640;
+	hdmi->vy0 = 192;
+	hdmi->vxDiv = 0x4000;
+	hdmi->vyDiv = 0x4000;
 	hdmi->wHDMI = 2200;
 	hdmi->hImage2048 = 1152;
 	hdmi->q_mult_inv_HL2_LH2 = 1024;
@@ -283,7 +289,7 @@ void hdmiI2CWriteMasked(u8 addr, u8 data, u8 mask)
 	while (XIicPs_BusIsBusy(&Iic));
 }
 
-void hdmiWriteTestPattern(void)
+void hdmiWriteTestPattern4K(void)
 {
 	u16 wipPixel;
 
@@ -388,6 +394,130 @@ void hdmiWriteTestPattern(void)
 	for(u16 y = 0; y < 2*384; y++)
 	{
 		for(u8 x = 0; x < 32; x++)
+		{
+			for(u8 color = 0; color < 4; color++)
+			{
+				for(u8 xLoc = 0; xLoc < 4; xLoc++)
+				{
+					// Use 8-bit encoding.
+					hdmiPushTestPatternBits(0x3F, 8);
+					for(u8 i4px = 0; i4px < 4; i4px++)
+					{
+						wipPixel = 0;
+						hdmiPushTestPatternBits(wipPixel, 8);
+					}
+				}
+			}
+		}
+	}
+
+}
+
+void hdmiWriteTestPattern2K(void)
+{
+	u16 wipPixel;
+
+	// LL2
+	hdmiResetTestPatternState(0x20000000);
+	for(u16 pxDiscard = 830; pxDiscard > 0; pxDiscard--)
+	{
+		for(u8 i4px = 0; i4px < 4; i4px++)
+		{
+			hdmiPushTestPatternBits(0x0000, 10);
+		}
+	}
+	for(u16 y = 0; y < 2*192; y++)
+	{
+		for(u8 x = 0; x < 16; x++)
+		{
+			for(u8 color = 0; color < 4; color++)
+			{
+				for(u8 xLoc = 0; xLoc < 4; xLoc++)
+				{
+					for(u8 i4px = 0; i4px < 4; i4px++)
+					{
+						if((y < 14) && (color == 0)) { wipPixel = 128 * xLoc; }
+						else { wipPixel = 0; }
+						hdmiPushTestPatternBits(wipPixel, 10);
+					}
+				}
+			}
+		}
+	}
+
+	// LH2
+	hdmiResetTestPatternState(0x38000000);
+	for(u16 pxDiscard = 830; pxDiscard > 0; pxDiscard--)
+	{
+		hdmiPushTestPatternBits(0x3F, 8);
+		for(u8 i4px = 0; i4px < 4; i4px++)
+		{
+			hdmiPushTestPatternBits(0x0000, 8);
+		}
+	}
+	for(u16 y = 0; y < 2*192; y++)
+	{
+		for(u8 x = 0; x < 16; x++)
+		{
+			for(u8 color = 0; color < 4; color++)
+			{
+				for(u8 xLoc = 0; xLoc < 4; xLoc++)
+				{
+					// Use 8-bit encoding.
+					hdmiPushTestPatternBits(0x3F, 8);
+					for(u8 i4px = 0; i4px < 4; i4px++)
+					{
+						wipPixel = 0;
+						hdmiPushTestPatternBits(wipPixel, 8);
+					}
+				}
+			}
+		}
+	}
+
+	// HL2
+	hdmiResetTestPatternState(0x3E000000);
+	for(u16 pxDiscard = 830; pxDiscard > 0; pxDiscard--)
+	{
+		hdmiPushTestPatternBits(0x3F, 8);
+		for(u8 i4px = 0; i4px < 4; i4px++)
+		{
+			hdmiPushTestPatternBits(0x0000, 8);
+		}
+	}
+	for(u16 y = 0; y < 2*192; y++)
+	{
+		for(u8 x = 0; x < 16; x++)
+		{
+			for(u8 color = 0; color < 4; color++)
+			{
+				for(u8 xLoc = 0; xLoc < 4; xLoc++)
+				{
+					// Use 8-bit encoding.
+					hdmiPushTestPatternBits(0x3F, 8);
+					for(u8 i4px = 0; i4px < 4; i4px++)
+					{
+						wipPixel = 0;
+						hdmiPushTestPatternBits(wipPixel, 8);
+					}
+				}
+			}
+		}
+	}
+
+	// HH2
+	hdmiResetTestPatternState(0x44000000);
+	for(u16 pxDiscard = 830; pxDiscard > 0; pxDiscard--)
+	{
+		hdmiPushTestPatternBits(0x3F, 8);
+		for(u8 i4px = 0; i4px < 4; i4px++)
+		{
+			hdmiPushTestPatternBits(0x0000, 8);
+		}
+	}
+	for(u16 y = 0; y < 2*192; y++)
+	{
+		for(u8 x = 0; x < 16; x++)
 		{
 			for(u8 color = 0; color < 4; color++)
 			{

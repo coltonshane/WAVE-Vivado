@@ -175,8 +175,8 @@ void cmvInit(void)
 	CMV_Settings_W.Temp_sensor = 0;
 
 	// 2K Mode
-	CMV_Settings_W.Number_lines_tot = 576;
-	CMV_Settings_W.Y_start_1 = 96;
+	CMV_Settings_W.Number_lines_tot = 1152;
+	CMV_Settings_W.Y_start_1 = 384;
 	CMV_Settings_W.Sub_offset = 0;
 	CMV_Settings_W.Sub_step = 2;
 	CMV_Settings_W.Sub_en = 2;
