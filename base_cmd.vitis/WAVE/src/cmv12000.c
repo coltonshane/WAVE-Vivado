@@ -46,7 +46,7 @@ THE SOFTWARE.
 #define CMV_ADDR_MASK 0x7F
 
 #define CMV_REG_COUNT_INIT 12
-#define CMV_REG_COUNT_SETTINGS 25
+#define CMV_REG_COUNT_SETTINGS 27
 
 // Bit patterns for link training.
 #define CMV_TP1 0x0055
@@ -107,7 +107,7 @@ u16 cmvRegValInit[] =
 
 // Registers that are accessible via the UI.
 CMV_Settings_s CMV_Settings_W, CMV_Settings_R;
-u8 cmvRegAddrSettings[] = {1,2,66,67,68,71,72,75,76,77,78,79,82,83,84,85,86,87,88,98,106,113,114,115,127};
+u8 cmvRegAddrSettings[] = {1,2,66,67,68,71,72,75,76,77,78,79,82,83,84,85,86,87,88,98,106,113,114,115,117,122,127};
 
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 
@@ -172,6 +172,8 @@ void cmvInit(void)
 	CMV_Settings_W.Setting_6 = 789;
 	CMV_Settings_W.Setting_7 = 84;
 	CMV_Settings_W.PGA_gain = CMV_REG_VAL_PGA_GAIN_X1;
+	CMV_Settings_W.DIG_gain = 4;
+	CMV_Settings_W.Test_pattern = 32;
 	CMV_Settings_W.Temp_sensor = 0;
 
 	// 2K Mode

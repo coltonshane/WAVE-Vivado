@@ -96,6 +96,8 @@ typedef struct __attribute__((packed))
 	u16 Setting_6;				// Register 113
 	u16 Setting_7;				// Register 114
 	u16 PGA_gain;				// Register 115
+	u16 DIG_gain;				// Register 117
+	u16 Test_pattern;			// Register 122
 	u16 Temp_sensor;			// Register 127
 } CMV_Settings_s;
 
