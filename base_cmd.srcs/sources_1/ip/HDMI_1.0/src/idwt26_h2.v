@@ -90,7 +90,7 @@ assign rd_row_offset[3] = 3;   // State 3: Unused.
 assign rd_addr_4K[11:8] = opx_count_ih2_rd[13:10] + rd_row_offset[state];
 assign rd_addr_4K[7:0] = opx_count_ih2_rd[9:2];
 
-assign rd_addr_2K[11:7] = opx_count_ih2_rd[13:9] + rd_row_offset[state];
+assign rd_addr_2K[11:7] = opx_count_ih2_rd[13:9] + {1'b0, rd_row_offset[state]};
 assign rd_addr_2K[6:0] = opx_count_ih2_rd[8:2];
 
 wire [11:0] rd_addr = SS ? rd_addr_2K : rd_addr_4K;
@@ -229,7 +229,7 @@ assign wr_row_offset[3] = 6;   // State 3: Unused, leave unchnaged.
 assign wr_addr_4K[11:8] = opx_count_ih2_wr[13:10] + wr_row_offset[state];
 assign wr_addr_4K[7:0] = opx_count_ih2_wr[9:2];
 
-assign wr_addr_2K[11:7] = opx_count_ih2_wr[13:9] + wr_row_offset[state];
+assign wr_addr_2K[11:7] = opx_count_ih2_wr[13:9] + {1'b0, wr_row_offset[state]};
 assign wr_addr_2K[6:0] = opx_count_ih2_wr[8:2];
 
 wire [11:0] wr_addr = SS ? wr_addr_2K : wr_addr_4K;

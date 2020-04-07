@@ -916,7 +916,7 @@ begin
   if(SS)
   begin
     // 2K Mode
-    iv2_wr_addr[11:7] <= opx_count_iv2_in[14:10] + {opx_count_iv2_in[1], 3'b0};
+    iv2_wr_addr[11:7] <= opx_count_iv2_in[14:10] + {opx_count_iv2_in[1], 4'b0};
     iv2_wr_addr[6:5] <= opx_count_iv2_in[3:2];
     iv2_wr_addr[4:1] <= opx_count_iv2_in[9:6];
     iv2_wr_addr[0] <= opx_count_iv2_in[0];

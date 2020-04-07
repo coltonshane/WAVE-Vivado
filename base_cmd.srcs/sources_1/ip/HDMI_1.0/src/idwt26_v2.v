@@ -78,16 +78,16 @@ wire en = (opx_count_iv2_out[0] ^ opx_count_iv2_out_prev_LSB);
 // -------------------------------------------------------------------------------------------------
 wire [11:0] rd_addr_4K;
 wire [11:0] rd_addr_2K;
-wire [3:0] rd_row_offset[3:0];
+wire [4:0] rd_row_offset[3:0];
 assign rd_row_offset[0] = 0;   // State 0: Request Row N+0 (HL2/LL2, S_above) for V2.
 assign rd_row_offset[1] = 1;   // State 1: Request Row N+1 (HL2/LL2, S) for V2.
 assign rd_row_offset[2] = 2;   // State 2: Request Row N+2 (HL2/LL2, S_below) for V2.
-assign rd_row_offset[3] = 9;   // State 3: Request Row N+9 (HH2/LH2, D) for V2.
+assign rd_row_offset[3] = SS ? 17 : 9;   // State 3: Request Row N+9 (HH2/LH2, D) for V2.
 
-assign rd_addr_4K[11:8] = opx_count_iv2_out[14:11] + rd_row_offset[state];   // [14:11] scans each row twice.
+assign rd_addr_4K[11:8] = opx_count_iv2_out[14:11] + rd_row_offset[state][3:0]; // [14:11] scans each row twice.
 assign rd_addr_4K[7:0] = opx_count_iv2_out[9:2];
 
-assign rd_addr_2K[11:7] = opx_count_iv2_out[14:10] + rd_row_offset[state];   // [14:10] scans each row twice.
+assign rd_addr_2K[11:7] = opx_count_iv2_out[14:10] + rd_row_offset[state][4:0]; // [14:10] scans each row twice.
 assign rd_addr_2K[6:0] = opx_count_iv2_out[8:2];
 
 wire [11:0] rd_addr = SS ? rd_addr_2K : rd_addr_4K;
