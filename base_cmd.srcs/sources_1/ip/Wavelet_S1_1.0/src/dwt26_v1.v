@@ -83,7 +83,8 @@ assign wr_en = (px_count_v1[0] ^ px_count_v1_prev_LSB);
 // the four channels' data into the correct position in the two input rows.
 
 wire [9:0] wr_addr_4K = {px_count_v1[9:7], px_count_v1[1:0], px_count_v1[6:2]}; // 4K Mode
-wire [9:0] wr_addr_2K = {px_count_v1[9:6], px_count_v1[1:0], px_count_v1[5:2]}; // 2K Mode
+// wire [9:0] wr_addr_2K = {px_count_v1[9:7], px_count_v1[2:0], px_count_v1[6:3]}; // 2K Mode
+wire [9:0] wr_addr_2K = {px_count_v1[9:7], ~px_count_v1[2], px_count_v1[1:0], px_count_v1[6:3]}; // 2K Mode
 wire [9:0] wr_addr =  SS ? wr_addr_2K : wr_addr_4K;
 // -------------------------------------------------------------------------------------------------
 
@@ -93,14 +94,14 @@ reg [31:0] wr_data;     // Should infer as combinational logic, not registers.
 always @(*)
 begin
     case (px_count_v1[2:0])
-    3'b000: wr_data = {D_in_0, S_in_0};
-    3'b001: wr_data = {D_in_1, S_in_1};
-    3'b010: wr_data = {D_in_2, S_in_2};
-    3'b011: wr_data = {D_in_3, S_in_3};
-    3'b100: wr_data = SS ? {D_in_0_SS, S_in_0_SS} : {D_in_0, S_in_0};
-    3'b101: wr_data = SS ? {D_in_1_SS, S_in_1_SS} : {D_in_1, S_in_1};
-    3'b110: wr_data = SS ? {D_in_2_SS, S_in_2_SS} : {D_in_2, S_in_2};
-    3'b111: wr_data = SS ? {D_in_3_SS, S_in_3_SS} : {D_in_3, S_in_3};
+    3'b000: wr_data = SS ? {D_in_0_SS, S_in_0_SS} : {D_in_0, S_in_0};
+    3'b001: wr_data = SS ? {D_in_1_SS, S_in_1_SS} : {D_in_1, S_in_1};
+    3'b010: wr_data = SS ? {D_in_2_SS, S_in_2_SS} : {D_in_2, S_in_2};
+    3'b011: wr_data = SS ? {D_in_3_SS, S_in_3_SS} : {D_in_3, S_in_3};
+    3'b100: wr_data = {D_in_0, S_in_0};
+    3'b101: wr_data = {D_in_1, S_in_1};
+    3'b110: wr_data = {D_in_2, S_in_2};
+    3'b111: wr_data = {D_in_3, S_in_3};
     endcase
 end
 

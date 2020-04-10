@@ -69,7 +69,7 @@ assign color_en = (px_idx[0] == COLOR[0]);
 
 // Create an enable signal based on this core's subsampled row assignement, if in 2K Mode.
 wire ss_row_en;
-assign ss_row_en = SS ? (px_idx[1] == SS_ODD_ROW) : 1'b1;
+assign ss_row_en = SS ? (px_idx[1] ^ SS_ODD_ROW) : 1'b1;
     
 // Create a signal for whether a pixel is even or odd within a given color field.
 // 4K Mode:
