@@ -145,20 +145,20 @@ assign rd_state = {px_count_v2[2:1], (px_count_v2[1] == px_count_v2_prev_LSB)};
 // -------------------------------------------------------------------------------------------------
 wire [8:0] rd_addr_4K;
 wire [8:0] rd_addr_2K;
-wire [2:0] row_offset[7:0];
-assign row_offset[0] = 2;   // State 0: Request Row N-6 = Row N+2
-assign row_offset[1] = 3;   // State 1: Request Row N-5 = Row N+3
-assign row_offset[2] = 6;   // State 2: Request Row N-2 = Row N+6
-assign row_offset[3] = 7;   // State 3: Request Row N-1 = Row N+7
-assign row_offset[4] = 4;   // State 4: Request Row N-4 = Row N+4
-assign row_offset[5] = 5;   // State 5: Request Row N-3 = Row N+5
+wire [2:0] row_offset[7:0]; //                                2K    4K
+assign row_offset[0] = 2;   // State 0: Request Row N-6 = Row N+2   N+10
+assign row_offset[1] = 3;   // State 1: Request Row N-5 = Row N+3   N+11
+assign row_offset[2] = 6;   // State 2: Request Row N-2 = Row N+6   N+14
+assign row_offset[3] = 7;   // State 3: Request Row N-1 = Row N+7   N+15
+assign row_offset[4] = 4;   // State 4: Request Row N-4 = Row N+4   N+12
+assign row_offset[5] = 5;   // State 5: Request Row N-3 = Row N+5   N+13
 assign row_offset[6] = 5;   // Don't care, leave unchanged.
 assign row_offset[7] = 5;   // Don't care, leave unchanged.
 
 assign rd_addr_4K[8:6] = {px_count_v2[10:9], 1'b0} + row_offset[rd_state];
 assign rd_addr_4K[5:0] = px_count_v2[8:3];
 
-assign rd_addr_2K[8:5] = {px_count_v2[10:8], 1'b0} + {1'b0, row_offset[rd_state]};
+assign rd_addr_2K[8:5] = {px_count_v2[10:8], 1'b0} + {1'b1, row_offset[rd_state]};
 assign rd_addr_2K[4:0] = px_count_v2[7:3];
 
 wire [8:0] rd_addr = SS ? rd_addr_2K : rd_addr_4K;
