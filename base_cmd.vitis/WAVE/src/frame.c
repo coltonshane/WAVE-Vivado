@@ -149,6 +149,7 @@ void isrFOT(void * CallbackRef)
 
 void frameInit(void)
 {
+	// Setup for continuous capture.
 	*frameReqPulseWidth = 100;		// [0.01us]
 	*frameReqInterval = 250000;		// [0.01us]
 	*frameReqControl |= FRAME_REQ_CONTROL_WAVE_POL;
@@ -156,14 +157,35 @@ void frameInit(void)
 	*frameReqControl |= FRAME_REQ_CONTROL_INT;
 	*frameReqControl &= ~FRAME_REQ_CONTROL_DIS;
 	*frameReqControl &= ~FRAME_REQ_CONTROL_WAVE_DIS;
+
+	/*
+	// Setup for one-shot capture.
+	*frameReqPulseWidth = 100;		// [0.01us]
+	*frameReqInterval = 250000;		// [0.01us]
+	*frameReqControl &= ~FRAME_REQ_CONTROL_WAVE_POL;
+	*frameReqControl |= FRAME_REQ_CONTROL_MATCH;
+	*frameReqControl |= FRAME_REQ_CONTROL_INT;
+	*/
 }
 
 void frameService(u8 recState)
 {
 	if(recState == FRAME_REC_STATE_START)
 	{
+		// Start recording for continuous capture.
 		nFramesOutStart = nFramesIn;
 		nFramesOut = nFramesOutStart;
+
+		/*
+		// Start recording for one-shot capture.
+		*frameReqControl &= ~FRAME_REQ_CONTROL_DIS;
+		*frameReqControl &= ~FRAME_REQ_CONTROL_WAVE_DIS;
+		usleep(1);
+		*frameReqControl |= FRAME_REQ_CONTROL_DIS;
+		*frameReqControl |= FRAME_REQ_CONTROL_WAVE_DIS;
+		nFramesOutStart = 0;
+		nFramesOut = nFramesOutStart;
+		*/
 	}
 	else if(recState == FRAME_REC_STATE_CONTINUE)
 	{

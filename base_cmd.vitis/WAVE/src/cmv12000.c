@@ -45,7 +45,7 @@ THE SOFTWARE.
 #define CMV_WR_REG 0x80
 #define CMV_ADDR_MASK 0x7F
 
-#define CMV_REG_COUNT_INIT 12
+#define CMV_REG_COUNT_INIT 13
 #define CMV_REG_COUNT_SETTINGS 27
 
 // Bit patterns for link training.
@@ -77,6 +77,7 @@ XSpiPs_Config *spi0Config;
 u8 cmvRegAddrInit[] =
 {
 	69,
+	80,
 	89,
 	99,
 	102,
@@ -91,6 +92,7 @@ u8 cmvRegAddrInit[] =
 };
 u16 cmvRegValInit[] =
 {
+	1,
 	1,
 	32853,
 	34956,
