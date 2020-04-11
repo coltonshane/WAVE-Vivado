@@ -17,6 +17,7 @@ This module should infer as 4 DSP48E2s only, with no FF or LUT.
 module quantizer_4x16
 (
     input wire px_clk,
+    input wire en,
     input wire signed [9:0] q_mult,
     input wire [63:0] in_4px_concat,
     output reg[63:0] q_4px_concat
@@ -45,7 +46,10 @@ end
 // Sequential logic to register the results.
 always @(posedge px_clk)
 begin
+if(en)
+begin
     q_4px_concat <= {q_px[3], q_px[2], q_px[1], q_px[0]};
+end
 end
 
 endmodule

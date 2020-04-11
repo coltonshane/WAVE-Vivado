@@ -66,6 +66,9 @@ begin
     end : latch_prev
 end
 
+// Quantizer and Encoder enable singal.
+wire qe_en;
+
 // Quantizer data 8:1 muxes. Only c_state 8-15 are needed, but it's easier to
 // always round-robin based on c_state[2:0] and gate at the FIFO.
 wire [63:0] in_4px_concat_H;
@@ -78,8 +81,8 @@ wire [63:0] q_4px_concat_H;
 wire [63:0] q_4px_concat_L;
 
 // Instantiate two 4x16b quantizers for the high and low data.
-quantizer_4x16 q4x16_H (px_clk, q_mult, in_4px_concat_H, q_4px_concat_H);
-quantizer_4x16 q4x16_L (px_clk, q_mult, in_4px_concat_L, q_4px_concat_L);
+quantizer_4x16 q4x16_H (px_clk, qe_en, q_mult, in_4px_concat_H, q_4px_concat_H);
+quantizer_4x16 q4x16_L (px_clk, qe_en, q_mult, in_4px_concat_L, q_4px_concat_L);
 
 // Encoder output views.
 wire [63:0] e_4px_H;
@@ -88,8 +91,8 @@ wire [6:0] e_len_H;
 wire [6:0] e_len_L;
 
 // Instantiate two 4x16 encoders for the high and low data.
-encoder_4x16 e4x16_H (px_clk, q_4px_concat_H, e_4px_H, e_len_H);
-encoder_4x16 e4x16_L (px_clk, q_4px_concat_L, e_4px_L, e_len_L);
+encoder_4x16 e4x16_H (px_clk, qe_en, q_4px_concat_H, e_4px_H, e_len_H);
+encoder_4x16 e4x16_L (px_clk, qe_en, q_4px_concat_L, e_4px_L, e_len_L);
 
 // Encoder buffer for staging 64-bit writes to the FIFO. This is a logic-heavy section!!!
 // -------------------------------------------------------------------------------------------------
@@ -106,12 +109,13 @@ assign e_buffer_rd_interface = e_buffer_state ? e_buffer_1 : e_buffer_0;
 
 // Keep track of the LSB of this pixel counter to know if new data is being presented.
 reg px_count_e_prev_LSB;
-reg px_count_e_updated;
 always @(posedge px_clk)
 begin
     px_count_e_prev_LSB <= px_count_e[0];
-    px_count_e_updated <= (px_count_e[0] ^ px_count_e_prev_LSB);
 end
+wire px_count_e_updated;
+assign px_count_e_updated = (px_count_e[0] ^ px_count_e_prev_LSB);
+assign qe_en = px_count_e_updated;
 
 // Conditions must be met for e_buffer writing:
 // 1. New data is being presented, i.e. px_count_e[0] has toggled.

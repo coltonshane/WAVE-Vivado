@@ -33,6 +33,7 @@ by the values themselves, coded with that number of bits.
 module encoder_4x16
 (
     input wire px_clk,
+    input wire en,
     input wire [63:0] q_4px_concat,
     output reg[63:0] e_4px,
     output reg[6:0] e_len
@@ -117,6 +118,8 @@ assign code14b = {q3[13:0], q2[13:0], q1[13:0], q0[13:0], 8'b11111111};
 // Register a variable-bit-length code based on the number of bits required.
 always @(posedge px_clk)
 begin
+if(en)
+begin
     if (all_zeros)
     begin
         e_4px <= code0b;
@@ -135,9 +138,12 @@ begin
         endcase
     end
 end
+end
 
 // Register the length of the code.
 always @(posedge px_clk)
+begin
+if(en)
 begin
     if (all_zeros)
     begin
@@ -156,6 +162,7 @@ begin
         default: e_len <= 7'd64;
         endcase
     end
+end
 end
 
 endmodule
