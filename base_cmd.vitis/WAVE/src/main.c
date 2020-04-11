@@ -86,9 +86,9 @@ int main()
     gpioInit();
     supervisorInit();
     xil_printf("WAVE HELLO!\r\n");
-    cmvInit();
     waveletInit();
     encoderInit();
+    cmvInit();
     pcieInit();
 
     // NVMe initialize and status check.
