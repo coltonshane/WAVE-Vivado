@@ -46,13 +46,13 @@
     <Option Name="WTVcsLaunchSim" Val="0"/>
     <Option Name="WTRivieraLaunchSim" Val="0"/>
     <Option Name="WTActivehdlLaunchSim" Val="0"/>
-    <Option Name="WTXSimExportSim" Val="100"/>
-    <Option Name="WTModelSimExportSim" Val="100"/>
-    <Option Name="WTQuestaExportSim" Val="99"/>
-    <Option Name="WTIesExportSim" Val="99"/>
-    <Option Name="WTVcsExportSim" Val="99"/>
-    <Option Name="WTRivieraExportSim" Val="99"/>
-    <Option Name="WTActivehdlExportSim" Val="99"/>
+    <Option Name="WTXSimExportSim" Val="105"/>
+    <Option Name="WTModelSimExportSim" Val="105"/>
+    <Option Name="WTQuestaExportSim" Val="104"/>
+    <Option Name="WTIesExportSim" Val="104"/>
+    <Option Name="WTVcsExportSim" Val="104"/>
+    <Option Name="WTRivieraExportSim" Val="104"/>
+    <Option Name="WTActivehdlExportSim" Val="104"/>
     <Option Name="GenerateIPUpgradeLog" Val="TRUE"/>
     <Option Name="XSimRadix" Val="hex"/>
     <Option Name="XSimTimeUnit" Val="ns"/>
@@ -88,41 +88,23 @@
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
-        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_zynq_ultra_ps_e_0_1/BoardSetupTest_zynq_ultra_ps_e_0_1.xci">
-          <Proxy FileSetName="BoardSetupTest_zynq_ultra_ps_e_0_1"/>
+        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_Wavelet_S2_0_0/BoardSetupTest_Wavelet_S2_0_0.xci">
+          <Proxy FileSetName="BoardSetupTest_Wavelet_S2_0_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_util_vector_logic_0_0/BoardSetupTest_util_vector_logic_0_0.xci">
           <Proxy FileSetName="BoardSetupTest_util_vector_logic_0_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_proc_sys_reset_0_0/BoardSetupTest_proc_sys_reset_0_0.xci">
-          <Proxy FileSetName="BoardSetupTest_proc_sys_reset_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_HDMI_0_0/BoardSetupTest_HDMI_0_0.xci">
-          <Proxy FileSetName="BoardSetupTest_HDMI_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_util_ds_buf_0_0/BoardSetupTest_util_ds_buf_0_0.xci">
-          <Proxy FileSetName="BoardSetupTest_util_ds_buf_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_lvds_clk_out_0_0/BoardSetupTest_lvds_clk_out_0_0.xci">
-          <Proxy FileSetName="BoardSetupTest_lvds_clk_out_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_CMV_Input_0_0/BoardSetupTest_CMV_Input_0_0.xci">
-          <Proxy FileSetName="BoardSetupTest_CMV_Input_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_Wavelet_S2_0_0/BoardSetupTest_Wavelet_S2_0_0.xci">
-          <Proxy FileSetName="BoardSetupTest_Wavelet_S2_0_0"/>
-        </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_clk_wiz_0_0/BoardSetupTest_clk_wiz_0_0.xci">
           <Proxy FileSetName="BoardSetupTest_clk_wiz_0_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_emio_mux_0_0/BoardSetupTest_emio_mux_0_0.xci">
-          <Proxy FileSetName="BoardSetupTest_emio_mux_0_0"/>
+        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_proc_sys_reset_0_1/BoardSetupTest_proc_sys_reset_0_1.xci">
+          <Proxy FileSetName="BoardSetupTest_proc_sys_reset_0_1"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_Encoder_0_1/BoardSetupTest_Encoder_0_1.xci">
+          <Proxy FileSetName="BoardSetupTest_Encoder_0_1"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_xbar_0/BoardSetupTest_xbar_0.xci">
           <Proxy FileSetName="BoardSetupTest_xbar_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_proc_sys_reset_0_1/BoardSetupTest_proc_sys_reset_0_1.xci">
-          <Proxy FileSetName="BoardSetupTest_proc_sys_reset_0_1"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_xdma_0_0/BoardSetupTest_xdma_0_0.xci">
           <Proxy FileSetName="BoardSetupTest_xdma_0_0"/>
@@ -130,8 +112,26 @@
         <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_Wavelet_S1_0_0/BoardSetupTest_Wavelet_S1_0_0.xci">
           <Proxy FileSetName="BoardSetupTest_Wavelet_S1_0_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_Encoder_0_1/BoardSetupTest_Encoder_0_1.xci">
-          <Proxy FileSetName="BoardSetupTest_Encoder_0_1"/>
+        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_emio_mux_0_0/BoardSetupTest_emio_mux_0_0.xci">
+          <Proxy FileSetName="BoardSetupTest_emio_mux_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_zynq_ultra_ps_e_0_1/BoardSetupTest_zynq_ultra_ps_e_0_1.xci">
+          <Proxy FileSetName="BoardSetupTest_zynq_ultra_ps_e_0_1"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_lvds_clk_out_0_0/BoardSetupTest_lvds_clk_out_0_0.xci">
+          <Proxy FileSetName="BoardSetupTest_lvds_clk_out_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_proc_sys_reset_0_0/BoardSetupTest_proc_sys_reset_0_0.xci">
+          <Proxy FileSetName="BoardSetupTest_proc_sys_reset_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_util_ds_buf_0_0/BoardSetupTest_util_ds_buf_0_0.xci">
+          <Proxy FileSetName="BoardSetupTest_util_ds_buf_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_CMV_Input_0_0/BoardSetupTest_CMV_Input_0_0.xci">
+          <Proxy FileSetName="BoardSetupTest_CMV_Input_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_HDMI_0_0/BoardSetupTest_HDMI_0_0.xci">
+          <Proxy FileSetName="BoardSetupTest_HDMI_0_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_lvds_clk_synth_1/BoardSetupTest_lvds_clk_synth_1.xci">
           <Proxy FileSetName="BoardSetupTest_lvds_clk_synth_1"/>
@@ -186,7 +186,7 @@
       <File Path="$PSRCDIR/utils_1/imports/impl_1/BoardSetupTest_wrapper_routed.dcp">
         <FileInfo>
           <Attr Name="ImportPath" Val="$PRUNDIR/impl_1/BoardSetupTest_wrapper_routed.dcp"/>
-          <Attr Name="ImportTime" Val="1586622030"/>
+          <Attr Name="ImportTime" Val="1586967637"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="AutoDcp" Val="1"/>
@@ -195,7 +195,7 @@
       <File Path="$PSRCDIR/utils_1/imports/synth_1/BoardSetupTest_wrapper.dcp">
         <FileInfo>
           <Attr Name="ImportPath" Val="$PRUNDIR/synth_1/BoardSetupTest_wrapper.dcp"/>
-          <Attr Name="ImportTime" Val="1586633188"/>
+          <Attr Name="ImportTime" Val="1586967956"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="AutoDcp" Val="1"/>
@@ -277,12 +277,6 @@
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
-    <FileSet Name="BoardSetupTest_HDMI_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/BoardSetupTest_HDMI_0_0">
-      <Config>
-        <Option Name="TopModule" Val="BoardSetupTest_HDMI_0_0"/>
-        <Option Name="UseBlackboxStub" Val="1"/>
-      </Config>
-    </FileSet>
     <FileSet Name="BoardSetupTest_Wavelet_S1_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/BoardSetupTest_Wavelet_S1_0_0">
       <Config>
         <Option Name="TopModule" Val="BoardSetupTest_Wavelet_S1_0_0"/>
@@ -298,6 +292,12 @@
     <FileSet Name="BoardSetupTest_Encoder_0_1" Type="BlockSrcs" RelSrcDir="$PSRCDIR/BoardSetupTest_Encoder_0_1">
       <Config>
         <Option Name="TopModule" Val="BoardSetupTest_Encoder_0_1"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="BoardSetupTest_HDMI_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/BoardSetupTest_HDMI_0_0">
+      <Config>
+        <Option Name="TopModule" Val="BoardSetupTest_HDMI_0_0"/>
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
@@ -327,11 +327,11 @@
         <Step Id="synth_design">
           <Option Id="ResourceSharing">2</Option>
           <Option Id="Directive">7</Option>
-          <Option Id="NoCombineLuts">1</Option>
           <Option Id="FsmExtraction">1</Option>
           <Option Id="ShregMinSize">5</Option>
-          <Option Id="KeepEquivalentRegisters">1</Option>
           <Option Id="RepFanoutThreshold">400</Option>
+          <Option Id="KeepEquivalentRegisters">1</Option>
+          <Option Id="NoCombineLuts">1</Option>
         </Step>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -459,16 +459,6 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="BoardSetupTest_HDMI_0_0_synth_1" Type="Ft3:Synth" SrcSet="BoardSetupTest_HDMI_0_0" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_HDMI_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/BoardSetupTest_HDMI_0_0_synth_1" IncludeInArchive="true">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019"/>
-        <Step Id="synth_design"/>
-      </Strategy>
-      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
-      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2019"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
     <Run Id="BoardSetupTest_Wavelet_S1_0_0_synth_1" Type="Ft3:Synth" SrcSet="BoardSetupTest_Wavelet_S1_0_0" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_Wavelet_S1_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/BoardSetupTest_Wavelet_S1_0_0_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019"/>
@@ -491,6 +481,16 @@
     </Run>
     <Run Id="BoardSetupTest_Encoder_0_1_synth_1" Type="Ft3:Synth" SrcSet="BoardSetupTest_Encoder_0_1" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_Encoder_0_1" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/BoardSetupTest_Encoder_0_1_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2019"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="BoardSetupTest_HDMI_0_0_synth_1" Type="Ft3:Synth" SrcSet="BoardSetupTest_HDMI_0_0" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_HDMI_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/BoardSetupTest_HDMI_0_0_synth_1" IncludeInArchive="true">
+      <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019">
           <Desc>Vivado Synthesis Defaults</Desc>
         </StratHandle>
@@ -501,10 +501,10 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="impl_1" Type="Ft2:EntireDesign" Part="xczu4cg-sfvc784-1-e" ConstrsSet="constrs_1" Description="To compensate for optimistic delay estimation, add extra delay cost to long distance and high fanout connections. low setting, least pessimistic)" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" State="current" Dir="$PRUNDIR/impl_1" SynthRun="synth_1" IncludeInArchive="true" GenFullBitstream="true">
+    <Run Id="impl_1" Type="Ft2:EntireDesign" Part="xczu4cg-sfvc784-1-e" ConstrsSet="constrs_1" Description="Finalize placement of Block RAM and DSPs in the early stages of global placement." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" State="current" Dir="$PRUNDIR/impl_1" SynthRun="synth_1" IncludeInArchive="true" GenFullBitstream="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Performance_NetDelay_low" Flow="Vivado Implementation 2019">
-          <Desc>To compensate for optimistic delay estimation, add extra delay cost to long distance and high fanout connections. low setting, least pessimistic)</Desc>
+        <StratHandle Name="Performance_EarlyBlockPlacement" Flow="Vivado Implementation 2019">
+          <Desc>Finalize placement of Block RAM and DSPs in the early stages of global placement.</Desc>
         </StratHandle>
         <Step Id="init_design"/>
         <Step Id="opt_design">
@@ -512,14 +512,14 @@
         </Step>
         <Step Id="power_opt_design"/>
         <Step Id="place_design">
-          <Option Id="Directive">3</Option>
+          <Option Id="Directive">18</Option>
         </Step>
         <Step Id="post_place_power_opt_design"/>
         <Step Id="phys_opt_design" EnableStepBool="1">
-          <Option Id="Directive">2</Option>
+          <Option Id="Directive">0</Option>
         </Step>
         <Step Id="route_design">
-          <Option Id="Directive">1</Option>
+          <Option Id="Directive">0</Option>
         </Step>
         <Step Id="post_route_phys_opt_design"/>
         <Step Id="write_bitstream"/>
@@ -733,23 +733,6 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="BoardSetupTest_HDMI_0_0_impl_1" Type="Ft2:EntireDesign" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_HDMI_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="BoardSetupTest_HDMI_0_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019"/>
-        <Step Id="init_design"/>
-        <Step Id="opt_design"/>
-        <Step Id="power_opt_design"/>
-        <Step Id="place_design"/>
-        <Step Id="post_place_power_opt_design"/>
-        <Step Id="phys_opt_design" EnableStepBool="1"/>
-        <Step Id="route_design"/>
-        <Step Id="post_route_phys_opt_design"/>
-        <Step Id="write_bitstream"/>
-      </Strategy>
-      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2019"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
     <Run Id="BoardSetupTest_Wavelet_S1_0_0_impl_1" Type="Ft2:EntireDesign" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_Wavelet_S1_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="BoardSetupTest_Wavelet_S1_0_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019"/>
@@ -785,6 +768,23 @@
       <RQSFiles/>
     </Run>
     <Run Id="BoardSetupTest_Encoder_0_1_impl_1" Type="Ft2:EntireDesign" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_Encoder_0_1" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="BoardSetupTest_Encoder_0_1_synth_1" IncludeInArchive="false" GenFullBitstream="true">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design" EnableStepBool="1"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2019"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="BoardSetupTest_HDMI_0_0_impl_1" Type="Ft2:EntireDesign" Part="xczu4cg-sfvc784-1-e" ConstrsSet="BoardSetupTest_HDMI_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="BoardSetupTest_HDMI_0_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019">
           <Desc>Default settings for Implementation.</Desc>
