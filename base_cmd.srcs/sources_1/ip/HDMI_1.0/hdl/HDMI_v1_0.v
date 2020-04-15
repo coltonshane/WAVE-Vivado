@@ -507,10 +507,13 @@ end
 
 // Generate output pixel counters. These can be negative to accommodate top margin operations.
 // -------------------------------------------------------------------------------------------------
-wire [9:0] vx10b_G1B1 = (vxNorm - 16'h10) >> 6;       // Rollover is okay in X.
-wire [9:0] vx10b_R1G2 = (vxNorm - 16'h30) >> 6;       
-wire signed [23:0] vy16b_G1R1 = (vyNorm - 17'sh10);   // Using signed 24b intermediate result to
-wire signed [23:0] vy16b_B1G2 = (vyNorm - 17'sh30);   // get the required sign extension.
+wire [15:0] vxNorm_SW = SS ? (vxNorm >> 1) : vxNorm; 
+wire signed [16:0] vyNorm_SW = SS ? (vyNorm >>> 1) : vyNorm;
+
+wire [9:0] vx10b_G1B1 = (vxNorm_SW - 16'h10) >> 6;    // Rollover is okay in X.
+wire [9:0] vx10b_R1G2 = (vxNorm_SW - 16'h30) >> 6;       
+wire signed [23:0] vy16b_G1R1 = (vyNorm_SW - 17'sh10);   // Using signed 24b intermediate result to
+wire signed [23:0] vy16b_B1G2 = (vyNorm_SW - 17'sh30);   // get the required sign extension.
 
 // Color field-specific pixel counts for IV2 -> IH2 -> Output.
 // 4K Mode: X dimension is 1024.
@@ -519,10 +522,10 @@ wire signed [23:0] opx_count_R1_4K = {vy16b_G1R1[19:6], vx10b_R1G2[9:0]};
 wire signed [23:0] opx_count_B1_4K = {vy16b_B1G2[19:6], vx10b_G1B1[9:0]};
 wire signed [23:0] opx_count_G2_4K = {vy16b_B1G2[19:6], vx10b_R1G2[9:0]};
 // 2K Mode: X dimension is 512.
-wire signed [23:0] opx_count_G1_2K = {vy16b_G1R1[21:7], vx10b_G1B1[9:1]};
-wire signed [23:0] opx_count_R1_2K = {vy16b_G1R1[21:7], vx10b_R1G2[9:1]};
-wire signed [23:0] opx_count_B1_2K = {vy16b_B1G2[21:7], vx10b_G1B1[9:1]};
-wire signed [23:0] opx_count_G2_2K = {vy16b_B1G2[21:7], vx10b_R1G2[9:1]};
+wire signed [23:0] opx_count_G1_2K = {vy16b_G1R1[20:6], vx10b_G1B1[8:0]};
+wire signed [23:0] opx_count_R1_2K = {vy16b_G1R1[20:6], vx10b_R1G2[8:0]};
+wire signed [23:0] opx_count_B1_2K = {vy16b_B1G2[20:6], vx10b_G1B1[8:0]};
+wire signed [23:0] opx_count_G2_2K = {vy16b_B1G2[20:6], vx10b_R1G2[8:0]};
 // 4K/2K Mode Switch:
 wire signed [23:0] opx_count_G1 = SS ? opx_count_G1_2K : opx_count_G1_4K;
 wire signed [23:0] opx_count_R1 = SS ? opx_count_R1_2K : opx_count_R1_4K;
@@ -1003,8 +1006,8 @@ idwt26_h2 ih2_G2
 // Bilinear ineterpolators.
 // -------------------------------------------------------------------------------------------------
 // Switch in extra 2x scaling for 2K Mode (SS == 1).
-wire vxNormP_SW = SS ? (vxNormP >> 1) : vxNormP;
-wire vyNormP_SW = SS ? (vyNormP >> 1) : vyNormP;
+wire [15:0] vxNormP_SW = SS ? (vxNormP >> 1) : vxNormP;
+wire [15:0] vyNormP_SW = SS ? (vyNormP >> 1) : vyNormP;
 
 // Calculate (x0, y0), the upper-left corner of the grid square used to interpolate within a given
 // color field, outside of the interpolators to avoid redundant shared-edge logic.
