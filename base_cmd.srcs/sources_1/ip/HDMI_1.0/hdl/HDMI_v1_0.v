@@ -552,7 +552,7 @@ begin
     opx_count_sync_x_LSB_prev <= opx_count_sync_x_LSB;
     if(x_inc & last_px_in_row)
     begin
-      opx_count_sync_y_LSB_prev<= opx_count_sync_y_LSB;
+      opx_count_sync_y_LSB_prev <= opx_count_sync_y_LSB;
     end
 end
 
@@ -832,6 +832,7 @@ idwt26_v2
 )
 iv2_G1
 (
+  .SS(SS),
   .opx_clk(hdmi_clk),
   .opx_count_iv2_out(opx_count_G1 + opx_count_iv2_out_offset),
   .wr_en(iv2_wr_en_G1),
@@ -847,6 +848,7 @@ idwt26_v2
 )
 iv2_R1
 (
+  .SS(SS),
   .opx_clk(hdmi_clk),
   .opx_count_iv2_out(opx_count_R1 + opx_count_iv2_out_offset),
   .wr_en(iv2_wr_en_R1),
@@ -862,6 +864,7 @@ idwt26_v2
 )
 iv2_B1
 (
+  .SS(SS),
   .opx_clk(hdmi_clk),
   .opx_count_iv2_out(opx_count_B1 + opx_count_iv2_out_offset),
   .wr_en(iv2_wr_en_B1),
@@ -877,6 +880,7 @@ idwt26_v2
 )
 iv2_G2
 (
+  .SS(SS),
   .opx_clk(hdmi_clk),
   .opx_count_iv2_out(opx_count_G2 + opx_count_iv2_out_offset),
   .wr_en(iv2_wr_en_G2),
@@ -964,6 +968,7 @@ wire [31:0] out_2px_row1_G2;
 
 idwt26_h2 ih2_G1
 (
+  .SS(SS),
   .opx_clk(hdmi_clk),
   .opx_count(opx_count_G1),
   .in_4px_row0(iv2_out_4px_row0_G1),
@@ -974,6 +979,7 @@ idwt26_h2 ih2_G1
 
 idwt26_h2 ih2_R1
 (
+  .SS(SS),
   .opx_clk(hdmi_clk),
   .opx_count(opx_count_R1),
   .in_4px_row0(iv2_out_4px_row0_R1),
@@ -984,6 +990,7 @@ idwt26_h2 ih2_R1
 
 idwt26_h2 ih2_B1
 (
+  .SS(SS),
   .opx_clk(hdmi_clk),
   .opx_count(opx_count_B1),
   .in_4px_row0(iv2_out_4px_row0_B1),
@@ -994,6 +1001,7 @@ idwt26_h2 ih2_B1
 
 idwt26_h2 ih2_G2
 (
+  .SS(SS),
   .opx_clk(hdmi_clk),
   .opx_count(opx_count_G2),
   .in_4px_row0(iv2_out_4px_row0_G2),
