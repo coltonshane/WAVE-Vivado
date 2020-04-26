@@ -102,7 +102,7 @@ void uiTest(void)
 	uiDrawStringColRow(UI_ID_TOP, " Linear ", 40, 0);
 	uiDrawStringColRow(UI_ID_TOP, "  5000K ", 48, 0);
 	// uiInvertRectColRow(UI_ID_TOP, 16, 0, 8, 1);
-	uiShow(UI_ID_TOP, 0, 0);
+	// uiShow(UI_ID_TOP, 0, 0);
 
 	uiDrawStringColRow(UI_ID_POP, "    4:3 ", 0, 0);
 	uiDrawStringColRow(UI_ID_POP, "   16:9 ", 0, 1);
@@ -116,7 +116,7 @@ void uiTest(void)
 	uiDrawStringColRow(UI_ID_BOT, "PL: 35*C", 16, 0);
 	uiDrawStringColRow(UI_ID_BOT, "IS: 35*C", 32, 0);
 	uiDrawStringColRow(UI_ID_BOT, "SD: 35*C", 48, 0);
-	uiShow(UI_ID_BOT, 0, 0);
+	// uiShow(UI_ID_BOT, 0, 0);
 }
 
 void uiService(void)

@@ -39,7 +39,7 @@ THE SOFTWARE.
 
 // Latency Offsets, 2K Mode
 #define OPX_COUNT_IV2_OUT_OFFSET_2K		0x0800
-#define OPX_COUNT_IV2_IN_OFFSET_2K		0x17FF
+#define OPX_COUNT_IV2_IN_OFFSET_2K		0x17F7
 #define OPX_COUNT_DC_EN_OFFFSET_2K		0x24FA
 
 // HDMI PHY I2C Device
@@ -178,10 +178,12 @@ void hdmiInit(void)
 	// hdmi->vy0 = 41;
 	// hdmi->vxDiv = 0x2133;
 	// hdmi->vyDiv = 0x2133;
-	hdmi->vx0 = 640;
-	hdmi->vy0 = 192;
-	hdmi->vxDiv = 0x4000;
-	hdmi->vyDiv = 0x4000;
+
+	hdmi->vx0 = 240;
+	hdmi->vy0 = 72;
+	hdmi->vxDiv = 0x2400;
+	hdmi->vyDiv = 0x2400;
+
 	hdmi->wHDMI = 2200;
 	hdmi->hImage2048 = 1152;
 	hdmi->q_mult_inv_HL2_LH2 = 1024;
@@ -419,7 +421,7 @@ void hdmiWriteTestPattern2K(void)
 
 	// LL2
 	hdmiResetTestPatternState(0x20000000);
-	for(u16 pxDiscard = 830; pxDiscard > 0; pxDiscard--)
+	for(u16 pxDiscard = 832; pxDiscard > 0; pxDiscard--)
 	{
 		for(u8 i4px = 0; i4px < 4; i4px++)
 		{
@@ -436,7 +438,8 @@ void hdmiWriteTestPattern2K(void)
 				{
 					for(u8 i4px = 0; i4px < 4; i4px++)
 					{
-						if((y < 14) && (color == 0)) { wipPixel = 128 * xLoc; }
+						if((y < 16) && (color == 0))
+						{ wipPixel = 256 + (32*y) % 512; }
 						else { wipPixel = 0; }
 						hdmiPushTestPatternBits(wipPixel, 10);
 					}
