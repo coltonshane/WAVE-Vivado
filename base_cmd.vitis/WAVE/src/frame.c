@@ -38,6 +38,7 @@ THE SOFTWARE.
 #define FH_BUFFER_SIZE 1024
 #define FRAME_LB_EXP 9
 #define FRAMES_PER_FILE 240
+#define SUBFRAMES_PER_FRAME 1
 
 #define US_PER_COUNT 1000 / (COUNTS_PER_SECOND / 1000)
 
@@ -63,6 +64,7 @@ FrameHeader_s * fhBuffer = (FrameHeader_s *) (0x18000000);
 
 // Private Global Variables --------------------------------------------------------------------------------------------
 
+u32 nSubFramesIn = 0xFFFFFFFF;
 s32 nFramesIn = -1;
 s32 nFramesOutStart = 0;
 s32 nFramesOut = 0;
@@ -92,8 +94,12 @@ void isrFOT(void * CallbackRef)
 	XTime tFrameIn;
 	u32 iFrameIn;
 
-	XGpioPs_WritePin(&Gpio, GPIO1_PIN, 1);		// Mark ISR entry.
+	nSubFramesIn++;
 	CMV_Input->FOT_int = 0x00000000;			// Clear the FOT interrupt flag.
+
+	if(nSubFramesIn % SUBFRAMES_PER_FRAME > 0) { return; }
+
+	XGpioPs_WritePin(&Gpio, GPIO1_PIN, 1);		// Mark ISR entry.
 
 	// Time-critical Encoder access. Must complete before end of FOT.
 	memcpy(&Encoder_prev, Encoder, sizeof(Encoder_s));
