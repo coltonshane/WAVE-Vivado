@@ -60,8 +60,8 @@ THE SOFTWARE.
 
 // Private Function Prototypes -----------------------------------------------------------------------------------------
 
-void uiBuildPopMenu(u8 idSetting);
-void uiScrollPopMenu(u8 dir);
+void uiBuildTopMenu(void);
+void uiBuildPopMenu(void);
 
 void uiHideAll(void);
 void uiHide(u8 uiID);
@@ -82,23 +82,27 @@ u16 uiRowY0(u8 row);
 
 // Public Global Variables ---------------------------------------------------------------------------------------------
 
+// Private Global Variables --------------------------------------------------------------------------------------------
+
+// UI Hardware
+u32 * const uiControl = (u32 *)((u64) 0xA0040050);
+u32 * const uiGPIOState = (u32 *)((u64) 0xFF0A0068);
+const u32 uiBaseAddr[] = {0xA0060000, 0xA0068000, 0xA0070000};
+const u16 uiW[] = {1024, 1024, 128};
+const u16 uiH[] = {32, 32, 256};
+
+// UI Event Tracking
+u32 uiGPIOStatePrev = UI_MASK;
 u8 uiRecClicked = 0;
 u8 uiEncClicked = 0;
 int16_t uiEncScrolled = 0;
 
-// Private Global Variables --------------------------------------------------------------------------------------------
+int topMenuActive = -1;
+int topMenuSelectedSetting = -1;
 
-u32 * uiControl = (u32 *)((u64) 0xA0040050);
-const u32 uiBaseAddr[] = {0xA0060000, 0xA0068000, 0xA0070000};
-
-const u16 uiW[] = {1024, 1024, 128};
-const u16 uiH[] = {32, 32, 256};
-
+int popMenuActive = -1;
 u8 popMenuVal[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 u8 popMenuSelectedVal = 0xFF;
-
-u32 * uiGPIOState = (u32 *)((u64) 0xFF0A0068);
-u32 uiGPIOStatePrev = UI_MASK;
 
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 
@@ -141,27 +145,93 @@ void isrUI(void *CallBackRef, u32 Bank, u32 Status)
 void uiTest(void)
 {
 	uiHideAll();
-
 	uiClearAll(UI_BG);
-	for(u8 i = 0; i < 3; i++)
-	{
-		uiDrawStringColRow(UI_ID_TOP, cState.cSetting[i]->strValArray[cState.cSetting[i]->val], cState.cSetting[i]->uiOffset, 0);
-	}
-	uiShow(UI_ID_TOP, 0, 0);
-
-	uiBuildPopMenu(2);
-	uiShow(UI_ID_POP, 192 + cState.cSetting[2]->uiOffset * CHAR_W * 2, 0x69);
-
-	uiDrawStringColRow(UI_ID_BOT, "PS: 35*C", 0, 0);
-	uiDrawStringColRow(UI_ID_BOT, "PL: 35*C", 16, 0);
-	uiDrawStringColRow(UI_ID_BOT, "IS: 35*C", 32, 0);
-	uiDrawStringColRow(UI_ID_BOT, "SD: 35*C", 48, 0);
 	uiShow(UI_ID_BOT, 0, 0);
 }
 
 void uiService(void)
 {
 	char strResult[9];
+
+	// Massive menu state machine.
+	if(topMenuActive == -1)
+	{
+		if(uiEncClicked)
+		{
+			topMenuActive = 1;
+			topMenuSelectedSetting = -1;
+			popMenuActive = -1;
+			uiBuildTopMenu();
+			uiShow(UI_ID_TOP, 0, 0);
+		}
+	}
+	else
+	{
+		if(popMenuActive == -1)
+		{
+			if(uiEncClicked)
+			{
+				if(topMenuSelectedSetting == -1)
+				{
+					// Clicked the "X", close the top menu.
+					topMenuActive = -1;
+					uiHide(UI_ID_TOP);
+				}
+				else
+				{
+					// Clicked a setting, open its pop menu.
+					popMenuActive = topMenuSelectedSetting;
+					popMenuSelectedVal = cState.cSetting[popMenuActive]->val;
+					uiBuildPopMenu();
+					uiShow(UI_ID_POP, 192 + (1 + 8 * popMenuActive) * 2 * CHAR_W, 105);
+				}
+			}
+			else if(uiEncScrolled > 0)
+			{
+				topMenuSelectedSetting++;
+				if(topMenuSelectedSetting > 2) { topMenuSelectedSetting = 2; }
+				else { uiBuildTopMenu(); }
+			}
+			else if(uiEncScrolled < 0)
+			{
+				topMenuSelectedSetting--;
+				if(topMenuSelectedSetting < -1) { topMenuSelectedSetting = -1; }
+				else { uiBuildTopMenu(); }
+			}
+		}
+		else
+		{
+			if(uiEncClicked)
+			{
+				// Apply new setting and close the pop menu.
+				popMenuActive = -1;
+				uiHide(UI_ID_POP);
+			}
+			else if(uiEncScrolled > 0)
+			{
+				// Scroll down in pop menu (if possible).
+				if(popMenuVal[4] < 0xFF)
+				{
+					popMenuSelectedVal = popMenuVal[4];
+					uiBuildPopMenu();
+				}
+			}
+			else if(uiEncScrolled < 0)
+			{
+				// Scroll up in pop menu (if possible).
+				if(popMenuVal[2] < 0xFF)
+				{
+					popMenuSelectedVal = popMenuVal[2];
+					uiBuildPopMenu();
+				}
+			}
+		}
+	}
+
+	// Discard UI events, even if they are unused.
+	uiRecClicked = 0;
+	uiEncClicked = 0;
+	uiEncScrolled = 0;
 
 	sprintf(strResult, "PS:%3.0f*C", psplGetTemp(psTemp));
 	uiDrawStringColRow(UI_ID_BOT, strResult, 0, 0);
@@ -178,9 +248,31 @@ void uiService(void)
 
 // Private Function Definitions ----------------------------------------------------------------------------------------
 
-void uiBuildPopMenu(u8 idSetting)
+void uiBuildTopMenu(void)
+{
+	u8 col;
+
+	uiDrawStringColRow(UI_ID_TOP, "X", 0, 0);
+	for(u8 i = 0; i < 3; i++)
+	{
+		col = 1 + 8 * i;
+		uiDrawStringColRow(UI_ID_TOP, cState.cSetting[i]->strValArray[cState.cSetting[i]->val], col, 0);
+	}
+	if(topMenuSelectedSetting > -1)
+	{
+		col = 1 + 8 * topMenuSelectedSetting;
+		uiInvertRectColRow(UI_ID_TOP, col, 0, 8, 1);
+	}
+	else
+	{
+		uiInvertRectColRow(UI_ID_TOP, 0, 0, 1, 1);
+	}
+}
+
+void uiBuildPopMenu()
 {
 	popMenuVal[3] = popMenuSelectedVal;
+	u8 idSetting = topMenuSelectedSetting;
 
 	// Populate valid settings in the forward direction.
 	u8 val = popMenuSelectedVal;
@@ -239,13 +331,6 @@ void uiBuildPopMenu(u8 idSetting)
 
 	// Invert the selected settings value.
 	uiInvertRectColRow(UI_ID_POP, 0, 3, 8, 1);
-}
-
-void uiScrollPopMenu(u8 dir)
-{
-	if(dir) { popMenuSelectedVal = popMenuVal[4]; }
-	else { popMenuSelectedVal = popMenuVal[2]; }
-	uiBuildPopMenu(2);
 }
 
 void uiHideAll(void)
@@ -414,14 +499,7 @@ void uiInvertRect(u8 uiID, u16 x0, u16 y0, u16 w, u16 h)
 		for(u8 x = 0; x < w; x += 4)
 		{
 			invAddr = uiBaseAddr[uiID] + uiW[uiID] * (y0 + y) + x0 + x;
-			if((y >= PADDING_Y) && (y < (h - PADDING_Y)))
-			{
-				*(u32*)((u64) invAddr) = ~(*(u32*)((u64) invAddr));
-			}
-			else
-			{
-				*(u32*)((u64) invAddr) = 0xE0E0E0E0;
-			}
+			*(u32*)((u64) invAddr) = ~(*(u32*)((u64) invAddr));
 		}
 	}
 }

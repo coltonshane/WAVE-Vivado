@@ -46,9 +46,6 @@ typedef struct
 
 	char * strName;
 	char ** strValArray;
-
-	u8 uiWidth;
-	u8 uiOffset;
 } CameraSetting_s;
 
 typedef struct

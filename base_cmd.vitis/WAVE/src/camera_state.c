@@ -49,9 +49,9 @@ char * cSettingModeValArray[] = {" STANDBY",
 								 "   REC  ",
 								 "PLAYBACK"};
 
-char * cSettingWidthName = 	 	  "  W ";
-char * cSettingWidthValArray[] = {" 4K ",
-								  " 2K "};
+char * cSettingWidthName = 	 	  "  WIDTH ";
+char * cSettingWidthValArray[] = {"  4096 x",
+								  "  2048 x"};
 
 char * cSettingHeightName =  	   " HEIGHT ";	// 	4K	2K
 char * cSettingHeightValArray[] = {"  3072p ",	//	1x	No
@@ -101,9 +101,6 @@ void cameraStateInit(void)
 	cSettingMode.strName = cSettingModeName;
 	cSettingMode.strValArray = cSettingModeValArray;
 
-	cSettingMode.uiWidth = 8;
-	cSettingMode.uiOffset = 2;
-
 	cSettingWidth.id = 1;
 	cSettingWidth.val = 0;
 	cSettingWidth.count = 2;
@@ -115,9 +112,6 @@ void cameraStateInit(void)
 	cSettingWidth.strName = cSettingWidthName;
 	cSettingWidth.strValArray = cSettingWidthValArray;
 
-	cSettingWidth.uiWidth = 4;
-	cSettingWidth.uiOffset = 10;
-
 	cSettingHeight.id = 2;
 	cSettingHeight.val = 2;
 	cSettingHeight.count = 28;
@@ -128,9 +122,6 @@ void cameraStateInit(void)
 
 	cSettingHeight.strName = cSettingHeightName;
 	cSettingHeight.strValArray = cSettingHeightValArray;
-
-	cSettingHeight.uiWidth = 8;
-	cSettingHeight.uiOffset = 14;
 
 	cState.cSetting[0] = &cSettingMode;
 	cState.cSetting[1] = &cSettingWidth;
