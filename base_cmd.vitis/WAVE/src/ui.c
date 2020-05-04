@@ -103,33 +103,34 @@ u8 popMenuSelectedVal = 0xFF;
 
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 
-u8 dir = 0;
 void isrUI(void *CallBackRef, u32 Bank, u32 Status)
 {
 	u32 uiGPIOStateNow = *uiGPIOState & UI_MASK;
 	u32 uiGPIOStateDiff = uiGPIOStateNow ^ uiGPIOStatePrev;
+	u8 dir;
 
 	// Register record button click on rising edge.
-	if(uiGPIOStateDiff & UI_REC_SW)
+	if(uiGPIOStateDiff & UI_REC_SW_MASK)
 	{
-		if(uiGPIOStateNow & UI_REC_SW)
+		if(uiGPIOStateNow & UI_REC_SW_MASK)
 		{
 			uiRecClicked = 1;
 		}
 	}
 
 	// Register encoder button click on rising edge.
-	if(uiGPIOStateDiff & UI_ENC_SW)
+	if(uiGPIOStateDiff & UI_ENC_SW_MASK)
 	{
-		if(uiGPIOStateNow & UI_ENC_SW)
+		if(uiGPIOStateNow & UI_ENC_SW_MASK)
 		{
 			uiEncClicked = 1;
 		}
 	}
 
 	// Register encoder scroll on both ENC_A edges, with direction from ENC_B.
-	if(uiGPIOStateDiff & UI_ENC_A)
+	if(uiGPIOStateDiff & UI_ENC_A_MASK)
 	{
+		dir = ((uiGPIOStateNow >> UI_ENC_A_POS) ^ (uiGPIOStateNow >> UI_ENC_B_POS)) & 0x1;
 		if(dir) { uiEncScrolled++; }
 		else { uiEncScrolled--; }
 	}
