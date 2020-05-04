@@ -186,7 +186,7 @@ void uiService(void)
 			else if(uiEncScrolled > 0)
 			{
 				topMenuSelectedSetting++;
-				if(topMenuSelectedSetting > 2) { topMenuSelectedSetting = 2; }
+				if(topMenuSelectedSetting > 4) { topMenuSelectedSetting = 4; }
 				else { uiBuildTopMenu(); }
 			}
 			else if(uiEncScrolled < 0)
@@ -252,7 +252,7 @@ void uiBuildTopMenu(void)
 	u8 col;
 
 	uiDrawStringColRow(UI_ID_TOP, "X", 0, 0);
-	for(u8 i = 0; i < 3; i++)
+	for(u8 i = 0; i < 5; i++)
 	{
 		col = 1 + 8 * i;
 		uiDrawStringColRow(UI_ID_TOP, cState.cSetting[i]->strValArray[cState.cSetting[i]->val], col, 0);
