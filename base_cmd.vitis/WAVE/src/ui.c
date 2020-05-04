@@ -25,6 +25,7 @@ THE SOFTWARE.
 // Include Headers -----------------------------------------------------------------------------------------------------
 
 #include "main.h"
+#include "gpio.h"
 #include "camera_state.h"
 #include "cmv12000.h"
 #include "nvme.h"
@@ -81,6 +82,10 @@ u16 uiRowY0(u8 row);
 
 // Public Global Variables ---------------------------------------------------------------------------------------------
 
+u8 uiRecClicked = 0;
+u8 uiEncClicked = 0;
+int16_t uiEncScrolled = 0;
+
 // Private Global Variables --------------------------------------------------------------------------------------------
 
 u32 * uiControl = (u32 *)((u64) 0xA0040050);
@@ -92,14 +97,43 @@ const u16 uiH[] = {32, 32, 256};
 u8 popMenuVal[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 u8 popMenuSelectedVal = 0xFF;
 
+u32 * uiGPIOState = (u32 *)((u64) 0xFF0A0068);
+u32 uiGPIOStatePrev = UI_MASK;
+
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 
-extern u32 triggerRecordStartStop;
-extern u8 popMenuSelectedVal;
+u8 dir = 0;
 void isrUI(void *CallBackRef, u32 Bank, u32 Status)
 {
-	// triggerRecordStartStop = 1;
-	uiScrollPopMenu(1);
+	u32 uiGPIOStateNow = *uiGPIOState & UI_MASK;
+	u32 uiGPIOStateDiff = uiGPIOStateNow ^ uiGPIOStatePrev;
+
+	// Register record button click on rising edge.
+	if(uiGPIOStateDiff & UI_REC_SW)
+	{
+		if(uiGPIOStateNow & UI_REC_SW)
+		{
+			uiRecClicked = 1;
+		}
+	}
+
+	// Register encoder button click on rising edge.
+	if(uiGPIOStateDiff & UI_ENC_SW)
+	{
+		if(uiGPIOStateNow & UI_ENC_SW)
+		{
+			uiEncClicked = 1;
+		}
+	}
+
+	// Register encoder scroll on both ENC_A edges, with direction from ENC_B.
+	if(uiGPIOStateDiff & UI_ENC_A)
+	{
+		if(dir) { uiEncScrolled++; }
+		else { uiEncScrolled--; }
+	}
+
+	uiGPIOStatePrev = uiGPIOStateNow;
 }
 
 // Public Function Definitions -----------------------------------------------------------------------------------------

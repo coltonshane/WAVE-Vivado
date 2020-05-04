@@ -34,11 +34,15 @@ THE SOFTWARE.
 
 // MIO Pin Assignments
 #define UI_BANK 2
-#define UI_MASK 0x0003C000
+#define UI_MASK 	0x0003C000
+#define UI_REC_SW 	0x00004000
+#define UI_ENC_A    0x00008000
+#define UI_ENC_B	0x00010000
+#define UI_ENC_SW	0x00020000
 #define REC_SW_PIN 66		// Bank 2, Pin 14, MIO 66
-#define ENC_SW_PIN 67		// Bank 2, Pin 15, MIO 67
+#define ENC_A_PIN 67		// Bank 2, Pin 15, MIO 67
 #define ENC_B_PIN 68		// Bank 2, Pin 16, MIO 68
-#define ENC_A_PIN 69		// Bank 2, Pin 17, MIO 69
+#define ENC_SW_PIN 69		// Bank 2, Pin 17, MIO 69
 
 // EMIO Pin Assignments
 #define GPIO1_PIN 78		// Bank 3, Pin 0, EMIO 0

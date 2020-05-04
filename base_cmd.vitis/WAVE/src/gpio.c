@@ -52,8 +52,8 @@ void gpioInit(void)
 	gpioConfig = XGpioPs_LookupConfig(GPIO_DEVICE_ID);
 	XGpioPs_CfgInitialize(&Gpio, gpioConfig, gpioConfig->BaseAddr);
 
-	// Set up MIO UI input falling-edge interrupts.
-    XGpioPs_SetIntrType(&Gpio, UI_BANK, 0x3FFFFFFF, 0x00000000, 0x00000000);
+	// Set up MIO UI input interrupt on rising and falling edges.
+    XGpioPs_SetIntrType(&Gpio, UI_BANK, 0x03FFFFFFF, 0x00000000, 0x03FFFFFF);
     XGpioPs_SetCallbackHandler(&Gpio, (void *) &Gpio, isrUI);
     XGpioPs_IntrEnable(&Gpio, UI_BANK, UI_MASK);
 
