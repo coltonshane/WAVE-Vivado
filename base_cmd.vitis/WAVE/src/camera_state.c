@@ -115,7 +115,7 @@ void cameraStateInit(void)
 	cSettingHeight.id = 2;
 	cSettingHeight.val = 2;
 	cSettingHeight.count = 28;
-	cSettingHeight.enable[0] = 0x000000000FFFFFFF;
+	cSettingHeight.enable[0] = 0x000000000FFFFFFD;
 	cSettingHeight.enable[1] = 0x0000000000000000;
 	cSettingHeight.enable[2] = 0x0000000000000000;
 	cSettingHeight.enable[3] = 0x0000000000000000;

@@ -51,10 +51,7 @@ THE SOFTWARE.
 
 #define FONT_W 1536
 #define CHAR_W 16
-#define CHAR_H 24
-#define ROW_H 32
-
-#define PADDING_Y 4
+#define CHAR_H 32
 
 // Private Type Definitions --------------------------------------------------------------------------------------------
 
@@ -204,6 +201,8 @@ void uiService(void)
 			if(uiEncClicked)
 			{
 				// Apply new setting and close the pop menu.
+				cState.cSetting[popMenuActive]->val = popMenuSelectedVal;
+				uiBuildTopMenu(); 		// To reflect the new setting.
 				popMenuActive = -1;
 				uiHide(UI_ID_POP);
 			}
@@ -409,7 +408,7 @@ void uiDrawStringColRow(u8 uiID, const char * str, u16 col, u16 row)
 		x0 = 32 + col * CHAR_W;
 	}
 
-	y0 = PADDING_Y + row * ROW_H;
+	y0 = row * CHAR_H;
 
 	uiDrawString(uiID, str, x0, y0);
 }
@@ -451,7 +450,7 @@ void uiDrawChar(u8 uiID, char c, u16 x0, u16 y0)
 	if(y0 > (uiH[uiID] - CHAR_H)) { return; }
 	if ((c < 32) || (c >= 128)) { c = '?'; }
 
-	for(u8 y = 0; y < 24; y++)
+	for(u8 y = 0; y < CHAR_H; y++)
 	{
 		srcAddr = FONT_BASE_ADDR + FONT_W * y + CHAR_W * (c - 32);
 		destAddr = uiBaseAddr[uiID] + uiW[uiID] * (y0 + y) + x0;
@@ -474,9 +473,9 @@ void uiInvertRectColRow(u8 uiID, u16 col, u16 row, u16 wCol, u16 hRow)
 		x0 = 32 + col * CHAR_W;
 	}
 
-	y0 = row * ROW_H;
+	y0 = row * CHAR_H;
 	w = wCol * CHAR_W;
-	h = hRow * ROW_H;
+	h = hRow * CHAR_H;
 
 	uiInvertRect(uiID, x0, y0, w, h);
 }
