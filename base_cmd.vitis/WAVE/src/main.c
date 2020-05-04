@@ -139,9 +139,8 @@ int main()
     hdmiInit();
     usbInit();
     frameInit();
-
     cameraStateInit();
-    uiTest();
+    uiInit();
 
     // Main loop.
     while(!triggerShutdown)

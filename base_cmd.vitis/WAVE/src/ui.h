@@ -35,7 +35,7 @@ THE SOFTWARE.
 
 void isrUI(void *CallBackRef, u32 Bank, u32 Status);
 
-void uiTest(void);
+void uiInit(void);
 void uiService(void);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------

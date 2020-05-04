@@ -140,11 +140,10 @@ void isrUI(void *CallBackRef, u32 Bank, u32 Status)
 
 // Public Function Definitions -----------------------------------------------------------------------------------------
 
-void uiTest(void)
+void uiInit(void)
 {
 	uiHideAll();
 	uiClearAll(UI_BG);
-	uiShow(UI_ID_BOT, 0, 0);
 }
 
 void uiService(void)
@@ -161,6 +160,7 @@ void uiService(void)
 			popMenuActive = -1;
 			uiBuildTopMenu();
 			uiShow(UI_ID_TOP, 0, 0);
+			uiShow(UI_ID_BOT, 0, 0);
 		}
 	}
 	else
@@ -174,6 +174,7 @@ void uiService(void)
 					// Clicked the "X", close the top menu.
 					topMenuActive = -1;
 					uiHide(UI_ID_TOP);
+					uiHide(UI_ID_BOT);
 				}
 				else
 				{
@@ -187,14 +188,26 @@ void uiService(void)
 			else if(uiEncScrolled > 0)
 			{
 				topMenuSelectedSetting++;
-				if(topMenuSelectedSetting > 4) { topMenuSelectedSetting = 4; }
-				else { uiBuildTopMenu(); }
+				if(topMenuSelectedSetting > (CSTATE_NUM_SETTINGS - 1))
+				{
+					topMenuSelectedSetting = (CSTATE_NUM_SETTINGS - 1);
+				}
+				else
+				{
+					uiBuildTopMenu();
+				}
 			}
 			else if(uiEncScrolled < 0)
 			{
 				topMenuSelectedSetting--;
-				if(topMenuSelectedSetting < -1) { topMenuSelectedSetting = -1; }
-				else { uiBuildTopMenu(); }
+				if(topMenuSelectedSetting < -1)
+				{
+					topMenuSelectedSetting = -1;
+				}
+				else
+				{
+					uiBuildTopMenu();
+				}
 			}
 		}
 		else
@@ -253,10 +266,18 @@ void uiBuildTopMenu(void)
 	u8 col;
 
 	uiDrawStringColRow(UI_ID_TOP, "X", 0, 0);
-	for(u8 i = 0; i < 5; i++)
+	for(u8 i = 0; i < CSTATE_NUM_SETTINGS; i++)
 	{
 		col = 1 + 8 * i;
-		uiDrawStringColRow(UI_ID_TOP, cState.cSetting[i]->strValArray[cState.cSetting[i]->val], col, 0);
+		switch(cState.cSetting[i]->uiDisplayType)
+		{
+		case CSETTING_UI_DISPLAY_TYPE_VAL:
+			uiDrawStringColRow(UI_ID_TOP, cState.cSetting[i]->strValArray[cState.cSetting[i]->val], col, 0);
+			break;
+		case CSETTING_UI_DISPLAY_TYPE_NAME:
+		default:
+			uiDrawStringColRow(UI_ID_TOP, cState.cSetting[i]->strName, col, 0);
+		}
 	}
 	if(topMenuSelectedSetting > -1)
 	{

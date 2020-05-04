@@ -43,6 +43,7 @@ CameraSetting_s cSettingWidth;
 CameraSetting_s cSettingHeight;
 CameraSetting_s cSettingFPS;
 CameraSetting_s cSettingShutter;
+CameraSetting_s cSettingFormat;
 
 char * cSettingModeName =   	 "  MODE  ";
 char * cSettingModeValArray[] = {" STANDBY",
@@ -147,7 +148,7 @@ char * cSettingFPSValArray[] = { " MAX fps",
 								 "9120 fps",
 								 "9600 fps" };
 
-char * cSettingShutterName = " SHUTTER";
+char * cSettingShutterName = 	     " SHUTTER";
 char * cSettingShutterValArray[] = { "   360* ",
 									 "   270* ",
 									 "   180* ",
@@ -168,6 +169,10 @@ char * cSettingShutterValArray[] = { "   360* ",
 									 "  0.99* ",
 									 "  0.70* " };
 
+char * cSettingFormatName = 		" FORMAT ";
+char * cSettingFormatValArray[] = { "Cancel  ",
+									"Confirm " };
+
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 
 // Public Function Definitions -----------------------------------------------------------------------------------------
@@ -183,6 +188,7 @@ void cameraStateInit(void)
 	cSettingMode.enable[3] = 0x0000000000000000;
 	cSettingMode.strName = cSettingModeName;
 	cSettingMode.strValArray = cSettingModeValArray;
+	cSettingMode.uiDisplayType = CSETTING_UI_DISPLAY_TYPE_VAL;
 
 	cSettingWidth.id = 1;
 	cSettingWidth.val = 0;
@@ -193,6 +199,7 @@ void cameraStateInit(void)
 	cSettingWidth.enable[3] = 0x0000000000000000;
 	cSettingWidth.strName = cSettingWidthName;
 	cSettingWidth.strValArray = cSettingWidthValArray;
+	cSettingWidth.uiDisplayType = CSETTING_UI_DISPLAY_TYPE_VAL;
 
 	cSettingHeight.id = 2;
 	cSettingHeight.val = 2;
@@ -203,6 +210,7 @@ void cameraStateInit(void)
 	cSettingHeight.enable[3] = 0x0000000000000000;
 	cSettingHeight.strName = cSettingHeightName;
 	cSettingHeight.strValArray = cSettingHeightValArray;
+	cSettingHeight.uiDisplayType = CSETTING_UI_DISPLAY_TYPE_VAL;
 
 	cSettingFPS.id = 3;
 	cSettingFPS.val = 1;
@@ -213,6 +221,7 @@ void cameraStateInit(void)
 	cSettingFPS.enable[3] = 0x0000000000000000;
 	cSettingFPS.strName = cSettingFPSName;
 	cSettingFPS.strValArray = cSettingFPSValArray;
+	cSettingFPS.uiDisplayType = CSETTING_UI_DISPLAY_TYPE_VAL;
 
 	cSettingShutter.id = 4;
 	cSettingShutter.val = 2;
@@ -223,12 +232,25 @@ void cameraStateInit(void)
 	cSettingShutter.enable[3] = 0x0000000000000000;
 	cSettingShutter.strName = cSettingShutterName;
 	cSettingShutter.strValArray = cSettingShutterValArray;
+	cSettingShutter.uiDisplayType = CSETTING_UI_DISPLAY_TYPE_VAL;
+
+	cSettingFormat.id = 5;
+	cSettingFormat.val = 0;
+	cSettingFormat.count = 2;
+	cSettingFormat.enable[0] = 0x0000000000000003;
+	cSettingFormat.enable[1] = 0x0000000000000000;
+	cSettingFormat.enable[2] = 0x0000000000000000;
+	cSettingFormat.enable[3] = 0x0000000000000000;
+	cSettingFormat.strName = cSettingFormatName;
+	cSettingFormat.strValArray = cSettingFormatValArray;
+	cSettingFormat.uiDisplayType = CSETTING_UI_DISPLAY_TYPE_NAME;
 
 	cState.cSetting[0] = &cSettingMode;
 	cState.cSetting[1] = &cSettingWidth;
 	cState.cSetting[2] = &cSettingHeight;
 	cState.cSetting[3] = &cSettingFPS;
 	cState.cSetting[4] = &cSettingShutter;
+	cState.cSetting[5] = &cSettingFormat;
 }
 
 u8 cameraStateSettingEnabled(u8 id, u8 val)

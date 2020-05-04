@@ -35,6 +35,11 @@ THE SOFTWARE.
 
 // Public Pre-Processor Definitions ------------------------------------------------------------------------------------
 
+#define CSTATE_NUM_SETTINGS 6
+
+#define CSETTING_UI_DISPLAY_TYPE_NAME 0
+#define CSETTING_UI_DISPLAY_TYPE_VAL 1
+
 // Public Type Definitions ---------------------------------------------------------------------------------------------
 
 typedef struct
@@ -46,11 +51,12 @@ typedef struct
 
 	char * strName;
 	char ** strValArray;
+	u8 uiDisplayType;
 } CameraSetting_s;
 
 typedef struct
 {
-	CameraSetting_s * cSetting[5];
+	CameraSetting_s * cSetting[CSTATE_NUM_SETTINGS];
 } CameraState_s;
 
 // Public Function Prototypes ------------------------------------------------------------------------------------------
