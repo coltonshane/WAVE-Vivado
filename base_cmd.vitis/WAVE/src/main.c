@@ -43,6 +43,7 @@
 #include "nvme.h"
 #include "fs.h"
 #include "frame.h"
+#include "camera_state.h"
 
 #include "xscugic.h"
 #include "xil_cache.h"
@@ -137,8 +138,10 @@ int main()
 
     hdmiInit();
     usbInit();
-    uiTest();
     frameInit();
+
+    cameraStateInit();
+    uiTest();
 
     // Main loop.
     while(!triggerShutdown)

@@ -1,5 +1,11 @@
 /*
-UI Include
+WAVE State Machine Includes
+
+cState defines the entire configurable state of the camera. This includes
+all settings that can be changed on the fly from the UI, external commands,
+loading of saved configurations, etc. It drives all subsystem and peripheral
+configuration steps through PushCameraState(), a one-way process that assumes
+success, i.e. a valid CameraState to push.
 
 Copyright (C) 2020 by Shane W. Colton
 
@@ -22,8 +28,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef __UI_INCLUDE__
-#define __UI_INCLUDE__
+#ifndef __CAMERA_STATE_INCLUDE__
+#define __CAMERA_STATE_INCLUDE__
 
 // Include Headers -----------------------------------------------------------------------------------------------------
 
@@ -31,13 +37,31 @@ THE SOFTWARE.
 
 // Public Type Definitions ---------------------------------------------------------------------------------------------
 
+typedef struct
+{
+	u8 id;
+	u8 val;
+	u8 count;
+	u64 enable[4];
+
+	char * strName;
+	char ** strValArray;
+
+	u8 uiWidth;
+	u8 uiOffset;
+} CameraSetting_s;
+
+typedef struct
+{
+	CameraSetting_s * cSetting[5];
+} CameraState_s;
+
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
-void isrUI(void *CallBackRef, u32 Bank, u32 Status);
-
-void uiTest(void);
-void uiService(void);
+void cameraStateInit(void);
+u8 cameraStateSettingEnabled(u8 id, u8 val);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
+extern CameraState_s cState;
 
 #endif

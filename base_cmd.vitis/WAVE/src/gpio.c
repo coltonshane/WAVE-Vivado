@@ -25,6 +25,7 @@ THE SOFTWARE.
 // Include Headers -----------------------------------------------------------------------------------------------------
 
 #include "gpio.h"
+#include "ui.h"
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
@@ -33,8 +34,6 @@ THE SOFTWARE.
 // Private Type Definitions --------------------------------------------------------------------------------------------
 
 // Private Function Prototypes -----------------------------------------------------------------------------------------
-
-void isrUI(void *CallBackRef, u32 Bank, u32 Status);
 
 // Public Global Variables ---------------------------------------------------------------------------------------------
 
@@ -45,11 +44,6 @@ XGpioPs Gpio;
 XGpioPs_Config *gpioConfig;
 
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
-extern u32 triggerRecordStartStop;
-void isrUI(void *CallBackRef, u32 Bank, u32 Status)
-{
-	triggerRecordStartStop = 1;
-}
 
 // Public Function Definitions -----------------------------------------------------------------------------------------
 
