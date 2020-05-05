@@ -60,7 +60,7 @@ THE SOFTWARE.
 
 typedef struct
 {
-	char strName[8];
+	char strName[9];
 	float fVal;
 } CameraSettingValue_s;
 
@@ -70,6 +70,7 @@ typedef struct
 	u8 val;
 	u8 count;
 	u64 enable[4];
+	u64 user[4];
 
 	char * strName;
 	char * strValFormat;
@@ -88,6 +89,7 @@ typedef struct
 
 void cStateInit(void);
 u8 cStateSettingEnabled(u8 id, u8 val);
+u8 cStateSettingUser(u8 id, u8 val);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
 extern CameraState_s cState;

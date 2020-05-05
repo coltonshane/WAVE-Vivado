@@ -101,6 +101,8 @@ int popMenuActive = -1;
 u8 popMenuVal[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 u8 popMenuSelectedVal = 0xFF;
 
+int userInputActive = -1;
+
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 
 void isrUI(void *CallBackRef, u32 Bank, u32 Status)
@@ -242,29 +244,65 @@ void uiService(void)
 		}
 		else
 		{
-			if(uiEncClicked)
+			if(userInputActive == -1)
 			{
-				// Apply new setting and close the pop menu.
-				cState.cSetting[popMenuActive]->SetVal(popMenuSelectedVal);
-				uiBuildTopMenu(); 		// To reflect the new setting.
-				popMenuActive = -1;
-				uiHide(UI_ID_POP);
-			}
-			else if(uiEncScrolled > 0)
-			{
-				// Scroll down in pop menu (if possible).
-				if(popMenuVal[4] < 0xFF)
+				if(uiEncClicked)
 				{
-					popMenuSelectedVal = popMenuVal[4];
-					uiBuildPopMenu();
+					if(cStateSettingUser(topMenuSelectedSetting, popMenuSelectedVal))
+					{
+						// Enter user input state.
+						userInputActive = 1;
+						uiBuildPopMenu();
+					}
+					else
+					{
+						// Apply new setting and close the pop menu.
+						cState.cSetting[popMenuActive]->SetVal(popMenuSelectedVal);
+						uiBuildTopMenu(); 		// To reflect the new setting.
+						popMenuActive = -1;
+						uiHide(UI_ID_POP);
+					}
+				}
+				else if(uiEncScrolled > 0)
+				{
+					// Scroll down in pop menu (if possible).
+					if(popMenuVal[4] < 0xFF)
+					{
+						popMenuSelectedVal = popMenuVal[4];
+						uiBuildPopMenu();
+					}
+				}
+				else if(uiEncScrolled < 0)
+				{
+					// Scroll up in pop menu (if possible).
+					if(popMenuVal[2] < 0xFF)
+					{
+						popMenuSelectedVal = popMenuVal[2];
+						uiBuildPopMenu();
+					}
 				}
 			}
-			else if(uiEncScrolled < 0)
+			else
 			{
-				// Scroll up in pop menu (if possible).
-				if(popMenuVal[2] < 0xFF)
+				if(uiEncClicked)
 				{
-					popMenuSelectedVal = popMenuVal[2];
+					// Exit user input stage, apply new setting, and close the pop menu.
+					cState.cSetting[popMenuActive]->SetVal(popMenuSelectedVal);
+					uiBuildTopMenu(); 		// To reflect the new setting.
+					userInputActive = -1;
+					popMenuActive = -1;
+					uiHide(UI_ID_POP);
+				}
+				else if(uiEncScrolled > 0)
+				{
+					// Increment the user value.
+					cState.cSetting[topMenuSelectedSetting]->valArray[popMenuSelectedVal].fVal += 1.0f;
+					uiBuildPopMenu();
+				}
+				else if(uiEncScrolled < 0)
+				{
+					// Decrement the user value.
+					cState.cSetting[topMenuSelectedSetting]->valArray[popMenuSelectedVal].fVal -= 1.0f;
 					uiBuildPopMenu();
 				}
 			}
@@ -297,7 +335,7 @@ uiServiceComplete:
 void uiBuildTopMenu(void)
 {
 	u8 col;
-	char strFormat[8];
+	char strVal[8];
 
 	uiDrawStringColRow(UI_ID_TOP, "X", 0, 0);
 	for(u8 i = 0; i < CSTATE_NUM_SETTINGS; i++)
@@ -309,8 +347,8 @@ void uiBuildTopMenu(void)
 			uiDrawStringColRow(UI_ID_TOP, cState.cSetting[i]->valArray[cState.cSetting[i]->val].strName, col, 0);
 			break;
 		case CSETTING_UI_DISPLAY_TYPE_VAL_FORMAT_INT:
-			sprintf(strFormat, cState.cSetting[i]->strValFormat, (int)(cState.cSetting[i]->valArray[cState.cSetting[i]->val].fVal));
-			uiDrawStringColRow(UI_ID_TOP, strFormat, col, 0);
+			sprintf(strVal, cState.cSetting[i]->strValFormat, (int)(cState.cSetting[i]->valArray[cState.cSetting[i]->val].fVal));
+			uiDrawStringColRow(UI_ID_TOP, strVal, col, 0);
 			break;
 		case CSETTING_UI_DISPLAY_TYPE_NAME:
 		default:
@@ -332,6 +370,7 @@ void uiBuildPopMenu()
 {
 	popMenuVal[3] = popMenuSelectedVal;
 	u8 idSetting = topMenuSelectedSetting;
+	char strVal[8];
 
 	// Populate valid settings in the forward direction.
 	u8 val = popMenuSelectedVal;
@@ -380,7 +419,16 @@ void uiBuildPopMenu()
 	{
 		if(popMenuVal[i] < 0xFF)
 		{
-			uiDrawStringColRow(UI_ID_POP, cState.cSetting[idSetting]->valArray[popMenuVal[i]].strName, 0, i);
+			if((i == 3) && (userInputActive == 1))
+			{
+				// If the user input is active, show the formatted value instead of its string array entry.
+				sprintf(strVal, cState.cSetting[i]->strValFormat, (int)(cState.cSetting[i]->valArray[popMenuVal[i]].fVal));
+				uiDrawStringColRow(UI_ID_POP, strVal, 0, i);
+			}
+			else
+			{
+				uiDrawStringColRow(UI_ID_POP, cState.cSetting[idSetting]->valArray[popMenuVal[i]].strName, 0, i);
+			}
 		}
 		else
 		{

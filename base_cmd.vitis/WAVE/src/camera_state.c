@@ -203,6 +203,10 @@ void cStateInit(void)
 	cSettingMode.enable[1] = 0x0000000000000000;
 	cSettingMode.enable[2] = 0x0000000000000000;
 	cSettingMode.enable[3] = 0x0000000000000000;
+	cSettingMode.user[0] = 0x0000000000000000;
+	cSettingMode.user[1] = 0x0000000000000000;
+	cSettingMode.user[2] = 0x0000000000000000;
+	cSettingMode.user[3] = 0x0000000000000000;
 	cSettingMode.strName = cSettingModeName;
 	cSettingMode.strValFormat = cSettingModeValFormat;
 	cSettingMode.valArray = cSettingModeValArray;
@@ -216,6 +220,10 @@ void cStateInit(void)
 	cSettingWidth.enable[1] = 0x0000000000000000;
 	cSettingWidth.enable[2] = 0x0000000000000000;
 	cSettingWidth.enable[3] = 0x0000000000000000;
+	cSettingWidth.user[0] = 0x0000000000000000;
+	cSettingWidth.user[1] = 0x0000000000000000;
+	cSettingWidth.user[2] = 0x0000000000000000;
+	cSettingWidth.user[3] = 0x0000000000000000;
 	cSettingWidth.strName = cSettingWidthName;
 	cSettingWidth.strValFormat = cSettingWidthValFormat;
 	cSettingWidth.valArray = cSettingWidthValArray;
@@ -229,6 +237,10 @@ void cStateInit(void)
 	cSettingHeight.enable[1] = 0x0000000000000000;
 	cSettingHeight.enable[2] = 0x0000000000000000;
 	cSettingHeight.enable[3] = 0x0000000000000000;
+	cSettingHeight.user[0] = 0x0000000000000000;
+	cSettingHeight.user[1] = 0x0000000000000000;
+	cSettingHeight.user[2] = 0x0000000000000000;
+	cSettingHeight.user[3] = 0x0000000000000000;
 	cSettingHeight.strName = cSettingHeightName;
 	cSettingHeight.strValFormat = cSettingHeightValFormat;
 	cSettingHeight.valArray = cSettingHeightValArray;
@@ -242,6 +254,10 @@ void cStateInit(void)
 	cSettingFPS.enable[1] = 0x0000000000000000;
 	cSettingFPS.enable[2] = 0x0000000000000000;
 	cSettingFPS.enable[3] = 0x0000000000000000;
+	cSettingFPS.user[0] = 0x0000000000000001;
+	cSettingFPS.user[1] = 0x0000000000000000;
+	cSettingFPS.user[2] = 0x0000000000000000;
+	cSettingFPS.user[3] = 0x0000000000000000;
 	cSettingFPS.strName = cSettingFPSName;
 	cSettingFPS.strValFormat = cSettingFPSValFormat;
 	cSettingFPS.valArray = cSettingFPSValArray;
@@ -255,6 +271,10 @@ void cStateInit(void)
 	cSettingShutter.enable[1] = 0x0000000000000000;
 	cSettingShutter.enable[2] = 0x0000000000000000;
 	cSettingShutter.enable[3] = 0x0000000000000000;
+	cSettingShutter.user[0] = 0x0000000000000000;
+	cSettingShutter.user[1] = 0x0000000000000000;
+	cSettingShutter.user[2] = 0x0000000000000000;
+	cSettingShutter.user[3] = 0x0000000000000000;
 	cSettingShutter.strName = cSettingShutterName;
 	cSettingShutter.strValFormat = cSettingShutterValFormat;
 	cSettingShutter.valArray = cSettingShutterValArray;
@@ -268,6 +288,10 @@ void cStateInit(void)
 	cSettingFormat.enable[1] = 0x0000000000000000;
 	cSettingFormat.enable[2] = 0x0000000000000000;
 	cSettingFormat.enable[3] = 0x0000000000000000;
+	cSettingFormat.user[0] = 0x0000000000000000;
+	cSettingFormat.user[1] = 0x0000000000000000;
+	cSettingFormat.user[2] = 0x0000000000000000;
+	cSettingFormat.user[3] = 0x0000000000000000;
 	cSettingFormat.strName = cSettingFormatName;
 	cSettingFormat.strValFormat = cSettingFormatValFormat;
 	cSettingFormat.valArray = cSettingFormatValArray;
@@ -287,6 +311,13 @@ u8 cStateSettingEnabled(u8 id, u8 val)
 	u8 word = val / 64;
 	u8 bit = val % 64;
 	return ((cState.cSetting[id]->enable[word]) >> (bit)) & 0x1;
+}
+
+u8 cStateSettingUser(u8 id, u8 val)
+{
+	u8 word = val / 64;
+	u8 bit = val % 64;
+	return ((cState.cSetting[id]->user[word]) >> (bit)) & 0x1;
 }
 
 // Private Function Definitions ----------------------------------------------------------------------------------------
