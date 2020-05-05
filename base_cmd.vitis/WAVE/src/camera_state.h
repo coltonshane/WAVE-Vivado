@@ -37,10 +37,21 @@ THE SOFTWARE.
 
 #define CSTATE_NUM_SETTINGS 6
 
+#define CSETTING_MODE 0
+#define CSETTING_MODE_STANDBY 0
+#define CSETTING_MODE_REC 1
+#define CSETTING_MODE_PLAYBACK 2
+
 #define CSETTING_UI_DISPLAY_TYPE_NAME 0
 #define CSETTING_UI_DISPLAY_TYPE_VAL 1
 
 // Public Type Definitions ---------------------------------------------------------------------------------------------
+
+typedef struct
+{
+	char strName[8];
+	float fVal;
+} CameraSettingValue_s;
 
 typedef struct
 {
@@ -50,7 +61,7 @@ typedef struct
 	u64 enable[4];
 
 	char * strName;
-	char ** strValArray;
+	CameraSettingValue_s * valArray;
 	u8 uiDisplayType;
 } CameraSetting_s;
 

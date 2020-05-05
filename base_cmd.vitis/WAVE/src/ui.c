@@ -150,11 +150,39 @@ void uiService(void)
 {
 	char strResult[9];
 
-	// Massive menu state machine.
+	// Menu state machine.
+	// ---------------------------------------------------------------------------------------------
+
+	// Record button has highest priority in REC and STANDBY modes.
+	if(cState.cSetting[CSETTING_MODE]->val == CSETTING_MODE_REC)
+	{
+		if(uiRecClicked)
+		{
+			// End clip.
+			cState.cSetting[CSETTING_MODE]->val = CSETTING_MODE_STANDBY;
+			uiBuildTopMenu();
+		}
+		goto uiServiceComplete;
+	}
+	else if(cState.cSetting[CSETTING_MODE]->val == CSETTING_MODE_STANDBY)
+	{
+		if(uiRecClicked)
+		{
+			// Start clip.
+			cState.cSetting[CSETTING_MODE]->val = CSETTING_MODE_REC;
+			uiBuildTopMenu();
+			popMenuActive = -1;
+			uiHide(UI_ID_POP);
+			goto uiServiceComplete;
+		}
+	}
+
+	// Otherwise, handle encoder-based menu interactions.
 	if(topMenuActive == -1)
 	{
 		if(uiEncClicked)
 		{
+			// Open the top menu.
 			topMenuActive = 1;
 			topMenuSelectedSetting = -1;
 			popMenuActive = -1;
@@ -187,6 +215,7 @@ void uiService(void)
 			}
 			else if(uiEncScrolled > 0)
 			{
+				// Scroll right on top menu (if possible).
 				topMenuSelectedSetting++;
 				if(topMenuSelectedSetting > (CSTATE_NUM_SETTINGS - 1))
 				{
@@ -199,6 +228,7 @@ void uiService(void)
 			}
 			else if(uiEncScrolled < 0)
 			{
+				// Scroll left on top menu (if possible).
 				topMenuSelectedSetting--;
 				if(topMenuSelectedSetting < -1)
 				{
@@ -240,6 +270,9 @@ void uiService(void)
 			}
 		}
 	}
+	// ---------------------------------------------------------------------------------------------
+
+uiServiceComplete:
 
 	// Discard UI events, even if they are unused.
 	uiRecClicked = 0;
@@ -272,7 +305,7 @@ void uiBuildTopMenu(void)
 		switch(cState.cSetting[i]->uiDisplayType)
 		{
 		case CSETTING_UI_DISPLAY_TYPE_VAL:
-			uiDrawStringColRow(UI_ID_TOP, cState.cSetting[i]->strValArray[cState.cSetting[i]->val], col, 0);
+			uiDrawStringColRow(UI_ID_TOP, cState.cSetting[i]->valArray[cState.cSetting[i]->val].strName, col, 0);
 			break;
 		case CSETTING_UI_DISPLAY_TYPE_NAME:
 		default:
@@ -342,7 +375,7 @@ void uiBuildPopMenu()
 	{
 		if(popMenuVal[i] < 0xFF)
 		{
-			uiDrawStringColRow(UI_ID_POP, cState.cSetting[idSetting]->strValArray[popMenuVal[i]], 0, i);
+			uiDrawStringColRow(UI_ID_POP, cState.cSetting[idSetting]->valArray[popMenuVal[i]].strName, 0, i);
 		}
 		else
 		{
