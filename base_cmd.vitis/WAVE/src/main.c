@@ -139,7 +139,7 @@ int main()
     hdmiInit();
     usbInit();
     frameInit();
-    cameraStateInit();
+    cStateInit();
     uiInit();
 
     // Main loop.

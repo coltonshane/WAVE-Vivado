@@ -29,9 +29,19 @@ THE SOFTWARE.
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
+#define CSETTING_HEIGHT_ENABLE_4K 0x000000000FFFFFFF
+#define CSETTING_HEIGHT_ENABLE_2K 0x000000000FFFFFC0
+
 // Private Type Definitions --------------------------------------------------------------------------------------------
 
 // Private Function Prototypes -----------------------------------------------------------------------------------------
+
+void cSettingModeSetVal(u8 val);
+void cSettingWidthSetVal(u8 val);
+void cSettingHeightSetVal(u8 val);
+void cSettingFPSSetVal(u8 val);
+void cSettingShutterSetVal(u8 val);
+void cSettingFormatSetVal(u8 val);
 
 // Public Global Variables ---------------------------------------------------------------------------------------------
 
@@ -46,46 +56,51 @@ CameraSetting_s cSettingShutter;
 CameraSetting_s cSettingFormat;
 
 char * cSettingModeName = "  MODE  ";
+char * cSettingModeValFormat = " %6d ";
 CameraSettingValue_s cSettingModeValArray[] = {{" STANDBY", 0.0f},
 											   {"   REC  ", 1.0f},
 											   {"PLAYBACK", 2.0f}};
 
 char * cSettingWidthName = "  WIDTH ";
+char * cSettingWidthValFormat = "  %4d x";
 CameraSettingValue_s cSettingWidthValArray[] = {{"  4096 x", 4096.0f},
 												{"  2048 x", 2048.0f}};
 
-char * cSettingHeightName = " HEIGHT ";									// 	4K	2K
-CameraSettingValue_s cSettingHeightValArray[] = {{"  3072p ", 3072.0f},	//	1x	No
-												 {"  2304p ", 2304.0f},	//	1x	No
-												 {"  2176p ", 2176.0f},	// 	1x	No
-												 {"  2048p ", 2048.0f},	//	1x	No
-												 {"  1760p ", 1760.0f},	//	1x	No
-												 {"  1600p ", 1600.0f},	//	1x	No
-												 {"  1536p ", 1536.0f},	//	2x	1x
-												 {"  1440p ", 1440.0f},	//  2x	1x
-												 {"  1280p ", 1280.0f},	//	2x	1x
-												 {"  1152p ", 1152.0f},	//  2x	1x
-												 {"  1120p ", 1120.0f},	//	2x	1x
-												 {"  1088p ", 1088.0f},	//	2x	1x
-												 {"  1024p ", 1024.0f},	//	3x	1x
-												 {"   960p ", 960.0f},	//	3x	1x
-												 {"   880p ", 880.0f},	//	3x	1x
-												 {"   800p ", 800.0f},	//  3X  1x
-												 {"   768p ", 768.0f},	//  4x  2x
-												 {"   720p ", 720.0f},  //  4x  2x
-												 {"   640p ", 640.0f},	//  4x  2x
-												 {"   560p ", 560.0f},	//  5x  2x
-												 {"   512p ", 512.0f},	//  6x  3x
-												 {"   480p ", 480.0f},  //  6x  3x
-												 {"   384p ", 384.0f},	//  8x	4x
-												 {"   360p ", 360.0f},	//  8x  4x
-												 {"   256p ", 256.0f},  // 12x  6x
-												 {"   240p ", 240.0f},  // 12x  6x
-												 {"   192p ", 192.0f},	// 16x  8x
-												 {"   128p ", 128.0f}}; // 24x 12x
+char * cSettingHeightName = " HEIGHT ";
+char * cSettingHeightValFormat = "%6dp ";								// 		4K	2K
+CameraSettingValue_s cSettingHeightValArray[] = {{"  3072p ", 3072.0f},	//	0	1x	No
+												 {"  2304p ", 2304.0f},	//	1	1x	No
+												 {"  2176p ", 2176.0f},	// 	2	1x	No
+												 {"  2048p ", 2048.0f},	//	3	1x	No
+												 {"  1760p ", 1760.0f},	//	4	1x	No
+												 {"  1600p ", 1600.0f},	//	5	1x	No
+												 {"  1536p ", 1536.0f},	//	6	2x	1x
+												 {"  1440p ", 1440.0f},	//  7	2x	1x
+												 {"  1280p ", 1280.0f},	//	8	2x	1x
+												 {"  1152p ", 1152.0f},	//  9	2x	1x
+												 {"  1120p ", 1120.0f},	//  10	2x	1x
+												 {"  1088p ", 1088.0f},	//  11	2x	1x
+												 {"  1024p ", 1024.0f},	//  12	3x	1x
+												 {"   960p ", 960.0f},	//  13	3x	1x
+												 {"   880p ", 880.0f},	//  14	3x	1x
+												 {"   800p ", 800.0f},	//  15	3X  1x
+												 {"   768p ", 768.0f},	//  16	4x  2x
+												 {"   720p ", 720.0f},  //  17	4x  2x
+												 {"   640p ", 640.0f},	//  18	4x  2x
+												 {"   560p ", 560.0f},	//  19	5x  2x
+												 {"   512p ", 512.0f},	//  20	6x  3x
+												 {"   480p ", 480.0f},  //  21	6x  3x
+												 {"   384p ", 384.0f},	//  22	8x	4x
+												 {"   360p ", 360.0f},	//  23	8x  4x
+												 {"   256p ", 256.0f},  //  24	12x  6x
+												 {"   240p ", 240.0f},  //  25	12x  6x
+												 {"   192p ", 192.0f},	//  26	16x  8x
+												 {"   128p ", 128.0f}}; //  27	24x 12x
 
 char * cSettingFPSName = "   FPS  ";
-CameraSettingValue_s cSettingFPSValArray[] = {{" MAX fps", 0.0f},
+char * cSettingFPSValFormat = "%4d fps";
+CameraSettingValue_s cSettingFPSValArray[] = {{"USER fps", 111.0f},
+											  {" MAX fps", 444.0f},
 											  {"  24 fps", 24.0f},
 											  {"  25 fps", 25.0f},
 											  {"  30 fps", 30.0f},
@@ -149,6 +164,7 @@ CameraSettingValue_s cSettingFPSValArray[] = {{" MAX fps", 0.0f},
 											  {"9600 fps", 9600.0f}};
 
 char * cSettingShutterName = " SHUTTER";
+char * cSettingShutterValFormat = " %6d ";
 CameraSettingValue_s cSettingShutterValArray[] = {{"   360* ", 360.0f},				// +1
 												  {"   270* ", 270.0f},
 												  {"   180* ", 180.0f},				//  0
@@ -170,6 +186,7 @@ CameraSettingValue_s cSettingShutterValArray[] = {{"   360* ", 360.0f},				// +1
 												  {"  0.70* ", 0.703125f}}; 		// -8
 
 char * cSettingFormatName = " FORMAT ";
+char * cSettingFormatValFormat = " %6d ";
 CameraSettingValue_s cSettingFormatValArray[] = {{"Cancel  ", 0.0f},
 												 {"Confirm ", 1.0f}};
 
@@ -177,7 +194,7 @@ CameraSettingValue_s cSettingFormatValArray[] = {{"Cancel  ", 0.0f},
 
 // Public Function Definitions -----------------------------------------------------------------------------------------
 
-void cameraStateInit(void)
+void cStateInit(void)
 {
 	cSettingMode.id = 0;
 	cSettingMode.val = 0;
@@ -187,8 +204,10 @@ void cameraStateInit(void)
 	cSettingMode.enable[2] = 0x0000000000000000;
 	cSettingMode.enable[3] = 0x0000000000000000;
 	cSettingMode.strName = cSettingModeName;
+	cSettingMode.strValFormat = cSettingModeValFormat;
 	cSettingMode.valArray = cSettingModeValArray;
-	cSettingMode.uiDisplayType = CSETTING_UI_DISPLAY_TYPE_VAL;
+	cSettingMode.uiDisplayType = CSETTING_UI_DISPLAY_TYPE_VAL_ARRAY;
+	cSettingMode.SetVal = &cSettingModeSetVal;
 
 	cSettingWidth.id = 1;
 	cSettingWidth.val = 0;
@@ -198,30 +217,36 @@ void cameraStateInit(void)
 	cSettingWidth.enable[2] = 0x0000000000000000;
 	cSettingWidth.enable[3] = 0x0000000000000000;
 	cSettingWidth.strName = cSettingWidthName;
+	cSettingWidth.strValFormat = cSettingWidthValFormat;
 	cSettingWidth.valArray = cSettingWidthValArray;
-	cSettingWidth.uiDisplayType = CSETTING_UI_DISPLAY_TYPE_VAL;
+	cSettingWidth.uiDisplayType = CSETTING_UI_DISPLAY_TYPE_VAL_ARRAY;
+	cSettingWidth.SetVal = &cSettingWidthSetVal;
 
 	cSettingHeight.id = 2;
 	cSettingHeight.val = 2;
 	cSettingHeight.count = 28;
-	cSettingHeight.enable[0] = 0x000000000000001F;
+	cSettingHeight.enable[0] = CSETTING_HEIGHT_ENABLE_4K;
 	cSettingHeight.enable[1] = 0x0000000000000000;
 	cSettingHeight.enable[2] = 0x0000000000000000;
 	cSettingHeight.enable[3] = 0x0000000000000000;
 	cSettingHeight.strName = cSettingHeightName;
+	cSettingHeight.strValFormat = cSettingHeightValFormat;
 	cSettingHeight.valArray = cSettingHeightValArray;
-	cSettingHeight.uiDisplayType = CSETTING_UI_DISPLAY_TYPE_VAL;
+	cSettingHeight.uiDisplayType = CSETTING_UI_DISPLAY_TYPE_VAL_FORMAT_INT;
+	cSettingHeight.SetVal = &cSettingHeightSetVal;
 
 	cSettingFPS.id = 3;
 	cSettingFPS.val = 1;
-	cSettingFPS.count = 62;
+	cSettingFPS.count = 63;
 	cSettingFPS.enable[0] = 0x000000007FFFFFFF;
 	cSettingFPS.enable[1] = 0x0000000000000000;
 	cSettingFPS.enable[2] = 0x0000000000000000;
 	cSettingFPS.enable[3] = 0x0000000000000000;
 	cSettingFPS.strName = cSettingFPSName;
+	cSettingFPS.strValFormat = cSettingFPSValFormat;
 	cSettingFPS.valArray = cSettingFPSValArray;
-	cSettingFPS.uiDisplayType = CSETTING_UI_DISPLAY_TYPE_VAL;
+	cSettingFPS.uiDisplayType = CSETTING_UI_DISPLAY_TYPE_VAL_FORMAT_INT;
+	cSettingFPS.SetVal = &cSettingFPSSetVal;
 
 	cSettingShutter.id = 4;
 	cSettingShutter.val = 2;
@@ -231,8 +256,10 @@ void cameraStateInit(void)
 	cSettingShutter.enable[2] = 0x0000000000000000;
 	cSettingShutter.enable[3] = 0x0000000000000000;
 	cSettingShutter.strName = cSettingShutterName;
+	cSettingShutter.strValFormat = cSettingShutterValFormat;
 	cSettingShutter.valArray = cSettingShutterValArray;
-	cSettingShutter.uiDisplayType = CSETTING_UI_DISPLAY_TYPE_VAL;
+	cSettingShutter.uiDisplayType = CSETTING_UI_DISPLAY_TYPE_VAL_ARRAY;
+	cSettingShutter.SetVal = &cSettingShutterSetVal;
 
 	cSettingFormat.id = 5;
 	cSettingFormat.val = 0;
@@ -242,8 +269,10 @@ void cameraStateInit(void)
 	cSettingFormat.enable[2] = 0x0000000000000000;
 	cSettingFormat.enable[3] = 0x0000000000000000;
 	cSettingFormat.strName = cSettingFormatName;
+	cSettingFormat.strValFormat = cSettingFormatValFormat;
 	cSettingFormat.valArray = cSettingFormatValArray;
 	cSettingFormat.uiDisplayType = CSETTING_UI_DISPLAY_TYPE_NAME;
+	cSettingFormat.SetVal = &cSettingFormatSetVal;
 
 	cState.cSetting[0] = &cSettingMode;
 	cState.cSetting[1] = &cSettingWidth;
@@ -253,7 +282,7 @@ void cameraStateInit(void)
 	cState.cSetting[5] = &cSettingFormat;
 }
 
-u8 cameraStateSettingEnabled(u8 id, u8 val)
+u8 cStateSettingEnabled(u8 id, u8 val)
 {
 	u8 word = val / 64;
 	u8 bit = val % 64;
@@ -261,3 +290,89 @@ u8 cameraStateSettingEnabled(u8 id, u8 val)
 }
 
 // Private Function Definitions ----------------------------------------------------------------------------------------
+
+void cSettingModeSetVal(u8 val)
+{
+	switch(cSettingMode.val)
+	{
+	case CSETTING_MODE_STANDBY:
+		if(val == CSETTING_MODE_REC)
+		{
+			// Start a new clip.
+			cSettingMode.val = CSETTING_MODE_REC;
+		}
+		break;
+	case CSETTING_MODE_REC:
+		if(val == CSETTING_MODE_STANDBY)
+		{
+			// End clip.
+			cSettingMode.val = CSETTING_MODE_STANDBY;
+		}
+		break;
+	}
+}
+
+void cSettingWidthSetVal(u8 val)
+{
+	float newHeightTarget;
+	u8 newHeight;
+
+	if(!cStateSettingEnabled(CSETTING_WIDTH, val)) { return; }
+
+	// Enable/disable valid heights.
+	if(val == CSETTING_WIDTH_4K)
+	{ cSettingHeight.enable[0] = CSETTING_HEIGHT_ENABLE_4K; }
+	else
+	{ cSettingHeight.enable[0] = CSETTING_HEIGHT_ENABLE_2K; }
+
+	// When switching between 2K and 4K, preserve aspect ratio if possible.
+	newHeightTarget = cSettingHeight.valArray[cSettingHeight.val].fVal;
+	newHeightTarget *= cSettingWidth.valArray[val].fVal / cSettingWidth.valArray[cSettingWidth.val].fVal;
+	for(u8 i = 0; i < cSettingHeight.count; i++)
+	{
+		if((cSettingHeight.valArray[i].fVal <= newHeightTarget)
+		&& (cStateSettingEnabled(CSETTING_HEIGHT, i)))
+		{
+			// Accept the first height that is enabled and less than or equal to the target.
+			newHeight = i;
+			break;
+		}
+	}
+	if(newHeight != cSettingHeight.val)
+	{ cSettingHeightSetVal(newHeight); }
+
+	// Change the width.
+	cSettingWidth.val = val;
+}
+
+void cSettingHeightSetVal(u8 val)
+{
+	if(!cStateSettingEnabled(CSETTING_HEIGHT, val)) { return; }
+
+	// Change the height.
+	cSettingHeight.val = val;
+}
+
+void cSettingFPSSetVal(u8 val)
+{
+	if(!cStateSettingEnabled(CSETTING_FPS, val)) { return; }
+
+	// Change the frame rate.
+	cSettingFPS.val = val;
+}
+
+void cSettingShutterSetVal(u8 val)
+{
+	if(!cStateSettingEnabled(CSETTING_SHUTTER, val)) { return; }
+
+	// Change the shutter angle.
+	cSettingShutter.val = val;
+}
+
+void cSettingFormatSetVal(u8 val)
+{
+	if(!cStateSettingEnabled(CSETTING_FORMAT, val)) { return; }
+
+	// Format.
+	cSettingFormat.val = val;
+}

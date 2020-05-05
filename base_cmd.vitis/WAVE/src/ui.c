@@ -159,7 +159,7 @@ void uiService(void)
 		if(uiRecClicked)
 		{
 			// End clip.
-			cState.cSetting[CSETTING_MODE]->val = CSETTING_MODE_STANDBY;
+			cState.cSetting[CSETTING_MODE]->SetVal(CSETTING_MODE_STANDBY);
 			uiBuildTopMenu();
 		}
 		goto uiServiceComplete;
@@ -168,8 +168,8 @@ void uiService(void)
 	{
 		if(uiRecClicked)
 		{
-			// Start clip.
-			cState.cSetting[CSETTING_MODE]->val = CSETTING_MODE_REC;
+			// Start clip and close pop-up menu if it's open.
+			cState.cSetting[CSETTING_MODE]->SetVal(CSETTING_MODE_REC);
 			uiBuildTopMenu();
 			popMenuActive = -1;
 			uiHide(UI_ID_POP);
@@ -245,7 +245,7 @@ void uiService(void)
 			if(uiEncClicked)
 			{
 				// Apply new setting and close the pop menu.
-				cState.cSetting[popMenuActive]->val = popMenuSelectedVal;
+				cState.cSetting[popMenuActive]->SetVal(popMenuSelectedVal);
 				uiBuildTopMenu(); 		// To reflect the new setting.
 				popMenuActive = -1;
 				uiHide(UI_ID_POP);
@@ -297,6 +297,7 @@ uiServiceComplete:
 void uiBuildTopMenu(void)
 {
 	u8 col;
+	char strFormat[8];
 
 	uiDrawStringColRow(UI_ID_TOP, "X", 0, 0);
 	for(u8 i = 0; i < CSTATE_NUM_SETTINGS; i++)
@@ -304,8 +305,12 @@ void uiBuildTopMenu(void)
 		col = 1 + 8 * i;
 		switch(cState.cSetting[i]->uiDisplayType)
 		{
-		case CSETTING_UI_DISPLAY_TYPE_VAL:
+		case CSETTING_UI_DISPLAY_TYPE_VAL_ARRAY:
 			uiDrawStringColRow(UI_ID_TOP, cState.cSetting[i]->valArray[cState.cSetting[i]->val].strName, col, 0);
+			break;
+		case CSETTING_UI_DISPLAY_TYPE_VAL_FORMAT_INT:
+			sprintf(strFormat, cState.cSetting[i]->strValFormat, (int)(cState.cSetting[i]->valArray[cState.cSetting[i]->val].fVal));
+			uiDrawStringColRow(UI_ID_TOP, strFormat, col, 0);
 			break;
 		case CSETTING_UI_DISPLAY_TYPE_NAME:
 		default:
@@ -342,7 +347,7 @@ void uiBuildPopMenu()
 			i++;
 			continue;
 		}
-		if(cameraStateSettingEnabled(idSetting, val))
+		if(cStateSettingEnabled(idSetting, val))
 		{
 			popMenuVal[i] = val;
 			i++;
@@ -363,7 +368,7 @@ void uiBuildPopMenu()
 			i--;
 			continue;
 		}
-		if(cameraStateSettingEnabled(idSetting, val))
+		if(cStateSettingEnabled(idSetting, val))
 		{
 			popMenuVal[i] = val;
 			i--;

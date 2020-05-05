@@ -42,8 +42,19 @@ THE SOFTWARE.
 #define CSETTING_MODE_REC 1
 #define CSETTING_MODE_PLAYBACK 2
 
+#define CSETTING_WIDTH 1
+#define CSETTING_WIDTH_4K 0
+#define CSETTING_WIDTH_2K 1
+
+#define CSETTING_HEIGHT 2
+
+#define CSETTING_FPS 3
+#define CSETTING_SHUTTER 4
+#define CSETTING_FORMAT 5
+
 #define CSETTING_UI_DISPLAY_TYPE_NAME 0
-#define CSETTING_UI_DISPLAY_TYPE_VAL 1
+#define CSETTING_UI_DISPLAY_TYPE_VAL_ARRAY 1
+#define CSETTING_UI_DISPLAY_TYPE_VAL_FORMAT_INT 2
 
 // Public Type Definitions ---------------------------------------------------------------------------------------------
 
@@ -61,8 +72,11 @@ typedef struct
 	u64 enable[4];
 
 	char * strName;
+	char * strValFormat;
 	CameraSettingValue_s * valArray;
 	u8 uiDisplayType;
+
+	void (*SetVal)(u8 val);
 } CameraSetting_s;
 
 typedef struct
@@ -72,8 +86,8 @@ typedef struct
 
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
-void cameraStateInit(void);
-u8 cameraStateSettingEnabled(u8 id, u8 val);
+void cStateInit(void);
+u8 cStateSettingEnabled(u8 id, u8 val);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
 extern CameraState_s cState;
