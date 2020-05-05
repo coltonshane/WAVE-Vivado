@@ -43,6 +43,10 @@ void cSettingFPSSetVal(u8 val);
 void cSettingShutterSetVal(u8 val);
 void cSettingFormatSetVal(u8 val);
 
+void cSettingSetEnabled(u8 id, u8 val, u8 en);
+
+float cStateGetMaxFPS(void);
+
 // Public Global Variables ---------------------------------------------------------------------------------------------
 
 // Private Global Variables --------------------------------------------------------------------------------------------
@@ -99,8 +103,8 @@ CameraSettingValue_s cSettingHeightValArray[] = {{"  3072p ", 3072.0f},	//	0	1x	
 
 char * cSettingFPSName = "   FPS  ";
 char * cSettingFPSValFormat = "%4d fps";
-CameraSettingValue_s cSettingFPSValArray[] = {{"USER fps", 111.0f},
-											  {" MAX fps", 444.0f},
+CameraSettingValue_s cSettingFPSValArray[] = {{"USER fps", 24.0f},
+											  {" MAX fps", 24.0f},
 											  {"  24 fps", 24.0f},
 											  {"  25 fps", 25.0f},
 											  {"  30 fps", 30.0f},
@@ -248,9 +252,9 @@ void cStateInit(void)
 	cSettingHeight.SetVal = &cSettingHeightSetVal;
 
 	cSettingFPS.id = 3;
-	cSettingFPS.val = 1;
+	cSettingFPS.val = 2;
 	cSettingFPS.count = 63;
-	cSettingFPS.enable[0] = 0x000000007FFFFFFF;
+	cSettingFPS.enable[0] = 0x7FFFFFFFFFFFFFFF;
 	cSettingFPS.enable[1] = 0x0000000000000000;
 	cSettingFPS.enable[2] = 0x0000000000000000;
 	cSettingFPS.enable[3] = 0x0000000000000000;
@@ -304,20 +308,31 @@ void cStateInit(void)
 	cState.cSetting[3] = &cSettingFPS;
 	cState.cSetting[4] = &cSettingShutter;
 	cState.cSetting[5] = &cSettingFormat;
+
+	// Manually trigger cSettingWidthSetVal() to make sure initial state is applied.
+	cSettingWidthSetVal(CSETTING_WIDTH_4K);
 }
 
-u8 cStateSettingEnabled(u8 id, u8 val)
+u8 cSettingGetEnabled(u8 id, u8 val)
 {
 	u8 word = val / 64;
 	u8 bit = val % 64;
-	return ((cState.cSetting[id]->enable[word]) >> (bit)) & 0x1;
+	return ((cState.cSetting[id]->enable[word]) >> bit) & 0x1;
 }
 
-u8 cStateSettingUser(u8 id, u8 val)
+void cSettingSetEnabled(u8 id, u8 val, u8 en)
 {
 	u8 word = val / 64;
 	u8 bit = val % 64;
-	return ((cState.cSetting[id]->user[word]) >> (bit)) & 0x1;
+	if(en) { cState.cSetting[id]->enable[word] |= ((u64)1 << bit); }
+	else { cState.cSetting[id]->enable[word] &= ~ ((u64)1 << bit); }
+}
+
+u8 cSettingGetUser(u8 id, u8 val)
+{
+	u8 word = val / 64;
+	u8 bit = val % 64;
+	return ((cState.cSetting[id]->user[word]) >> bit) & 0x1;
 }
 
 // Private Function Definitions ----------------------------------------------------------------------------------------
@@ -348,7 +363,7 @@ void cSettingWidthSetVal(u8 val)
 	float newHeightTarget;
 	u8 newHeight;
 
-	if(!cStateSettingEnabled(CSETTING_WIDTH, val)) { return; }
+	if(!cSettingGetEnabled(CSETTING_WIDTH, val)) { return; }
 
 	// Enable/disable valid heights.
 	if(val == CSETTING_WIDTH_4K)
@@ -359,34 +374,59 @@ void cSettingWidthSetVal(u8 val)
 	// When switching between 2K and 4K, preserve aspect ratio if possible.
 	newHeightTarget = cSettingHeight.valArray[cSettingHeight.val].fVal;
 	newHeightTarget *= cSettingWidth.valArray[val].fVal / cSettingWidth.valArray[cSettingWidth.val].fVal;
+	newHeight = cSettingHeight.count - 1;	// If no height is small enough, use the smallest.
 	for(u8 i = 0; i < cSettingHeight.count; i++)
 	{
 		if((cSettingHeight.valArray[i].fVal <= newHeightTarget)
-		&& (cStateSettingEnabled(CSETTING_HEIGHT, i)))
+		&& (cSettingGetEnabled(CSETTING_HEIGHT, i)))
 		{
 			// Accept the first height that is enabled and less than or equal to the target.
 			newHeight = i;
 			break;
 		}
 	}
-	if(newHeight != cSettingHeight.val)
-	{ cSettingHeightSetVal(newHeight); }
 
 	// Change the width.
 	cSettingWidth.val = val;
+
+	// Change the height. Always called after changing widths so that max FPS is updated.
+	cSettingHeightSetVal(newHeight);
 }
 
 void cSettingHeightSetVal(u8 val)
 {
-	if(!cStateSettingEnabled(CSETTING_HEIGHT, val)) { return; }
+	float maxFPS;
+
+	if(!cSettingGetEnabled(CSETTING_HEIGHT, val)) { return; }
 
 	// Change the height.
 	cSettingHeight.val = val;
+
+	// Enable/disable the static FPS values according to the new height.
+	maxFPS = cStateGetMaxFPS();
+	for(u8 i = 2; i < cSettingFPS.count; i++)
+	{
+		if(cSettingFPS.valArray[i].fVal <= maxFPS)
+		{ cSettingSetEnabled(CSETTING_FPS, i, 1); }
+		else
+		{ cSettingSetEnabled(CSETTING_FPS, i, 0); }
+	}
+
+	// Set the MAX FPS value.
+	cSettingFPS.valArray[CSETTING_FPS_MAX].fVal = (float)((int)maxFPS);
+
+	// Limit the USER FPS value.
+	if(cSettingFPS.valArray[CSETTING_FPS_USER].fVal > maxFPS)
+	{ cSettingFPS.valArray[CSETTING_FPS_USER].fVal = (float)((int)maxFPS); }
+
+	// If the current FPS value is too high, set it to MAX.
+	if(cSettingFPS.valArray[cSettingFPS.val].fVal > maxFPS)
+	{ cSettingFPSSetVal(CSETTING_FPS_MAX); }
 }
 
 void cSettingFPSSetVal(u8 val)
 {
-	if(!cStateSettingEnabled(CSETTING_FPS, val)) { return; }
+	if(!cSettingGetEnabled(CSETTING_FPS, val)) { return; }
 
 	// Change the frame rate.
 	cSettingFPS.val = val;
@@ -394,7 +434,7 @@ void cSettingFPSSetVal(u8 val)
 
 void cSettingShutterSetVal(u8 val)
 {
-	if(!cStateSettingEnabled(CSETTING_SHUTTER, val)) { return; }
+	if(!cSettingGetEnabled(CSETTING_SHUTTER, val)) { return; }
 
 	// Change the shutter angle.
 	cSettingShutter.val = val;
@@ -402,8 +442,38 @@ void cSettingShutterSetVal(u8 val)
 
 void cSettingFormatSetVal(u8 val)
 {
-	if(!cStateSettingEnabled(CSETTING_FORMAT, val)) { return; }
+	if(!cSettingGetEnabled(CSETTING_FORMAT, val)) { return; }
 
 	// Format.
 	cSettingFormat.val = val;
+}
+
+// Calculate the maximum FPS according to the CMV12000 datasheet.
+float cStateGetMaxFPS(void)
+{
+	float fPixel = 60E6f;
+	u8 reg82_MSB, reg85;
+	float hMult;
+	float tLine, tFOT, tFrame;
+	float fFrame;
+
+	if(cSettingWidth.valArray[cSettingWidth.val].fVal == 4096.0f)
+	{
+		reg82_MSB = 12;
+		reg85 = 128;
+		hMult = 0.5f;	// Reading in two rows in parallel.
+	}
+	else
+	{
+		reg82_MSB = 11;
+		reg85 = 143;
+		hMult = 0.25f;	// Reading in four rows in parallel.
+	}
+
+	tLine = (float)(reg85 + 1) / fPixel;
+	tFOT = (float)(reg82_MSB + 2) * tLine;
+	tFrame = tFOT + hMult * tLine * cSettingHeight.valArray[cSettingHeight.val].fVal;
+	fFrame = 1.0f / tFrame;
+
+	return fFrame;
 }

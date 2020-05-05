@@ -248,7 +248,7 @@ void uiService(void)
 			{
 				if(uiEncClicked)
 				{
-					if(cStateSettingUser(topMenuSelectedSetting, popMenuSelectedVal))
+					if(cSettingGetUser(topMenuSelectedSetting, popMenuSelectedVal))
 					{
 						// Enter user input state.
 						userInputActive = 1;
@@ -386,7 +386,7 @@ void uiBuildPopMenu()
 			i++;
 			continue;
 		}
-		if(cStateSettingEnabled(idSetting, val))
+		if(cSettingGetEnabled(idSetting, val))
 		{
 			popMenuVal[i] = val;
 			i++;
@@ -407,7 +407,7 @@ void uiBuildPopMenu()
 			i--;
 			continue;
 		}
-		if(cStateSettingEnabled(idSetting, val))
+		if(cSettingGetEnabled(idSetting, val))
 		{
 			popMenuVal[i] = val;
 			i--;

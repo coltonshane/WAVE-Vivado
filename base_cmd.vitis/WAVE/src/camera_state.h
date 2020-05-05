@@ -49,6 +49,9 @@ THE SOFTWARE.
 #define CSETTING_HEIGHT 2
 
 #define CSETTING_FPS 3
+#define CSETTING_FPS_USER 0
+#define CSETTING_FPS_MAX 1
+
 #define CSETTING_SHUTTER 4
 #define CSETTING_FORMAT 5
 
@@ -88,8 +91,8 @@ typedef struct
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
 void cStateInit(void);
-u8 cStateSettingEnabled(u8 id, u8 val);
-u8 cStateSettingUser(u8 id, u8 val);
+u8 cSettingGetEnabled(u8 id, u8 val);
+u8 cSettingGetUser(u8 id, u8 val);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
 extern CameraState_s cState;
