@@ -27,6 +27,7 @@ THE SOFTWARE.
 #include "cmv12000.h"
 #include "supervisor.h"
 #include "gpio.h"
+#include "camera_state.h"
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
@@ -149,51 +150,7 @@ void cmvInit(void)
 	usleep(1000);
 
 	cmvRegInit(&Spi0);
-
-	CMV_Settings_W.Number_lines_tot = 2304;
-	CMV_Settings_W.Y_start_1 = 384;
-	CMV_Settings_W.Sub_offset = 0;
-	CMV_Settings_W.Sub_step = 1;
-	CMV_Settings_W.Sub_en = 0;
-	CMV_Settings_W.Exp_time_L = 800;
-	CMV_Settings_W.Exp_time_H = 0;
-	CMV_Settings_W.Exp_kp1_L = 80;
-	CMV_Settings_W.Exp_kp1_H = 0;
-	CMV_Settings_W.Exp_kp2_L = 8;
-	CMV_Settings_W.Exp_kp2_H = 0;
-	CMV_Settings_W.Number_slopes = 1;
-	CMV_Settings_W.Setting_1 = 3099;
-	CMV_Settings_W.Setting_2 = 5893;
-	CMV_Settings_W.Setting_3 = 128;
-	CMV_Settings_W.Setting_4 = 128;
-	CMV_Settings_W.Setting_5 = 128;
-	CMV_Settings_W.Offset_bot = 520;
-	CMV_Settings_W.Offset_top = 520;
-	CMV_Settings_W.Reg_98 = 44812;
-	CMV_Settings_W.Vtfl = 84 * 128 + 104;
-	CMV_Settings_W.Setting_6 = 789;
-	CMV_Settings_W.Setting_7 = 84;
-	CMV_Settings_W.PGA_gain = CMV_REG_VAL_PGA_GAIN_X1;
-	CMV_Settings_W.DIG_gain = 4;
-	CMV_Settings_W.Test_pattern = 32;
-	CMV_Settings_W.Temp_sensor = 0;
-
-	// 2K Mode
-	CMV_Settings_W.Number_lines_tot = 1152;
-	CMV_Settings_W.Y_start_1 = 384;
-	CMV_Settings_W.Sub_offset = 0;
-	CMV_Settings_W.Sub_step = 2;
-	CMV_Settings_W.Sub_en = 2;
-	CMV_Settings_W.Setting_1 = 2843;
-	CMV_Settings_W.Setting_2 = 5891;
-	CMV_Settings_W.Setting_3 = 143;
-	CMV_Settings_W.Setting_4 = 143;
-	CMV_Settings_W.Setting_5 = 71;
-	CMV_Settings_W.Offset_bot = 520;
-	CMV_Settings_W.Offset_top = 520;
-	CMV_Settings_W.Reg_98 = 44815;
-	CMV_Settings_W.Setting_6 = 798;
-	CMV_Settings_W.Setting_7 = 90;
+	cmvApplyCameraState();
 
 	cmvService();
 }
@@ -214,6 +171,87 @@ void cmvService(void)
 			cmvRegWrite(&Spi0, cmvRegAddrSettings[i], *((u16 *)(&CMV_Settings_W) + i));
 		}
 	}
+}
+
+void cmvApplyCameraState(void)
+{
+	u16 h;
+	u8 r82lsb, r82msb, r85;
+	float fPixel = 60E6f;
+	float tLine, tFOT, tFrame;
+	float tExp, tExpMax;
+	float fExpLines;
+	int iExpLines;
+
+	h = (u16)(cState.cSetting[CSETTING_HEIGHT]->valArray[cState.cSetting[CSETTING_HEIGHT]->val].fVal);
+	if(cState.cSetting[CSETTING_WIDTH]->valArray[cState.cSetting[CSETTING_WIDTH]->val].fVal == 4096.0f)
+	{
+		// 4K Mode.
+		CMV_Settings_W.Number_lines_tot = h;
+		CMV_Settings_W.Y_start_1 = (3072 - h) / 2;			// Always in [0 to 3071] range.
+		CMV_Settings_W.Sub_step = 1;
+		CMV_Settings_W.Sub_en = 0;
+		CMV_Settings_W.Setting_1 = 3099;
+		CMV_Settings_W.Setting_2 = 5893;
+		CMV_Settings_W.Setting_3 = 128;
+		CMV_Settings_W.Setting_4 = 128;
+		CMV_Settings_W.Setting_5 = 128;
+		CMV_Settings_W.Reg_98 = 44812;
+		CMV_Settings_W.Setting_6 = 789;
+		CMV_Settings_W.Setting_7 = 84;
+	}
+	else
+	{
+		// 2K Mode.
+		CMV_Settings_W.Number_lines_tot = h;
+		CMV_Settings_W.Y_start_1 = (3072 - 2 * h) / 2;		// Always in [0 to 3071] range.
+		CMV_Settings_W.Sub_step = 2;
+		CMV_Settings_W.Sub_en = 2;
+		CMV_Settings_W.Setting_1 = 2843;
+		CMV_Settings_W.Setting_2 = 5891;
+		CMV_Settings_W.Setting_3 = 143;
+		CMV_Settings_W.Setting_4 = 143;
+		CMV_Settings_W.Setting_5 = 71;
+		CMV_Settings_W.Reg_98 = 44815;
+		CMV_Settings_W.Setting_6 = 798;
+		CMV_Settings_W.Setting_7 = 90;
+	}
+
+	CMV_Settings_W.Sub_offset = 0;
+
+	r82lsb = CMV_Settings_W.Setting_1 & 0xFF;
+	r82msb = (CMV_Settings_W.Setting_1 >> 8) & 0xFF;
+	r85 = CMV_Settings_W.Setting_4;
+
+	// Calculate Exp_time setting based on CMV12000 datasheet.
+	tLine = (float)(r85 + 1) / fPixel;
+	tFOT = (float)(r82msb + 2) * tLine;
+	tFrame = 1.0f / cState.cSetting[CSETTING_FPS]->valArray[cState.cSetting[CSETTING_FPS]->val].fVal;
+	tExp = tFrame * cState.cSetting[CSETTING_SHUTTER]->valArray[cState.cSetting[CSETTING_SHUTTER]->val].fVal / 360.0f;
+	tExpMax = tFrame - tFOT + (float)(34 * (int)r82lsb) / fPixel;
+	if(tExp > tExpMax) { tExp = tExpMax; }
+	fExpLines = (tExp - (float)(1 + 34 * (int)r82lsb) / fPixel) / tLine + 1.0f;
+	iExpLines = (int)fExpLines;
+	if(iExpLines < 0) { iExpLines = 0; }
+	else if(iExpLines > 0xFFFFFF) { iExpLines = 0xFFFFFF; }
+
+	CMV_Settings_W.Exp_time_L = (iExpLines & 0xFFFF);
+	CMV_Settings_W.Exp_time_H = (iExpLines >> 16) & 0xFF;
+	CMV_Settings_W.Exp_kp1_L = 80;
+	CMV_Settings_W.Exp_kp1_H = 0;
+	CMV_Settings_W.Exp_kp2_L = 8;
+	CMV_Settings_W.Exp_kp2_H = 0;
+	CMV_Settings_W.Number_slopes = 1;
+
+	CMV_Settings_W.Offset_bot = 520;
+	CMV_Settings_W.Offset_top = 520;
+
+	CMV_Settings_W.Vtfl = 84 * 128 + 104;
+
+	CMV_Settings_W.PGA_gain = CMV_REG_VAL_PGA_GAIN_X1;
+	CMV_Settings_W.DIG_gain = 4;
+	CMV_Settings_W.Test_pattern = 32;
+	CMV_Settings_W.Temp_sensor = 0;
 }
 
 float cmvGetTemp(void)

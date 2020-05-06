@@ -258,6 +258,7 @@ void uiService(void)
 					{
 						// Apply new setting and close the pop menu.
 						cState.cSetting[popMenuActive]->SetVal(popMenuSelectedVal);
+						cStateApply();
 						uiBuildTopMenu(); 		// To reflect the new setting.
 						popMenuActive = -1;
 						uiHide(UI_ID_POP);
@@ -288,6 +289,7 @@ void uiService(void)
 				{
 					// Exit user input stage, apply new setting, and close the pop menu.
 					cState.cSetting[popMenuActive]->SetVal(popMenuSelectedVal);
+					cStateApply();
 					uiBuildTopMenu(); 		// To reflect the new setting.
 					userInputActive = -1;
 					popMenuActive = -1;

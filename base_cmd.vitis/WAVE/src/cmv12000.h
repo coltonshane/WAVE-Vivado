@@ -105,6 +105,7 @@ typedef struct __attribute__((packed))
 
 void cmvInit(void);
 void cmvService(void);
+void cmvApplyCameraState(void);
 float cmvGetTemp(void);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------

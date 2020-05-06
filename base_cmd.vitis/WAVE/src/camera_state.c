@@ -26,6 +26,7 @@ THE SOFTWARE.
 
 #include "main.h"
 #include "camera_state.h"
+#include "cmv12000.h"
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
@@ -103,8 +104,8 @@ CameraSettingValue_s cSettingHeightValArray[] = {{"  3072p ", 3072.0f},	//	0	1x	
 
 char * cSettingFPSName = "   FPS  ";
 char * cSettingFPSValFormat = "%4d fps";
-CameraSettingValue_s cSettingFPSValArray[] = {{"USER fps", 24.0f},
-											  {" MAX fps", 24.0f},
+CameraSettingValue_s cSettingFPSValArray[] = {{"USER fps", 200.0f},
+											  {" MAX fps", 422.0f},
 											  {"  24 fps", 24.0f},
 											  {"  25 fps", 25.0f},
 											  {"  30 fps", 30.0f},
@@ -310,7 +311,12 @@ void cStateInit(void)
 	cState.cSetting[5] = &cSettingFormat;
 
 	// Manually trigger cSettingWidthSetVal() to make sure initial state is applied.
-	cSettingWidthSetVal(CSETTING_WIDTH_4K);
+	cSettingWidthSetVal(CSETTING_WIDTH_2K);
+}
+
+void cStateApply(void)
+{
+	cmvApplyCameraState();
 }
 
 u8 cSettingGetEnabled(u8 id, u8 val)
@@ -452,26 +458,26 @@ void cSettingFormatSetVal(u8 val)
 float cStateGetMaxFPS(void)
 {
 	float fPixel = 60E6f;
-	u8 reg82_MSB, reg85;
+	u8 r82msb, r85;
 	float hMult;
 	float tLine, tFOT, tFrame;
 	float fFrame;
 
 	if(cSettingWidth.valArray[cSettingWidth.val].fVal == 4096.0f)
 	{
-		reg82_MSB = 12;
-		reg85 = 128;
+		r82msb = 12;
+		r85 = 128;
 		hMult = 0.5f;	// Reading in two rows in parallel.
 	}
 	else
 	{
-		reg82_MSB = 11;
-		reg85 = 143;
+		r82msb = 11;
+		r85 = 143;
 		hMult = 0.25f;	// Reading in four rows in parallel.
 	}
 
-	tLine = (float)(reg85 + 1) / fPixel;
-	tFOT = (float)(reg82_MSB + 2) * tLine;
+	tLine = (float)(r85 + 1) / fPixel;
+	tFOT = (float)(r82msb + 2) * tLine;
 	tFrame = tFOT + hMult * tLine * cSettingHeight.valArray[cSettingHeight.val].fVal;
 	fFrame = 1.0f / tFrame;
 

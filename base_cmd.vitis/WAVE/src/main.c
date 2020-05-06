@@ -87,6 +87,7 @@ int main()
     gpioInit();
     supervisorInit();
     xil_printf("WAVE HELLO!\r\n");
+    cStateInit();
     waveletInit();
     encoderInit();
     cmvInit();
@@ -139,7 +140,6 @@ int main()
     hdmiInit();
     usbInit();
     frameInit();
-    cStateInit();
     uiInit();
 
     // Main loop.

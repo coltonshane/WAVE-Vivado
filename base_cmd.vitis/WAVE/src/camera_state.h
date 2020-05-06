@@ -91,6 +91,7 @@ typedef struct
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
 void cStateInit(void);
+void cStateApply(void);
 u8 cSettingGetEnabled(u8 id, u8 val);
 u8 cSettingGetUser(u8 id, u8 val);
 
