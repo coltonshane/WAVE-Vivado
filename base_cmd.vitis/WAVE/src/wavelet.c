@@ -25,6 +25,7 @@ THE SOFTWARE.
 // Include Headers -----------------------------------------------------------------------------------------------------
 
 #include "wavelet.h"
+#include "camera_state.h"
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
@@ -81,21 +82,12 @@ Wavelet_S2_s * Wavelet_S2 = (Wavelet_S2_s *)(0xA0002000);
 
 void waveletInit(void)
 {
-	waveletSetMode(1);
+	waveletApplyCameraState();
 }
 
-void waveletSetMode(u8 SS)
+void waveletApplyCameraState(void)
 {
-	if(SS)
-	{
-		// 2K Mode
-		Wavelet_S1->SS = 1;
-		Wavelet_S1->px_count_v1_R1G2_G1B1_offsets = (PX_COUNT_V1_R1G2_OFFSET_2K << 16) | PX_COUNT_V1_G1B1_OFFSET_2K;
-
-		Wavelet_S2->SS = 1;
-		Wavelet_S2->px_count_v2_h2_offsets = (PX_COUNT_V2_OFFSET_2K << 16) | PX_COUNT_H2_OFFSET_2K;
-	}
-	else
+	if(cState.cSetting[CSETTING_WIDTH]->valArray[cState.cSetting[CSETTING_WIDTH]->val].fVal == 4096.0f)
 	{
 		// 4K Mode
 		Wavelet_S1->SS = 0;
@@ -103,6 +95,15 @@ void waveletSetMode(u8 SS)
 
 		Wavelet_S2->SS = 0;
 		Wavelet_S2->px_count_v2_h2_offsets = (PX_COUNT_V2_OFFSET_4K << 16) | PX_COUNT_H2_OFFSET_4K;
+	}
+	else
+	{
+		// 2K Mode
+		Wavelet_S1->SS = 1;
+		Wavelet_S1->px_count_v1_R1G2_G1B1_offsets = (PX_COUNT_V1_R1G2_OFFSET_2K << 16) | PX_COUNT_V1_G1B1_OFFSET_2K;
+
+		Wavelet_S2->SS = 1;
+		Wavelet_S2->px_count_v2_h2_offsets = (PX_COUNT_V2_OFFSET_2K << 16) | PX_COUNT_H2_OFFSET_2K;
 	}
 }
 

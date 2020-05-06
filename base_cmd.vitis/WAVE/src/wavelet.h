@@ -36,7 +36,7 @@ THE SOFTWARE.
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
 void waveletInit(void);
-void waveletSetMode(u8 SS);
+void waveletApplyCameraState(void);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
 

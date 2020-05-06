@@ -29,6 +29,7 @@ THE SOFTWARE.
 #include "hdmi.h"
 #include "frame.h"
 #include "xiicps.h"
+#include "camera_state.h"
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
@@ -171,21 +172,9 @@ void isrVSYNC(void * CallbackRef)
 void hdmiInit(void)
 {
 	// hdmiWriteTestPattern4K();
-	hdmiWriteTestPattern2K();
+	// hdmiWriteTestPattern2K();
 
 	// Load HDMI peripheral registers with initial values.
-	// hdmi->vx0 = 186;
-	// hdmi->vy0 = 41;
-	// hdmi->vxDiv = 0x2133;
-	// hdmi->vyDiv = 0x2133;
-
-	hdmi->vx0 = 240;
-	hdmi->vy0 = 72;
-	hdmi->vxDiv = 0x2400;
-	hdmi->vyDiv = 0x2400;
-
-	hdmi->wHDMI = 2200;
-	hdmi->hImage2048 = 1152;
 	hdmi->q_mult_inv_HL2_LH2 = 1024;
 	hdmi->q_mult_inv_HH2 = 2048;
 	hdmi->dc_RAM_addr_update_LL2 = 0x20000000;
@@ -197,7 +186,7 @@ void hdmiInit(void)
 	hdmi->bit_discard_update_HL2 = 0;
 	hdmi->bit_discard_update_HH2 = 0;
 
-	hdmiSetMode(1);
+	hdmiApplyCameraState();
 
 	hdmi->ui_control = 0x000690C0;
 
@@ -247,23 +236,44 @@ void hdmiInit(void)
 	hdmiI2CWriteMasked(0xAF, 0x02, 0x02);
 }
 
-void hdmiSetMode(u8 SS)
+void hdmiApplyCameraState(void)
 {
-	if(SS)
-	{
-		// 2K Mode
-		hdmi->SS = 1;
-		hdmi->opx_count_iv2_out_offset = OPX_COUNT_IV2_OUT_OFFSET_2K;
-		hdmi->opx_count_iv2_in_offset = OPX_COUNT_IV2_IN_OFFSET_2K;
-		hdmi->opx_count_dc_en_offset = OPX_COUNT_DC_EN_OFFFSET_2K;
-	}
-	else
+	float fWidth, fHeight;
+
+	fWidth = cState.cSetting[CSETTING_WIDTH]->valArray[cState.cSetting[CSETTING_WIDTH]->val].fVal;
+	fHeight = cState.cSetting[CSETTING_HEIGHT]->valArray[cState.cSetting[CSETTING_HEIGHT]->val].fVal;
+
+	if(fWidth == 4096.0f)
 	{
 		// 4K Mode
 		hdmi->SS = 0;
 		hdmi->opx_count_iv2_out_offset = OPX_COUNT_IV2_OUT_OFFSET_4K;
 		hdmi->opx_count_iv2_in_offset = OPX_COUNT_IV2_IN_OFFSET_4K;
 		hdmi->opx_count_dc_en_offset = OPX_COUNT_DC_EN_OFFFSET_4K;
+
+		hdmi->vx0 = 186;
+		hdmi->vy0 = 41;
+		hdmi->vxDiv = 0x2133;
+		hdmi->vyDiv = 0x2133;
+
+		hdmi->wHDMI = 2200;
+		hdmi->hImage2048 = 1152;
+	}
+	else
+	{
+		// 2K Mode
+		hdmi->SS = 1;
+		hdmi->opx_count_iv2_out_offset = OPX_COUNT_IV2_OUT_OFFSET_2K;
+		hdmi->opx_count_iv2_in_offset = OPX_COUNT_IV2_IN_OFFSET_2K;
+		hdmi->opx_count_dc_en_offset = OPX_COUNT_DC_EN_OFFFSET_2K;
+
+		hdmi->vx0 = 240;
+		hdmi->vy0 = 72;
+		hdmi->vxDiv = 0x2400;
+		hdmi->vyDiv = 0x2400;
+
+		hdmi->wHDMI = 2200;
+		hdmi->hImage2048 = 1152;
 	}
 }
 

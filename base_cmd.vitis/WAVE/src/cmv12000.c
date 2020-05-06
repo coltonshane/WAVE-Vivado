@@ -191,6 +191,7 @@ void cmvApplyCameraState(void)
 	int iExpLines;
 
 	h = (u16)(cState.cSetting[CSETTING_HEIGHT]->valArray[cState.cSetting[CSETTING_HEIGHT]->val].fVal);
+
 	if(cState.cSetting[CSETTING_WIDTH]->valArray[cState.cSetting[CSETTING_WIDTH]->val].fVal == 4096.0f)
 	{
 		// 4K Mode.

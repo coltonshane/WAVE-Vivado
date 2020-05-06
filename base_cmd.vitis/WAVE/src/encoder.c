@@ -25,6 +25,7 @@ THE SOFTWARE.
 // Include Headers -----------------------------------------------------------------------------------------------------
 
 #include "encoder.h"
+#include "camera_state.h"
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
@@ -81,26 +82,26 @@ void encoderInit(void)
 	Encoder->q_mult_HH2_HL2_LH2 = 0x00200040;
 	Encoder->control = ENC_CTRL_M00_AXI_ARM;
 
-	encoderSetMode(1);
+	encoderApplyCameraState();
 
 	encoderResetRAMAddr(Encoder, 0xFFFF);
 }
 
-void encoderSetMode(u8 SS)
+void encoderApplyCameraState(void)
 {
-	if(SS)
-	{
-		// 2K Mode
-		Encoder->px_count_XX1_G1B1_offsets = (PX_COUNT_E_XX1_G1B1_OFFSET_2K << 16) | PX_COUNT_C_XX1_G1B1_OFFSET_2K;
-		Encoder->px_count_XX1_R1G2_offsets = (PX_COUNT_E_XX1_R1G2_OFFSET_2K << 16) | PX_COUNT_C_XX1_R1G2_OFFSET_2K;
-		Encoder->px_count_XX2_offsets = (PX_COUNT_E_XX2_OFFSET_2K << 16) | PX_COUNT_C_XX2_OFFSET_2K;
-	}
-	else
+	if(cState.cSetting[CSETTING_WIDTH]->valArray[cState.cSetting[CSETTING_WIDTH]->val].fVal == 4096.0f)
 	{
 		// 4K Mode
 		Encoder->px_count_XX1_G1B1_offsets = (PX_COUNT_E_XX1_G1B1_OFFSET_4K << 16) | PX_COUNT_C_XX1_G1B1_OFFSET_4K;
 		Encoder->px_count_XX1_R1G2_offsets = (PX_COUNT_E_XX1_R1G2_OFFSET_4K << 16) | PX_COUNT_C_XX1_R1G2_OFFSET_4K;
 		Encoder->px_count_XX2_offsets = (PX_COUNT_E_XX2_OFFSET_4K << 16) | PX_COUNT_C_XX2_OFFSET_4K;
+	}
+	else
+	{
+		// 2K Mode
+		Encoder->px_count_XX1_G1B1_offsets = (PX_COUNT_E_XX1_G1B1_OFFSET_2K << 16) | PX_COUNT_C_XX1_G1B1_OFFSET_2K;
+		Encoder->px_count_XX1_R1G2_offsets = (PX_COUNT_E_XX1_R1G2_OFFSET_2K << 16) | PX_COUNT_C_XX1_R1G2_OFFSET_2K;
+		Encoder->px_count_XX2_offsets = (PX_COUNT_E_XX2_OFFSET_2K << 16) | PX_COUNT_C_XX2_OFFSET_2K;
 	}
 }
 

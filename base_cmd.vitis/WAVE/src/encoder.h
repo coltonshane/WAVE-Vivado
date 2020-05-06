@@ -51,7 +51,7 @@ typedef struct __attribute__((packed))
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
 void encoderInit(void);
-void encoderSetMode(u8 SS);
+void encoderApplyCameraState(void);
 void encoderServiceRAMAddr(Encoder_s * Encoder_snapshot);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------

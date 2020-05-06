@@ -27,6 +27,9 @@ THE SOFTWARE.
 #include "main.h"
 #include "camera_state.h"
 #include "cmv12000.h"
+#include "wavelet.h"
+#include "encoder.h"
+#include "hdmi.h"
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
@@ -317,6 +320,9 @@ void cStateInit(void)
 void cStateApply(void)
 {
 	cmvApplyCameraState();
+	waveletApplyCameraState();
+	encoderApplyCameraState();
+	hdmiApplyCameraState();
 }
 
 u8 cSettingGetEnabled(u8 id, u8 val)
