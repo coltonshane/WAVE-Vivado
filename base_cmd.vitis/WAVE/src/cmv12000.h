@@ -68,6 +68,10 @@ typedef struct
 	u32 px_count_limit;		// Limit for pixel counter, to stop capture in mid-frame for debugging.
 	u32 px_count;			// Master pixel count, in increments of 64px.
 	u32 FOT_int;			// Frame Overhead Time (FOT) interrupt flag.
+	u32 frame_interval;		// Frame timer interval in [us/60].
+	u32 FRAME_REQ_on;		// FRAME_REQ pulse time in [us/60].
+	u32 T_EXP1_on;			// T_EXP1 pulse time in [us/60].
+	u32 T_EXP2_on;			// T_EXP2 ulse time in [us/60].
 } CMV_Input_s;
 
 typedef struct __attribute__((packed))

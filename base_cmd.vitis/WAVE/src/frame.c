@@ -69,11 +69,6 @@ s32 nFramesIn = -1;
 s32 nFramesOutStart = 0;
 s32 nFramesOut = 0;
 
-// Frame Request Timer (TTC0, Channel 1)
-u32 * frameReqControl = (u32 *)((u64) 0xFF11000C);
-u32 * frameReqInterval = (u32 *)((u64) 0xFF110024);
-u32 * frameReqPulseWidth = (u32 *)((u64) 0xFF110030);
-
 u8 frameTempPS = 0x00;
 u8 frameTempPL = 0x00;
 u8 frameTempCMV = 0x00;
@@ -155,23 +150,7 @@ void isrFOT(void * CallbackRef)
 
 void frameInit(void)
 {
-	// Setup for continuous capture.
-	*frameReqPulseWidth = 100;		// [0.01us]
-	*frameReqInterval = 250000;		// [0.01us]
-	*frameReqControl |= FRAME_REQ_CONTROL_WAVE_POL;
-	*frameReqControl |= FRAME_REQ_CONTROL_MATCH;
-	*frameReqControl |= FRAME_REQ_CONTROL_INT;
-	*frameReqControl &= ~FRAME_REQ_CONTROL_DIS;
-	*frameReqControl &= ~FRAME_REQ_CONTROL_WAVE_DIS;
-
-	/*
-	// Setup for one-shot capture.
-	*frameReqPulseWidth = 100;		// [0.01us]
-	*frameReqInterval = 250000;		// [0.01us]
-	*frameReqControl &= ~FRAME_REQ_CONTROL_WAVE_POL;
-	*frameReqControl |= FRAME_REQ_CONTROL_MATCH;
-	*frameReqControl |= FRAME_REQ_CONTROL_INT;
-	*/
+	CMV_Input->FRAME_REQ_on = 0;
 }
 
 void frameService(u8 recState)

@@ -63,6 +63,11 @@ module CMV_Input_v1_0
     
     // FOT interrupt output to PS.
     output wire FOT_int,
+    
+    // CMV12000 timining control.
+    output wire FRAME_REQ,
+    output wire T_EXP1,
+    output wire T_EXP2,
 
 	// User ports ends
 	// Do not modify the ports beyond this line
@@ -111,6 +116,12 @@ wire [23:0] px_count_limit;
 wire FOT_IF_reg;     // Registered value, drives the interrupt line.
 wire FOT_IF_mod;     // Module input for setting FOT interrupt flag.
 
+// CMV12000 timining control.
+wire [31:0] frame_interval;
+wire [31:0] FRAME_REQ_on;
+wire [31:0] T_EXP1_on;
+wire [31:0] T_EXP2_on;
+
 // Instantiation of AXI-Lite Slave.
 CMV_Input_v1_0_S00_AXI 
 #( 
@@ -141,6 +152,12 @@ CMV_Input_v1_0_S00_AXI_inst
     // FOT interrupt flag.
     .FOT_IF_reg(FOT_IF_reg),
     .FOT_IF_mod(FOT_IF_mod),
+    
+    // CMV12000 timining control.
+    .frame_interval(frame_interval),
+    .FRAME_REQ_on(FRAME_REQ_on),
+    .T_EXP1_on(T_EXP1_on),
+    .T_EXP2_on(T_EXP2_on),
 
     // AXI-Lite slave controller signals.
 	.S_AXI_ACLK(s00_axi_aclk),
@@ -311,6 +328,23 @@ begin
 end
 assign FOT_IF_mod = (CMV_FOT && (~CMV_FOT_prev)) ? 1'b1 : FOT_IF_reg;
 assign FOT_int = FOT_IF_reg;
+
+// CMV12000 timining control. Generate ~1us pulses on FRAME_REQ, T_EXP1, and T_EXP2;
+reg [31:0] frame_interval_count;
+always @(posedge px_clk)
+begin
+  if(frame_interval_count < frame_interval)
+  begin
+    frame_interval_count <= frame_interval_count + 32'h1;
+  end
+  else
+  begin
+    frame_interval_count <= 32'h0;
+  end
+end
+assign FRAME_REQ = (frame_interval_count >= FRAME_REQ_on) && (frame_interval_count < (FRAME_REQ_on + 32'h40));
+assign T_EXP1 = (frame_interval_count >= T_EXP1_on) && (frame_interval_count < (T_EXP1_on + 32'h40));
+assign T_EXP2 = (frame_interval_count >= T_EXP2_on) && (frame_interval_count < (T_EXP2_on + 32'h40));
 
 // User logic ends
 

@@ -46,7 +46,7 @@ THE SOFTWARE.
 #define CMV_WR_REG 0x80
 #define CMV_ADDR_MASK 0x7F
 
-#define CMV_REG_COUNT_INIT 13
+#define CMV_REG_COUNT_INIT 14
 #define CMV_REG_COUNT_SETTINGS 27
 
 // Bit patterns for link training.
@@ -78,6 +78,7 @@ XSpiPs_Config *spi0Config;
 u8 cmvRegAddrInit[] =
 {
 	69,
+	70,
 	80,
 	89,
 	99,
@@ -94,6 +95,7 @@ u8 cmvRegAddrInit[] =
 u16 cmvRegValInit[] =
 {
 	1,
+	0,
 	1,
 	32853,
 	34956,
@@ -118,6 +120,12 @@ u8 cmvRegAddrSettings[] = {1,2,66,67,68,71,72,75,76,77,78,79,82,83,84,85,86,87,8
 
 void cmvInit(void)
 {
+	// Set the frame interval timer to a safe value and don't request frames yet.
+	CMV_Input->frame_interval = 2500000;	// 24fps
+	CMV_Input->FRAME_REQ_on = 0xFFFFFFFF;	// Never.
+	CMV_Input->T_EXP1_on = 0xFFFFFFFF;		// Never.
+	CMV_Input->T_EXP2_on = 0xFFFFFFFF;		// Never.
+
     // Set up SPI0 for CMV12000 serial control.
 	spi0Config = XSpiPs_LookupConfig(SPI0_DEVICE_ID);
     XSpiPs_CfgInitialize(&Spi0, spi0Config, spi0Config->BaseAddress);
@@ -151,7 +159,6 @@ void cmvInit(void)
 
 	cmvRegInit(&Spi0);
 	cmvApplyCameraState();
-
 	cmvService();
 }
 
@@ -223,7 +230,7 @@ void cmvApplyCameraState(void)
 	r82msb = (CMV_Settings_W.Setting_1 >> 8) & 0xFF;
 	r85 = CMV_Settings_W.Setting_4;
 
-	// Calculate Exp_time setting based on CMV12000 datasheet.
+	// Set Exp_time setting based on CMV12000 datasheet.
 	tLine = (float)(r85 + 1) / fPixel;
 	tFOT = (float)(r82msb + 2) * tLine;
 	tFrame = 1.0f / cState.cSetting[CSETTING_FPS]->valArray[cState.cSetting[CSETTING_FPS]->val].fVal;
@@ -242,6 +249,9 @@ void cmvApplyCameraState(void)
 	CMV_Settings_W.Exp_kp2_L = 8;
 	CMV_Settings_W.Exp_kp2_H = 0;
 	CMV_Settings_W.Number_slopes = 1;
+
+	// Set the frame interval.
+	CMV_Input->frame_interval = tFrame * 60E6;
 
 	CMV_Settings_W.Offset_bot = 520;
 	CMV_Settings_W.Offset_top = 520;
