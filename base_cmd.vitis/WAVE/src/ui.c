@@ -147,7 +147,7 @@ void uiInit(void)
 	uiHideAll();
 	uiClearAll(UI_BG);
 }
-
+extern u32 triggerRecordStartStop;
 void uiService(void)
 {
 	char strResult[9];
@@ -161,6 +161,7 @@ void uiService(void)
 		if(uiRecClicked)
 		{
 			// End clip.
+			triggerRecordStartStop = 1;
 			cState.cSetting[CSETTING_MODE]->SetVal(CSETTING_MODE_STANDBY);
 			uiBuildTopMenu();
 		}
@@ -171,6 +172,7 @@ void uiService(void)
 		if(uiRecClicked)
 		{
 			// Start clip and close pop-up menu if it's open.
+			triggerRecordStartStop = 1;
 			cState.cSetting[CSETTING_MODE]->SetVal(CSETTING_MODE_REC);
 			uiBuildTopMenu();
 			popMenuActive = -1;
@@ -322,6 +324,10 @@ uiServiceComplete:
 	sprintf(strResult, "PS:%3.0f*C", psplGetTemp(psTemp));
 	uiDrawStringColRow(UI_ID_BOT, strResult, 0, 0);
 
+	uiDrawStringColRow(UI_ID_BOT, "12.3V", 16, 0);
+	uiDrawStringColRow(UI_ID_BOT, "991GB", 32, 0);
+
+	/*
 	sprintf(strResult, "PL:%3.0f*C", psplGetTemp(plTemp));
 	uiDrawStringColRow(UI_ID_BOT, strResult, 16, 0);
 
@@ -330,6 +336,7 @@ uiServiceComplete:
 
 	sprintf(strResult, "SD:%3.0f*C", nvmeGetTemp());
 	uiDrawStringColRow(UI_ID_BOT, strResult, 48, 0);
+	*/
 }
 
 // Private Function Definitions ----------------------------------------------------------------------------------------

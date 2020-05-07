@@ -238,12 +238,17 @@ void hdmiInit(void)
 
 void hdmiApplyCameraState(void)
 {
-	float fWidth, fHeight;
+	float wFrame, hFrame;
+	float xScale, yScale;
+	float wViewport, hViewport;
+	float xOffset, yOffset;
+	int vx0, vy0, vxDiv, vyDiv;
+	u16 hImage2048;
 
-	fWidth = cState.cSetting[CSETTING_WIDTH]->valArray[cState.cSetting[CSETTING_WIDTH]->val].fVal;
-	fHeight = cState.cSetting[CSETTING_HEIGHT]->valArray[cState.cSetting[CSETTING_HEIGHT]->val].fVal;
+	wFrame = cState.cSetting[CSETTING_WIDTH]->valArray[cState.cSetting[CSETTING_WIDTH]->val].fVal;
+	hFrame = cState.cSetting[CSETTING_HEIGHT]->valArray[cState.cSetting[CSETTING_HEIGHT]->val].fVal;
 
-	if(fWidth == 4096.0f)
+	if(wFrame == 4096.0f)
 	{
 		// 4K Mode
 		hdmi->SS = 0;
@@ -251,13 +256,22 @@ void hdmiApplyCameraState(void)
 		hdmi->opx_count_iv2_in_offset = OPX_COUNT_IV2_IN_OFFSET_4K;
 		hdmi->opx_count_dc_en_offset = OPX_COUNT_DC_EN_OFFFSET_4K;
 
-		hdmi->vx0 = 186;
-		hdmi->vy0 = 41;
-		hdmi->vxDiv = 0x2133;
-		hdmi->vyDiv = 0x2133;
+		hImage2048 = (u16)(hFrame / 2.0f) - 4.0f;
 
-		hdmi->wHDMI = 2200;
-		hdmi->hImage2048 = 1152;
+		if(hFrame <= 2304.0f)
+		{
+			wViewport = 1936.0f;
+			xScale = wViewport / (wFrame / 2.0f);
+			yScale = xScale;
+			hViewport = (hFrame / 2.0F) * yScale;
+		}
+		else
+		{
+			hViewport = 1089.0f;
+			yScale = hViewport / (hFrame / 2.0f);
+			xScale = yScale;
+			wViewport = (wFrame / 2.0f) * xScale;
+		}
 	}
 	else
 	{
@@ -267,14 +281,48 @@ void hdmiApplyCameraState(void)
 		hdmi->opx_count_iv2_in_offset = OPX_COUNT_IV2_IN_OFFSET_2K;
 		hdmi->opx_count_dc_en_offset = OPX_COUNT_DC_EN_OFFFSET_2K;
 
-		hdmi->vx0 = 240;
-		hdmi->vy0 = 72;
-		hdmi->vxDiv = 0x2400;
-		hdmi->vyDiv = 0x2400;
+		hImage2048 = (u16)hFrame - 4.0f;
 
-		hdmi->wHDMI = 2200;
-		hdmi->hImage2048 = 1152;
+		if(hFrame <= 1152.0f)
+		{
+			wViewport = 1696.0f;
+			xScale = wViewport / wFrame;
+			yScale = xScale;
+			hViewport = hFrame * yScale;
+		}
+		else
+		{
+			hViewport = 954.0f;
+			yScale = hViewport / hFrame;
+			xScale = yScale;
+			wViewport = wFrame * xScale;
+		}
 	}
+
+	// Center the viewport.
+	xOffset = (1920.0f - wViewport) / 2.0f;
+	yOffset = (1080.0f - hViewport) / 2.0f + 2.0f;
+	vx0 = 192 + (int)xOffset;
+	vy0 = 41 + (int)yOffset;
+	if(vx0 < 0) { vx0 = 0; }
+	else if(vx0 > 2199) {vx0 = 2199; }
+	if(vy0 < 0) { vy0 = 0; }
+	else if(vy0 > 1125) { vy0 = 1125; }
+
+	// Calculate the scale factors.
+	vxDiv = (int)((float)(1 << 24) / wViewport);
+	vyDiv = vxDiv;
+	if(vxDiv < 0x2000) { vxDiv = 0x2000; }
+	else if(vxDiv > 0x4000) { vxDiv = 0x4000; }
+	if(vyDiv < 0x2000) { vyDiv = 0x2000; }
+	else if (vyDiv > 0x4000) { vyDiv = 0x4000; }
+
+	hdmi->vx0 = vx0;
+	hdmi->vy0 = vy0;
+	hdmi->vxDiv = vxDiv;
+	hdmi->vyDiv = vyDiv;
+	hdmi->wHDMI = 2200;
+	hdmi->hImage2048 = hImage2048;
 }
 
 // Private Function Definitions ----------------------------------------------------------------------------------------
