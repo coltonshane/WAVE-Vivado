@@ -442,6 +442,8 @@ void cSettingHeightSetVal(u8 val)
 	// Limit the USER FPS value.
 	if(cSettingFPS.valArray[CSETTING_FPS_USER].fVal > maxFPS)
 	{ cSettingFPS.valArray[CSETTING_FPS_USER].fVal = (float)((int)maxFPS); }
+	if(cSettingFPS.valArray[CSETTING_FPS_USER].fVal < 1.0f)
+	{ cSettingFPS.valArray[CSETTING_FPS_USER].fVal = 1.0f; }
 
 	// If the current FPS value is too high, set it to MAX.
 	if(cSettingFPS.valArray[cSettingFPS.val].fVal > maxFPS)
@@ -474,7 +476,19 @@ void cSettingFormatSetVal(u8 val)
 
 void cSettingFPSPreviewVal(u8 val)
 {
+	float maxFPS;
+
 	if(!cSettingGetEnabled(CSETTING_FPS, val)) { return; }
+
+	// If previewing USER fps, limit range to 1 fps - MAX fps.
+	if(val == CSETTING_FPS_USER)
+	{
+		maxFPS = cStateGetMaxFPS();
+		if(cSettingFPS.valArray[CSETTING_FPS_USER].fVal > maxFPS)
+		{ cSettingFPS.valArray[CSETTING_FPS_USER].fVal = (float)((int)maxFPS); }
+		if(cSettingFPS.valArray[CSETTING_FPS_USER].fVal < 1.0f)
+		{ cSettingFPS.valArray[CSETTING_FPS_USER].fVal = 1.0f; }
+	}
 
 	// Change the frame rate and immediately apply it to the CMV_Input module.
 	cSettingFPS.val = val;
