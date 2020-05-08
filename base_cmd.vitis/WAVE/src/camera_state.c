@@ -29,6 +29,7 @@ THE SOFTWARE.
 #include "cmv12000.h"
 #include "wavelet.h"
 #include "encoder.h"
+#include "frame.h"
 #include "hdmi.h"
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
@@ -321,6 +322,7 @@ void cStateApply(void)
 	cmvApplyCameraState();
 	waveletApplyCameraState();
 	encoderApplyCameraState();
+	frameApplyCameraState();
 	hdmiApplyCameraState();
 }
 

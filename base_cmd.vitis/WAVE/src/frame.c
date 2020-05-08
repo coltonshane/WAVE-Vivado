@@ -32,28 +32,20 @@ THE SOFTWARE.
 #include "fs.h"
 #include "nvme.h"
 #include "xtime_l.h"
+#include "camera_state.h"
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
-#define FH_BUFFER_SIZE 1024
+#define FH_BUFFER_SIZE 4096		// 2MiB: 0x18000000 - 0x18200000
 #define FRAME_LB_EXP 9
-#define FRAMES_PER_FILE 240
-#define SUBFRAMES_PER_FRAME 1
 
 #define US_PER_COUNT 1000 / (COUNTS_PER_SECOND / 1000)
-
-// Frame Request Timer Control Flags
-#define FRAME_REQ_CONTROL_WAVE_POL 	0x40	// Indicates wave output level between reset and match.
-#define FRAME_REQ_CONTROL_WAVE_DIS 	0x20	// Active low output enable.
-#define FRAME_REQ_CONTROL_RST		0x10	// Force reset counter (cleared automatically).
-#define FRAME_REQ_CONTROL_MATCH		0x08	// Enable match.
-#define FRAME_REQ_CONTROL_INT		0x02	// Enable interval.
-#define FRAME_REQ_CONTROL_DIS		0x01	// Active low counter enable.
 
 // Private Type Definitions --------------------------------------------------------------------------------------------
 
 // Private Function Prototypes -----------------------------------------------------------------------------------------
 
+void frameApplyCameraStateSync(void);
 void frameRecord(void);
 void frameUpdateTemps(void);
 
@@ -68,6 +60,10 @@ u32 nSubFramesIn = 0xFFFFFFFF;
 s32 nFramesIn = -1;
 s32 nFramesOutStart = 0;
 s32 nFramesOut = 0;
+
+u32 frameApplyCameraStateSyncFlag = 0;
+u32 nFramesPerFile = 481;
+u32 nSubframesPerFrame = 1;
 
 u8 frameTempPS = 0x00;
 u8 frameTempPL = 0x00;
@@ -92,7 +88,7 @@ void isrFOT(void * CallbackRef)
 	nSubFramesIn++;
 	CMV_Input->FOT_int = 0x00000000;			// Clear the FOT interrupt flag.
 
-	if(nSubFramesIn % SUBFRAMES_PER_FRAME > 0) { return; }
+	if(nSubFramesIn % nSubframesPerFrame > 0) { return; }
 
 	XGpioPs_WritePin(&Gpio, GPIO1_PIN, 1);		// Mark ISR entry.
 
@@ -143,6 +139,13 @@ void isrFOT(void * CallbackRef)
 		fhBuffer[iFrameIn].csFIFOState[iCS] = Encoder_next.fifo_rd_count[iCS];
 	}
 
+	// Apply camera state settings to the frame module.
+	if(frameApplyCameraStateSyncFlag)
+	{
+		frameApplyCameraStateSyncFlag = 0;
+		frameApplyCameraStateSync();
+	}
+
 	XGpioPs_WritePin(&Gpio, GPIO1_PIN, 0);		// Mark ISR exit.
 }
 
@@ -151,6 +154,13 @@ void isrFOT(void * CallbackRef)
 void frameInit(void)
 {
 	CMV_Input->FRAME_REQ_on = 0;
+	frameApplyCameraStateSync();
+}
+
+void frameApplyCameraState(void)
+{
+	// Wait for next FOT to apply camera settings.
+	frameApplyCameraStateSyncFlag = 1;
 }
 
 void frameService(u8 recState)
@@ -160,17 +170,6 @@ void frameService(u8 recState)
 		// Start recording for continuous capture.
 		nFramesOutStart = nFramesIn;
 		nFramesOut = nFramesOutStart;
-
-		/*
-		// Start recording for one-shot capture.
-		*frameReqControl &= ~FRAME_REQ_CONTROL_DIS;
-		*frameReqControl &= ~FRAME_REQ_CONTROL_WAVE_DIS;
-		usleep(1);
-		*frameReqControl |= FRAME_REQ_CONTROL_DIS;
-		*frameReqControl |= FRAME_REQ_CONTROL_WAVE_DIS;
-		nFramesOutStart = 0;
-		nFramesOut = nFramesOutStart;
-		*/
 	}
 	else if(recState == FRAME_REC_STATE_CONTINUE)
 	{
@@ -187,7 +186,25 @@ int frameLastCaptured(void)
 
 // Private Function Definitions ----------------------------------------------------------------------------------------
 
-void frameRecord()
+void frameApplyCameraStateSync(void)
+{
+	float wFrame, hFrame;
+	float h4x3;
+	float szFrame;
+
+	wFrame = cState.cSetting[CSETTING_WIDTH]->valArray[cState.cSetting[CSETTING_WIDTH]->val].fVal;
+	hFrame = cState.cSetting[CSETTING_HEIGHT]->valArray[cState.cSetting[CSETTING_HEIGHT]->val].fVal;
+	h4x3 = (wFrame == 4096.0f) ? 3072.0f : 1536.0f;
+
+	// Set nSubframesPerFrame based on integer fill of 4x3 height.
+	nSubframesPerFrame = (u32)(h4x3 / hFrame);
+
+	// Set nFramesPerFile for roughly 1GiB files at 5:1 compression (2b/px = 0.25B/px).
+	szFrame = (float)(nSubframesPerFrame) * wFrame * hFrame * 0.25f;
+	nFramesPerFile = (u32)((float)(1 << 30) / szFrame);
+}
+
+void frameRecord(void)
 {
 	XTime tFrameOut;
 	u32 iFrameOut;
@@ -212,7 +229,7 @@ void frameRecord()
 	memcpy(csAddrBuffer, fhBuffer[iFrameOut].csAddr, 16 * sizeof(u32));
 	memcpy(csSizeBuffer, fhBuffer[iFrameOut].csSize, 16 * sizeof(u32));
 
-	if(((nFramesOut - nFramesOutStart) % FRAMES_PER_FILE) == 0)
+	if(((nFramesOut - nFramesOutStart) % nFramesPerFile) == 0)
 	{
 		nvmeGetMetrics();	// Sample SSD metrics (incl. temperature).
 		frameUpdateTemps();	// Update temperature sensor frame header-logged values.

@@ -79,6 +79,7 @@ typedef struct __attribute__((packed))
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
 void frameInit(void);
+void frameApplyCameraState(void);
 void frameService(u8 recState);
 int frameLastCaptured(void);
 
