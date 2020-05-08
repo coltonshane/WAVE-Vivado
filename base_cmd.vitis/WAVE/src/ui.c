@@ -272,6 +272,7 @@ void uiService(void)
 					if(popMenuVal[4] < 0xFF)
 					{
 						popMenuSelectedVal = popMenuVal[4];
+						cState.cSetting[popMenuActive]->PreviewVal(popMenuSelectedVal);
 						uiBuildPopMenu();
 					}
 				}
@@ -281,6 +282,7 @@ void uiService(void)
 					if(popMenuVal[2] < 0xFF)
 					{
 						popMenuSelectedVal = popMenuVal[2];
+						cState.cSetting[popMenuActive]->PreviewVal(popMenuSelectedVal);
 						uiBuildPopMenu();
 					}
 				}
@@ -301,12 +303,14 @@ void uiService(void)
 				{
 					// Increment the user value.
 					cState.cSetting[topMenuSelectedSetting]->valArray[popMenuSelectedVal].fVal += 1.0f;
+					cState.cSetting[popMenuActive]->PreviewVal(popMenuSelectedVal);
 					uiBuildPopMenu();
 				}
 				else if(uiEncScrolled < 0)
 				{
 					// Decrement the user value.
 					cState.cSetting[topMenuSelectedSetting]->valArray[popMenuSelectedVal].fVal -= 1.0f;
+					cState.cSetting[popMenuActive]->PreviewVal(popMenuSelectedVal);
 					uiBuildPopMenu();
 				}
 			}

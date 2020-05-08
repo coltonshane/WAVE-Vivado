@@ -48,6 +48,11 @@ void cSettingFPSSetVal(u8 val);
 void cSettingShutterSetVal(u8 val);
 void cSettingFormatSetVal(u8 val);
 
+void cSettingFPSPreviewVal(u8 val);
+void cSettingShutterPreviewVal(u8 val);
+
+void cSettingDoNothing(u8 val);
+
 void cSettingSetEnabled(u8 id, u8 val, u8 en);
 
 float cStateGetMaxFPS(void);
@@ -220,6 +225,7 @@ void cStateInit(void)
 	cSettingMode.valArray = cSettingModeValArray;
 	cSettingMode.uiDisplayType = CSETTING_UI_DISPLAY_TYPE_VAL_ARRAY;
 	cSettingMode.SetVal = &cSettingModeSetVal;
+	cSettingMode.PreviewVal = &cSettingDoNothing;
 
 	cSettingWidth.id = 1;
 	cSettingWidth.val = 0;
@@ -237,6 +243,7 @@ void cStateInit(void)
 	cSettingWidth.valArray = cSettingWidthValArray;
 	cSettingWidth.uiDisplayType = CSETTING_UI_DISPLAY_TYPE_VAL_ARRAY;
 	cSettingWidth.SetVal = &cSettingWidthSetVal;
+	cSettingWidth.PreviewVal = &cSettingDoNothing;
 
 	cSettingHeight.id = 2;
 	cSettingHeight.val = 2;
@@ -254,6 +261,7 @@ void cStateInit(void)
 	cSettingHeight.valArray = cSettingHeightValArray;
 	cSettingHeight.uiDisplayType = CSETTING_UI_DISPLAY_TYPE_VAL_FORMAT_INT;
 	cSettingHeight.SetVal = &cSettingHeightSetVal;
+	cSettingHeight.PreviewVal = &cSettingDoNothing;
 
 	cSettingFPS.id = 3;
 	cSettingFPS.val = 2;
@@ -271,6 +279,7 @@ void cStateInit(void)
 	cSettingFPS.valArray = cSettingFPSValArray;
 	cSettingFPS.uiDisplayType = CSETTING_UI_DISPLAY_TYPE_VAL_FORMAT_INT;
 	cSettingFPS.SetVal = &cSettingFPSSetVal;
+	cSettingFPS.PreviewVal = &cSettingFPSPreviewVal;
 
 	cSettingShutter.id = 4;
 	cSettingShutter.val = 2;
@@ -288,6 +297,7 @@ void cStateInit(void)
 	cSettingShutter.valArray = cSettingShutterValArray;
 	cSettingShutter.uiDisplayType = CSETTING_UI_DISPLAY_TYPE_VAL_ARRAY;
 	cSettingShutter.SetVal = &cSettingShutterSetVal;
+	cSettingShutter.PreviewVal = &cSettingShutterPreviewVal;
 
 	cSettingFormat.id = 5;
 	cSettingFormat.val = 0;
@@ -305,6 +315,7 @@ void cStateInit(void)
 	cSettingFormat.valArray = cSettingFormatValArray;
 	cSettingFormat.uiDisplayType = CSETTING_UI_DISPLAY_TYPE_NAME;
 	cSettingFormat.SetVal = &cSettingFormatSetVal;
+	cSettingFormat.PreviewVal = &cSettingDoNothing;
 
 	cState.cSetting[0] = &cSettingMode;
 	cState.cSetting[1] = &cSettingWidth;
@@ -459,6 +470,29 @@ void cSettingFormatSetVal(u8 val)
 
 	// Format.
 	cSettingFormat.val = val;
+}
+
+void cSettingFPSPreviewVal(u8 val)
+{
+	if(!cSettingGetEnabled(CSETTING_FPS, val)) { return; }
+
+	// Change the frame rate and immediately apply it to the CMV_Input module.
+	cSettingFPS.val = val;
+	cmvApplyCameraState();
+}
+
+void cSettingShutterPreviewVal(u8 val)
+{
+	if(!cSettingGetEnabled(CSETTING_SHUTTER, val)) { return; }
+
+	// Change the shutter angle and immediately apply it to the CMV_Input module.
+	cSettingShutter.val = val;
+	cmvApplyCameraState();
+}
+
+void cSettingDoNothing(u8 val)
+{
+	return;
 }
 
 // Calculate the maximum FPS according to the CMV12000 datasheet.

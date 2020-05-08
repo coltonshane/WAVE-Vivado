@@ -81,6 +81,7 @@ typedef struct
 	u8 uiDisplayType;
 
 	void (*SetVal)(u8 val);
+	void (*PreviewVal)(u8 val);
 } CameraSetting_s;
 
 typedef struct
