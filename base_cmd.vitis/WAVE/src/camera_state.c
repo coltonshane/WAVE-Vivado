@@ -75,35 +75,34 @@ CameraSettingValue_s cSettingWidthValArray[] = {{"  4096 x", 4096.0f},
 												{"  2048 x", 2048.0f}};
 
 char * cSettingHeightName = " HEIGHT ";
-char * cSettingHeightValFormat = "%6dp ";								// 		4K	2K
-CameraSettingValue_s cSettingHeightValArray[] = {{"  3072p ", 3072.0f},	//	0	1x	No
-												 {"  2304p ", 2304.0f},	//	1	1x	No
-												 {"  2176p ", 2176.0f},	// 	2	1x	No
-												 {"  2048p ", 2048.0f},	//	3	1x	No
-												 {"  1760p ", 1760.0f},	//	4	1x	No
-												 {"  1600p ", 1600.0f},	//	5	1x	No
-												 {"  1536p ", 1536.0f},	//	6	2x	1x
-												 {"  1440p ", 1440.0f},	//  7	2x	1x
-												 {"  1280p ", 1280.0f},	//	8	2x	1x
-												 {"  1152p ", 1152.0f},	//  9	2x	1x
-												 {"  1120p ", 1120.0f},	//  10	2x	1x
-												 {"  1088p ", 1088.0f},	//  11	2x	1x
-												 {"  1024p ", 1024.0f},	//  12	3x	1x
-												 {"   960p ", 960.0f},	//  13	3x	1x
-												 {"   880p ", 880.0f},	//  14	3x	1x
-												 {"   800p ", 800.0f},	//  15	3X  1x
-												 {"   768p ", 768.0f},	//  16	4x  2x
-												 {"   720p ", 720.0f},  //  17	4x  2x
-												 {"   640p ", 640.0f},	//  18	4x  2x
-												 {"   560p ", 560.0f},	//  19	5x  2x
-												 {"   512p ", 512.0f},	//  20	6x  3x
-												 {"   480p ", 480.0f},  //  21	6x  3x
-												 {"   384p ", 384.0f},	//  22	8x	4x
-												 {"   360p ", 360.0f},	//  23	8x  4x
-												 {"   256p ", 256.0f},  //  24	12x  6x
-												 {"   240p ", 240.0f},  //  25	12x  6x
-												 {"   192p ", 192.0f},	//  26	16x  8x
-												 {"   128p ", 128.0f}}; //  27	24x 12x
+char * cSettingHeightValFormat = "%6dp ";								// 	4K	2K
+CameraSettingValue_s cSettingHeightValArray[] = {{"  3072p ", 3072.0f},	//	1x	No
+												 {"  2304p ", 2304.0f},	//	1x	No
+												 {"  2176p ", 2176.0f},	//	1x	No
+												 {"  2048p ", 2048.0f},	//	1x	No
+												 {"  1920p ", 1920.0f},	//	1x	No
+												 {"  1792p ", 1792.0f},	//	1x	No
+												 {"  1664p ", 1664.0f},	//	1x	No
+												 {"  1536p ", 1536.0f},	//	2x	1x
+												 {"  1408p ", 1408.0f},	//	2x	1x
+												 {"  1280p ", 1280.0f},	//	2x	1x
+												 {"  1152p ", 1152.0f},	//	2x	1x
+												 {"  1088p ", 1088.0f},	//	2x	1x
+												 {"  1024p ", 1024.0f},	//	3x	1x
+												 {"   960p ", 960.0f},	//	3x	1x
+												 {"   896p ", 896.0f},	//	3x	1x
+												 {"   832p ", 832.0f},	//	3x	1x
+												 {"   768p ", 768.0f},	//	4x	2x
+												 {"   704p ", 704.0f},  //	4x	2x
+												 {"   640p ", 640.0f},	//	4x	2x
+												 {"   576p ", 576.0f},	//	5x	2x
+												 {"   512p ", 512.0f},	//	6x	3x
+												 {"   448p ", 448.0f},  //	6x	3x
+												 {"   384p ", 384.0f},	//	8x	4x
+												 {"   320p ", 320.0f},	//	9x	4x
+												 {"   256p ", 256.0f},  // 12x	6x
+												 {"   192p ", 192.0f},	// 16x	8x
+												 {"   128p ", 128.0f}}; // 24x 12x
 
 char * cSettingFPSName = "   FPS  ";
 char * cSettingFPSValFormat = "%4d fps";
@@ -240,7 +239,7 @@ void cStateInit(void)
 
 	cSettingHeight.id = 2;
 	cSettingHeight.val = 2;
-	cSettingHeight.count = 28;
+	cSettingHeight.count = 27;
 	cSettingHeight.enable[0] = CSETTING_HEIGHT_ENABLE_4K;
 	cSettingHeight.enable[1] = 0x0000000000000000;
 	cSettingHeight.enable[2] = 0x0000000000000000;
