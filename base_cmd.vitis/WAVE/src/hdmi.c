@@ -108,6 +108,7 @@ typedef struct
 
 // Private Function Prototypes -----------------------------------------------------------------------------------------
 
+void hdmiApplyCameraStateSync(void);
 void hdmiI2CWriteMasked(u8 addr, u8 data, u8 mask);
 void hdmiWriteTestPattern4K(void);
 void hdmiWriteTestPattern2K(void);
@@ -125,6 +126,7 @@ u8 SendBuffer[256];    /**< Buffer for Transmitting Data */
 u8 RecvBuffer[256];    /**< Buffer for Receiving Data */
 
 s32 hdmiFrame = -1;
+u32 hdmiApplyCameraStateSyncFlag = 0;
 
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 void isrVSYNC(void * CallbackRef)
@@ -162,6 +164,13 @@ void isrVSYNC(void * CallbackRef)
 		hdmi->bit_discard_update_HH2 = bitDiscard[3];
 	}
 
+	// Apply camera state settings to HDMI module.
+	if(hdmiApplyCameraStateSyncFlag)
+	{
+		hdmiApplyCameraStateSyncFlag = 0;
+		hdmiApplyCameraStateSync();
+	}
+
 	cmvServiceFlag = 1;
 
 	XGpioPs_WritePin(&Gpio, GPIO2_PIN, 0);	// Mark ISR exit.
@@ -186,7 +195,7 @@ void hdmiInit(void)
 	hdmi->bit_discard_update_HL2 = 0;
 	hdmi->bit_discard_update_HH2 = 0;
 
-	hdmiApplyCameraState();
+	hdmiApplyCameraStateSync();
 
 	hdmi->ui_control = 0x000690C0;
 
@@ -237,6 +246,14 @@ void hdmiInit(void)
 }
 
 void hdmiApplyCameraState(void)
+{
+	// Wait for the next VSYNC to apply camera settings.
+	hdmiApplyCameraStateSyncFlag = 1;
+}
+
+// Private Function Definitions ----------------------------------------------------------------------------------------
+
+void hdmiApplyCameraStateSync(void)
 {
 	float wFrame, hFrame;
 	float xScale, yScale;
@@ -324,8 +341,6 @@ void hdmiApplyCameraState(void)
 	hdmi->wHDMI = 2200;
 	hdmi->hImage2048 = hImage2048;
 }
-
-// Private Function Definitions ----------------------------------------------------------------------------------------
 
 void hdmiI2CWriteMasked(u8 addr, u8 data, u8 mask)
 {
