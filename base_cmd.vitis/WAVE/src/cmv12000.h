@@ -111,6 +111,7 @@ void cmvInit(void);
 void cmvService(void);
 void cmvApplyCameraState(void);
 float cmvGetTemp(void);
+u32 cmvGetExposure(void);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
 

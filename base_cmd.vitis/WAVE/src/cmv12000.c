@@ -287,6 +287,12 @@ float cmvGetTemp(void)
 	return cmvTf;
 }
 
+u32 cmvGetExposure(void)
+{
+	// TO-DO: Add a bit flag for three-slope exposure enabled.
+	return ((u32)CMV_Settings_R.Exp_time_H << 16) | (u32)CMV_Settings_R.Exp_time_L;
+}
+
 // Private Function Definitions ----------------------------------------------------------------------------------------
 
 // CMV12000 Link Training Routine

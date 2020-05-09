@@ -123,8 +123,9 @@ void isrFOT(void * CallbackRef)
 
 	// Frame delimeter and info for the upcoming frame.
 	memcpy(fhBuffer[iFrameIn].delimeter, "WAVE HELLO!\n",12);
-	fhBuffer[iFrameIn].wFrame = 4096;
-	fhBuffer[iFrameIn].hFrame = 3072;
+	fhBuffer[iFrameIn].wFrame = (u16)(cState.cSetting[CSETTING_WIDTH]->valArray[cState.cSetting[CSETTING_WIDTH]->val].fVal);
+	fhBuffer[iFrameIn].hFrame = (u16)(cState.cSetting[CSETTING_HEIGHT]->valArray[cState.cSetting[CSETTING_HEIGHT]->val].fVal);;
+	fhBuffer[iFrameIn].tExp = cmvGetExposure();
 
 	// Quantizer settings for the upcoming frame.
 	// TO-DO: Right here is where the quantizer settings should be modified to hit bit rate target!

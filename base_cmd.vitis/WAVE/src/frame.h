@@ -52,7 +52,7 @@ typedef struct __attribute__((packed))
 	// Frame Information [8B]
 	u16 wFrame;					// Width
 	u16 hFrame;					// Height
-	u8 reserved0[4];
+	u32 tExp;					// Exposure
 
 	// Quantizer Settings [16B]
 	u32 q_mult_HH1_HL1_LH1;		// Stage 1 quantizer settings.
