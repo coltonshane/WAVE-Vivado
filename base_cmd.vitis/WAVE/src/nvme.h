@@ -65,7 +65,7 @@ int nvmeWrite(const u8 * srcByte, u64 destLBA, u32 numLBA);
 int nvmeFlush();
 int nvmeRead(u8 * destByte, u64 srcLBA, u32 numLBA);
 int nvmeServiceIOCompletions(u16 maxCompletions);
-u16 nvmeGetIOSlip(void);
+int nvmeGetIOSlip(void);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
 
