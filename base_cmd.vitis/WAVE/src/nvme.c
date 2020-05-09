@@ -335,9 +335,9 @@ int nvmeServiceIOCompletions(u16 maxCompletions)
 	return numCompletions;
 }
 
-int nvmeGetIOSlip(void)
+u16 nvmeGetIOSlip(void)
 {
-	return ((int)io_cid - (int)io_cid_last_completed - 1);
+	return (u16)(io_cid - io_cid_last_completed - 1);
 }
 
 // Private Function Definitions ----------------------------------------------------------------------------------------
