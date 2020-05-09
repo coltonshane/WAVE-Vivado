@@ -88,13 +88,15 @@ u32 fsGetNextClip(void)
 	char strWorking[8];
 	int nClipNext = 0;
 
-	sprintf(strWorking, "c%04d\n", nClipNext);
+	sprintf(strWorking, "c%04d", nClipNext);
+	fr = f_opendir(&dirWork, "");
+
 	fr = f_findfirst(&dirWork, &fInfo, "", strWorking);
 
-	while(fr == FR_OK)
+	while((fr == FR_OK) && fInfo.fname[0])
 	{
 		nClipNext++;
-		sprintf(strWorking, "c%04d\n", nClipNext);
+		sprintf(strWorking, "c%04d", nClipNext);
 		fr = f_findfirst(&dirWork, &fInfo, "", strWorking);
 	}
 
@@ -108,7 +110,7 @@ void fsCreateClip(void)
 
 	nClip++;
 
-	sprintf(strWorking, "c%04d\n", nClip);
+	sprintf(strWorking, "c%04d", nClip);
 	res = f_mkdir(strWorking);
 	if(res) { xil_printf("Warning: New clip creation failed.\r\n"); }
 	else { xil_printf("Created new clip.\r\n"); }
@@ -125,7 +127,7 @@ void fsCreateFile(void)
 		res = f_close(&fil);
 	}
 
-	sprintf(strWorking, "/c%04d/f%06d.bin\n", nClip, nFile);
+	sprintf(strWorking, "/c%04d/f%06d.bin", nClip, nFile);
 	res = f_open(&fil, strWorking, FA_CREATE_NEW | FA_WRITE);
 	res = f_expand(&fil, 0x1000000, 1);		// Reserve 16MiB.
 

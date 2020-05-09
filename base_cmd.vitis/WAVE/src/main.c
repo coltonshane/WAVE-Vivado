@@ -136,9 +136,9 @@ int main()
 
     usleep(1000);
 
+    fsInit();
     hdmiInit();
     usbInit();
-    fsInit();
     frameInit();
     uiInit();
 
