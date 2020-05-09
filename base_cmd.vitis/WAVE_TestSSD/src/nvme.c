@@ -124,7 +124,7 @@ u8 ps_idle = 0;
 u32 lba_size = 512;
 u16 admin_cid = 0;
 u16 io_cid = 0;
-u16 io_cid_last_completed = 0;
+u16 io_cid_last_completed = 0xFFFF;
 
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 
