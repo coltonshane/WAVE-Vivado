@@ -54,6 +54,8 @@ void fsInit(void)
 	res = f_mount(&fs, "", 0);
 	if(res) { xil_printf("SSD mount failed.\r\n"); }
 	else { xil_printf("SSD mount successful.\r\n"); }
+
+	nClip = fsGetNextClip();
 }
 
 void fsFormat(void)
@@ -76,6 +78,27 @@ void fsFormat(void)
 	res = f_mount(&fs, "", 0);
 	if(res) { xil_printf("SSD mount failed.\r\n"); }
 	else { xil_printf("SSD mount successful.\r\n"); }
+}
+
+u32 fsGetNextClip(void)
+{
+	FRESULT fr;
+	DIR dirWork;
+	FILINFO fInfo;
+	char strWorking[8];
+	int nClipNext = 0;
+
+	sprintf(strWorking, "c%04d\n", nClipNext);
+	fr = f_findfirst(&dirWork, &fInfo, "", strWorking);
+
+	while(fr == FR_OK)
+	{
+		nClipNext++;
+		sprintf(strWorking, "c%04d\n", nClipNext);
+		fr = f_findfirst(&dirWork, &fInfo, "", strWorking);
+	}
+
+	return nClipNext;
 }
 
 void fsCreateClip(void)

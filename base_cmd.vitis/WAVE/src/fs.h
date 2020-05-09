@@ -37,6 +37,7 @@ THE SOFTWARE.
 
 void fsInit(void);
 void fsFormat(void);
+u32 fsGetNextClip(void);
 void fsCreateClip(void);
 void fsCreateFile(void);
 void fsWriteFile(u64 srcAddress, u32 size);

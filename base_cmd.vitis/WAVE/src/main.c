@@ -62,7 +62,6 @@ u32 triggerRecordStartStop = 0;
 u32 recording = 0;
 u32 triggerShutdown = 0;
 u32 cmvServiceFlag = 0;
-u32 formatFileSystem = 1;
 u32 closeFileSystem = 0;
 
 int main()
@@ -139,6 +138,7 @@ int main()
 
     hdmiInit();
     usbInit();
+    fsInit();
     frameInit();
     uiInit();
 
@@ -166,11 +166,10 @@ int main()
     		uiService();
     	}
 
-    	if(formatFileSystem)
+    	if(cState.cSetting[CSETTING_FORMAT]->val == CSETTING_FORMAT_CONFIRM)
     	{
-    		formatFileSystem = 0;
+    		cState.cSetting[CSETTING_FORMAT]->val = CSETTING_FORMAT_CANCEL;
     		fsFormat();
-    		fsCreateClip();
     	}
 
     	if(closeFileSystem)
