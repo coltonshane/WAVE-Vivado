@@ -71,6 +71,7 @@ module CMV_Input_v1_0_S00_AXI #
     output wire [31:0] FRAME_REQ_on,
     output wire [31:0] T_EXP1_on,
     output wire [31:0] T_EXP2_on,
+    output wire [9:0] exp_bias,
     
 	// User ports ends
 	// Do not modify the ports beyond this line
@@ -159,8 +160,8 @@ localparam integer OPT_MEM_ADDR_BITS = 6;
 //----------------------------------------------
 //-- Signals for user logic register space example
 //------------------------------------------------
-//-- Number of Slave Registers: 72 <= 2^(OPT_MEM_ADDR_BITS+1)
-reg [C_S_AXI_DATA_WIDTH-1:0] slv_reg [71:0];
+//-- Number of Slave Registers: 73 <= 2^(OPT_MEM_ADDR_BITS+1)
+reg [C_S_AXI_DATA_WIDTH-1:0] slv_reg [72:0];
 
 // Make array views of the CMV12000 pixel channel I/O ports.
 wire [8:0] cmv_chXX_delay_target [63:0];
@@ -286,7 +287,7 @@ begin
     if ( S_AXI_ARESETN == 1'b0 )
     begin : s_axi_areset_block
         integer i;
-        for(i = 0; i < 72; i = i + 1)
+        for(i = 0; i < 73; i = i + 1)
         begin
             slv_reg[i] <= 0;
         end
@@ -472,6 +473,7 @@ assign frame_interval = slv_reg[68];
 assign FRAME_REQ_on = slv_reg[69];
 assign T_EXP1_on = slv_reg[70];
 assign T_EXP2_on = slv_reg[71];
+assign exp_bias = slv_reg[72][9:0];
 
 // User logic ends
 

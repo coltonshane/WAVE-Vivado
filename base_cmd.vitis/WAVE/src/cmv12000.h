@@ -72,6 +72,7 @@ typedef struct
 	u32 FRAME_REQ_on;		// FRAME_REQ pulse time in [us/60].
 	u32 T_EXP1_on;			// T_EXP1 pulse time in [us/60].
 	u32 T_EXP2_on;			// T_EXP2 ulse time in [us/60].
+	u32 exp_bias;			// Black level bias during INTE1.
 } CMV_Input_s;
 
 typedef struct __attribute__((packed))

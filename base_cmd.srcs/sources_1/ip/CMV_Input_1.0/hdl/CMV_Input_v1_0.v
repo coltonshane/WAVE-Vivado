@@ -121,6 +121,7 @@ wire [31:0] frame_interval;
 wire [31:0] FRAME_REQ_on;
 wire [31:0] T_EXP1_on;
 wire [31:0] T_EXP2_on;
+wire [9:0] exp_bias;
 
 // Instantiation of AXI-Lite Slave.
 CMV_Input_v1_0_S00_AXI 
@@ -158,6 +159,7 @@ CMV_Input_v1_0_S00_AXI_inst
     .FRAME_REQ_on(FRAME_REQ_on),
     .T_EXP1_on(T_EXP1_on),
     .T_EXP2_on(T_EXP2_on),
+    .exp_bias(exp_bias),
 
     // AXI-Lite slave controller signals.
 	.S_AXI_ACLK(s00_axi_aclk),
@@ -290,21 +292,20 @@ px_in_ctr
 );
 assign cmv_ctr_px_data[15:10] = 6'b000000;
 
-// Concatenated 10-bit pixel channel output to wavelet block.
-for (i = 0; i < 64; i = i + 1)
-begin
-    assign px_chXX_concat[10*i+:10] = cmv_chXX_px_data[i][9:0];
-end
-
 // 10-bit control channel output to wavelet block.
 // DVAL is masked out by the pixel count limit for debugging.
 assign px_ctr = cmv_ctr_px_data[9:0] & {9'b11111111, (px_count < px_count_limit)};
 
 // Map CMV12000 control channel signals.
-wire CMV_DVAL;
-assign CMV_DVAL = px_ctr[0];
-wire CMV_FOT;
-assign CMV_FOT = px_ctr[3];
+wire CMV_DVAL = px_ctr[0];
+wire CMV_FOT = px_ctr[3];
+wire CMV_INTE1 = px_ctr[4];
+
+// Concatenated 10-bit pixel channel output to wavelet block.
+for (i = 0; i < 64; i = i + 1)
+begin
+    assign px_chXX_concat[10*i+:10] = cmv_chXX_px_data[i][9:0] + (CMV_INTE1 ? exp_bias : 10'h0);
+end
 
 // Master pixel counter.
 always @(posedge px_clk)
