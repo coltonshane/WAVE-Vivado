@@ -29,6 +29,7 @@ THE SOFTWARE.
 #include "camera_state.h"
 #include "cmv12000.h"
 #include "nvme.h"
+#include "fs.h"
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
@@ -161,7 +162,6 @@ void uiService(void)
 		if(uiRecClicked)
 		{
 			// End clip.
-			triggerRecordStartStop = 1;
 			cState.cSetting[CSETTING_MODE]->SetVal(CSETTING_MODE_STANDBY);
 			uiBuildTopMenu();
 		}
@@ -172,7 +172,6 @@ void uiService(void)
 		if(uiRecClicked)
 		{
 			// Start clip and close pop-up menu if it's open.
-			triggerRecordStartStop = 1;
 			cState.cSetting[CSETTING_MODE]->SetVal(CSETTING_MODE_REC);
 			uiBuildTopMenu();
 			popMenuActive = -1;
@@ -325,11 +324,14 @@ uiServiceComplete:
 	uiEncClicked = 0;
 	uiEncScrolled = 0;
 
-	sprintf(strResult, "PS:%3.0f*C", psplGetTemp(psTemp));
+	sprintf(strResult, "c%04d", nClip);
 	uiDrawStringColRow(UI_ID_BOT, strResult, 0, 0);
 
-	uiDrawStringColRow(UI_ID_BOT, "12.3V", 16, 0);
-	uiDrawStringColRow(UI_ID_BOT, "991GB", 32, 0);
+	sprintf(strResult, "PS:%3.0f*C", psplGetTemp(psTemp));
+	uiDrawStringColRow(UI_ID_BOT, strResult, 16, 0);
+
+	uiDrawStringColRow(UI_ID_BOT, "12.3V", 32, 0);
+	uiDrawStringColRow(UI_ID_BOT, "991GB",482, 0);
 
 	/*
 	sprintf(strResult, "PL:%3.0f*C", psplGetTemp(plTemp));

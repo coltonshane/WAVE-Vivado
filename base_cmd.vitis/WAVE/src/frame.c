@@ -164,18 +164,23 @@ void frameApplyCameraState(void)
 	frameApplyCameraStateSyncFlag = 1;
 }
 
-void frameService(u8 recState)
+void frameCreateClip(void)
 {
-	if(recState == FRAME_REC_STATE_START)
-	{
-		// Start recording for continuous capture.
-		nFramesOutStart = nFramesIn;
-		nFramesOut = nFramesOutStart;
-	}
-	else if(recState == FRAME_REC_STATE_CONTINUE)
-	{
-		if(nFramesOut + 3 < nFramesIn) { frameRecord(); }
-	}
+	fsCreateClip();
+
+	// Start recording at the current frame.
+	nFramesOutStart = nFramesIn;
+	nFramesOut = nFramesOutStart;
+}
+
+void frameAddToClip(void)
+{
+	if(nFramesOut + 3 < nFramesIn) { frameRecord(); }
+}
+
+void frameCloseClip(void)
+{
+	fsCloseClip();
 }
 
 int frameLastCaptured(void)

@@ -80,7 +80,9 @@ typedef struct __attribute__((packed))
 
 void frameInit(void);
 void frameApplyCameraState(void);
-void frameService(u8 recState);
+void frameCreateClip(void);
+void frameAddToClip(void);
+void frameCloseClip(void);
 int frameLastCaptured(void);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------

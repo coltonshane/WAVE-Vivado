@@ -35,12 +35,13 @@ THE SOFTWARE.
 
 // Public Global Variables ---------------------------------------------------------------------------------------------
 
+int nClip = -1;
+
 // Private Global Variables --------------------------------------------------------------------------------------------
 
 FATFS fs;
 FIL fil;
 
-int nClip = -1;
 int nFile = 0;
 
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
@@ -108,12 +109,22 @@ void fsCreateClip(void)
 	FRESULT res;
 	char strWorking[16];
 
-	nClip++;
+	if((nClip < 0) || (nClip > 9999)) { return; }
 
 	sprintf(strWorking, "c%04d", nClip);
 	res = f_mkdir(strWorking);
 	if(res) { xil_printf("Warning: New clip creation failed.\r\n"); }
 	else { xil_printf("Created new clip.\r\n"); }
+}
+
+void fsCloseClip(void)
+{
+	// Truncate and close any open files first.
+	f_truncate(&fil);
+	f_close(&fil);
+
+	nClip = fsGetNextClip();
+	nFile = 0;
 }
 
 void fsCreateFile(void)

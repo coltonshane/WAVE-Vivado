@@ -369,6 +369,7 @@ void cSettingModeSetVal(u8 val)
 		if(val == CSETTING_MODE_REC)
 		{
 			// Start a new clip.
+			frameCreateClip();
 			cSettingMode.val = CSETTING_MODE_REC;
 		}
 		break;
@@ -376,6 +377,7 @@ void cSettingModeSetVal(u8 val)
 		if(val == CSETTING_MODE_STANDBY)
 		{
 			// End clip.
+			frameCloseClip();
 			cSettingMode.val = CSETTING_MODE_STANDBY;
 		}
 		break;
