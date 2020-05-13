@@ -31,6 +31,8 @@ THE SOFTWARE.
 
 // Public Pre-Processor Definitions ------------------------------------------------------------------------------------
 
+#define ENCODER_NUM_QMULT_PROFILES 11
+
 // Public Type Definitions ---------------------------------------------------------------------------------------------
 
 typedef struct __attribute__((packed))
@@ -52,7 +54,7 @@ typedef struct __attribute__((packed))
 
 void encoderInit(void);
 void encoderApplyCameraState(void);
-void encoderServiceRAMAddr(Encoder_s * Encoder_snapshot);
+void encoderServiceFOT(Encoder_s * Encoder_snapshot, u8 qMultProfile);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
 

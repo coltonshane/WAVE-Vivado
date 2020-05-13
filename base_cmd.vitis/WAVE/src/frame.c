@@ -47,6 +47,7 @@ THE SOFTWARE.
 
 void frameApplyCameraStateSync(void);
 void frameRecord(void);
+void frameUpdateCompression(const u32 * csSizeBuffer);
 void frameUpdateTemps(void);
 
 // Public Global Variables ---------------------------------------------------------------------------------------------
@@ -54,9 +55,11 @@ void frameUpdateTemps(void);
 // Frame header circular buffer in external DDR4 RAM.
 FrameHeader_s * fhBuffer = (FrameHeader_s *) (0x18000000);
 
+float frameCompressionRatio = 5.0f;
+
 // Private Global Variables --------------------------------------------------------------------------------------------
 
-u32 nSubFramesIn = 0xFFFFFFFF;
+u32 nSubframesIn = 0xFFFFFFFF;
 s32 nFramesIn = -1;
 s32 nFramesOutStart = 0;
 s32 nFramesOut = 0;
@@ -79,22 +82,24 @@ Frame Overhead Time (FOT) Interrupt Service Routine
 - Constructs frame headers in an external DDR4 buffer. DDR4 access does not compete with frame read-in if
   the ISR returns before the end of the FOT period, which lasts about 20-30us.
 */
+u8 qMultProfileTemp = 7;
 void isrFOT(void * CallbackRef)
 {
 	Encoder_s Encoder_prev, Encoder_next;
 	XTime tFrameIn;
 	u32 iFrameIn;
+	u32 csSizeBuffer[16];
 
-	nSubFramesIn++;
+	nSubframesIn++;
 	CMV_Input->FOT_int = 0x00000000;			// Clear the FOT interrupt flag.
 
-	if(nSubFramesIn % nSubframesPerFrame > 0) { return; }
+	if(nSubframesIn % nSubframesPerFrame > 0) { return; }
 
 	XGpioPs_WritePin(&Gpio, GPIO1_PIN, 1);		// Mark ISR entry.
 
 	// Time-critical Encoder access. Must complete before end of FOT.
 	memcpy(&Encoder_prev, Encoder, sizeof(Encoder_s));
-	encoderServiceRAMAddr(&Encoder_prev);
+	encoderServiceFOT(&Encoder_prev, qMultProfileTemp);
 	memcpy(&Encoder_next, Encoder, sizeof(Encoder_s));
 	XGpioPs_WritePin(&Gpio, T_EXP1_PIN, 0);
 
@@ -105,9 +110,10 @@ void isrFOT(void * CallbackRef)
 		for(int iCS = 0; iCS < 16; iCS++)
 		{
 			// Codestream size.
-			fhBuffer[iFrameIn].csSize[iCS] = Encoder_prev.c_RAM_addr[iCS] - fhBuffer[iFrameIn].csAddr[iCS];
+			csSizeBuffer[iCS] = Encoder_prev.c_RAM_addr[iCS] - fhBuffer[iFrameIn].csAddr[iCS];
 		}
 	}
+	memcpy(fhBuffer[iFrameIn].csSize, csSizeBuffer, 16 * sizeof(u32));
 
 	// Increment the input frame counter.
 	nFramesIn++;
@@ -139,6 +145,9 @@ void isrFOT(void * CallbackRef)
 		fhBuffer[iFrameIn].csAddr[iCS] = Encoder_next.c_RAM_addr[iCS];
 		fhBuffer[iFrameIn].csFIFOState[iCS] = Encoder_next.fifo_rd_count[iCS];
 	}
+
+	// Check the compressed frame size and update quantization profile as-needed.
+	frameUpdateCompression(csSizeBuffer);
 
 	// Apply camera state settings to the frame module.
 	if(frameApplyCameraStateSyncFlag)
@@ -254,6 +263,27 @@ void frameRecord(void)
 	nFramesOut++;
 
 	// XGpioPs_WritePin(&Gpio, GPIO2_PIN, 0);		// Mark frame recorder exit.
+}
+
+void frameUpdateCompression(const u32 * csSizeBuffer)
+{
+	float wFrame, hFrame;
+	float szRaw, szCompressed;
+
+	wFrame = cState.cSetting[CSETTING_WIDTH]->valArray[cState.cSetting[CSETTING_WIDTH]->val].fVal;
+	hFrame = cState.cSetting[CSETTING_HEIGHT]->valArray[cState.cSetting[CSETTING_HEIGHT]->val].fVal;
+	szRaw = wFrame * hFrame * nSubframesPerFrame * 1.25f;	// 1.25B/px
+
+	szCompressed = 0.0f;
+	for(int i = 0; i < 16; i++)
+	{
+		szCompressed += (float)csSizeBuffer[i];
+	}
+	if(szCompressed > 0.0f)
+	{
+		frameCompressionRatio *= 0.9375f;
+		frameCompressionRatio += 0.0625f * szRaw / szCompressed;
+	}
 }
 
 void frameUpdateTemps(void)

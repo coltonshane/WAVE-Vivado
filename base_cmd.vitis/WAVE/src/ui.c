@@ -30,6 +30,7 @@ THE SOFTWARE.
 #include "cmv12000.h"
 #include "nvme.h"
 #include "fs.h"
+#include "frame.h"
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
@@ -327,13 +328,16 @@ uiServiceComplete:
 	sprintf(strResult, "c%04d", nClip);
 	uiDrawStringColRow(UI_ID_BOT, strResult, 0, 0);
 
+	sprintf(strResult, "%5.2f:1", frameCompressionRatio);
+	uiDrawStringColRow(UI_ID_BOT, strResult, 8, 0);
+
+	/*
 	sprintf(strResult, "PS:%3.0f*C", psplGetTemp(psTemp));
 	uiDrawStringColRow(UI_ID_BOT, strResult, 16, 0);
 
 	uiDrawStringColRow(UI_ID_BOT, "12.3V", 32, 0);
-	uiDrawStringColRow(UI_ID_BOT, "991GB",482, 0);
+	uiDrawStringColRow(UI_ID_BOT, "991GB", 48, 0);
 
-	/*
 	sprintf(strResult, "PL:%3.0f*C", psplGetTemp(plTemp));
 	uiDrawStringColRow(UI_ID_BOT, strResult, 16, 0);
 

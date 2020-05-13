@@ -325,7 +325,7 @@ void cStateInit(void)
 	cState.cSetting[5] = &cSettingFormat;
 
 	// Manually trigger cSettingWidthSetVal() to make sure initial state is applied.
-	cSettingWidthSetVal(CSETTING_WIDTH_2K);
+	cSettingWidthSetVal(CSETTING_WIDTH_4K);
 }
 
 void cStateApply(void)

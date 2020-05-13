@@ -71,6 +71,12 @@ u32 csFullAddr[16] = {0x37F00000, 0x3DF00000, 0x43F00000, 0x49F00000,
                       0x58F00000, 0x5BF00000, 0x5EF00000, 0x61F00000,
                       0x64F00000, 0x67F00000, 0x6AF00000, 0x6DF00000};
 
+// Quantizer Profiles from Most Compression <---> Least Compression
+u16 qMult_LH2_HL2[ENCODER_NUM_QMULT_PROFILES] = {16, 20, 29, 32, 37, 43, 52, 64, 86, 128};
+u16 qMult_HH2[ENCODER_NUM_QMULT_PROFILES] = {8, 10, 14, 18, 22, 26, 29, 32, 37, 43, 52};
+u16 qMult_LH1_HL1[ENCODER_NUM_QMULT_PROFILES] = {8, 10, 12, 14, 16, 18, 22, 26, 29, 32, 43};
+u16 qMult_HH1[ENCODER_NUM_QMULT_PROFILES] = {4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16};
+
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 
 // Public Function Definitions -----------------------------------------------------------------------------------------
@@ -105,7 +111,7 @@ void encoderApplyCameraState(void)
 	}
 }
 
-void encoderServiceRAMAddr(Encoder_s * Encoder_snapshot)
+void encoderServiceFOT(Encoder_s * Encoder_snapshot, u8 qMultProfile)
 {
 	u16 csFlags = 0x0000;
 
@@ -120,6 +126,12 @@ void encoderServiceRAMAddr(Encoder_s * Encoder_snapshot)
 	if(csFlags)
 	{
 		encoderResetRAMAddr(Encoder_snapshot, csFlags);
+	}
+
+	if(qMultProfile < ENCODER_NUM_QMULT_PROFILES)
+	{
+		Encoder->q_mult_HH1_HL1_LH1 = ((u32)qMult_HH1[qMultProfile] << 16) | (u32)qMult_LH1_HL1[qMultProfile];
+		Encoder->q_mult_HH2_HL2_LH2 = ((u32)qMult_HH2[qMultProfile] << 16) | (u32)qMult_LH2_HL2[qMultProfile];
 	}
 }
 
