@@ -47,5 +47,7 @@ void fsDeinit(void);
 // Externed Public Global Variables ------------------------------------------------------------------------------------
 
 extern int nClip;
+extern u32 fsFreeGB;
+extern u32 fsSizeGB;
 
 #endif

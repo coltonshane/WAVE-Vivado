@@ -152,7 +152,7 @@ void uiInit(void)
 extern u32 triggerRecordStartStop;
 void uiService(void)
 {
-	char strResult[12];
+	char strWorking[32];
 
 	// Menu state machine.
 	// ---------------------------------------------------------------------------------------------
@@ -325,11 +325,14 @@ uiServiceComplete:
 	uiEncClicked = 0;
 	uiEncScrolled = 0;
 
-	sprintf(strResult, "c%04d", nClip);
-	uiDrawStringColRow(UI_ID_BOT, strResult, 0, 0);
+	sprintf(strWorking, "c%04d", nClip);
+	uiDrawStringColRow(UI_ID_BOT, strWorking, 0, 0);
 
-	sprintf(strResult, "%5.2f:1 Q%-2d", frameCompressionRatio, frameCompressionProfile);
-	uiDrawStringColRow(UI_ID_BOT, strResult, 8, 0);
+	sprintf(strWorking, "%5.2f:1 Q%-2d", frameCompressionRatio, frameCompressionProfile);
+	uiDrawStringColRow(UI_ID_BOT, strWorking, 8, 0);
+
+	sprintf(strWorking, "%4d/%-4d GB", fsFreeGB, fsSizeGB);
+	uiDrawStringColRow(UI_ID_BOT, strWorking, 20, 0);
 
 	/*
 	sprintf(strResult, "PS:%3.0f*C", psplGetTemp(psTemp));

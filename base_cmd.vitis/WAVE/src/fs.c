@@ -33,6 +33,8 @@ THE SOFTWARE.
 
 // Private Function Prototypes -----------------------------------------------------------------------------------------
 
+void fsUpdateFreeSizeGB(void);
+
 // Public Global Variables ---------------------------------------------------------------------------------------------
 
 int nClip = -1;
@@ -43,6 +45,8 @@ FATFS fs;
 FIL fil;
 
 int nFile = 0;
+u32 fsFreeGB = 0;
+u32 fsSizeGB = 0;
 
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 
@@ -79,6 +83,8 @@ void fsFormat(void)
 	res = f_mount(&fs, "", 0);
 	if(res) { xil_printf("SSD mount failed.\r\n"); }
 	else { xil_printf("SSD mount successful.\r\n"); }
+
+	fsGetNextClip();
 }
 
 u32 fsGetNextClip(void)
@@ -100,6 +106,8 @@ u32 fsGetNextClip(void)
 		sprintf(strWorking, "c%04d", nClipNext);
 		fr = f_findfirst(&dirWork, &fInfo, "", strWorking);
 	}
+
+	fsUpdateFreeSizeGB();
 
 	return nClipNext;
 }
@@ -136,6 +144,7 @@ void fsCreateFile(void)
 	{
 		res = f_truncate(&fil);
 		res = f_close(&fil);
+		fsUpdateFreeSizeGB();
 	}
 
 	sprintf(strWorking, "/c%04d/f%06d.bin", nClip, nFile);
@@ -167,3 +176,16 @@ void fsDeinit(void)
 }
 
 // Private Function Definitions ----------------------------------------------------------------------------------------
+
+void fsUpdateFreeSizeGB(void)
+{
+	FATFS *fsLocal;
+	FRESULT res;
+	u32 nFreeClusters = 0;
+
+	fsSizeGB = (fs.n_fatent - 2) / 15259;
+
+	res = f_getfree("", &nFreeClusters, &fsLocal);
+	if(res == FR_OK) { fsFreeGB = nFreeClusters / 15259; }
+	else { fsFreeGB = 0; }
+}
