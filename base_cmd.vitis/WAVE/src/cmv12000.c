@@ -204,6 +204,8 @@ void cmvApplyCameraState(void)
 		CMV_Settings_W.Setting_3 = 128;
 		CMV_Settings_W.Setting_4 = 128;
 		CMV_Settings_W.Setting_5 = 128;
+		CMV_Settings_W.Offset_bot = 480;
+		CMV_Settings_W.Offset_top = 480;
 		CMV_Settings_W.Reg_98 = 44812;
 		CMV_Settings_W.Setting_6 = 789;
 		CMV_Settings_W.Setting_7 = 84;
@@ -220,6 +222,8 @@ void cmvApplyCameraState(void)
 		CMV_Settings_W.Setting_3 = 143;
 		CMV_Settings_W.Setting_4 = 143;
 		CMV_Settings_W.Setting_5 = 71;
+		CMV_Settings_W.Offset_bot = 520;
+		CMV_Settings_W.Offset_top = 520;
 		CMV_Settings_W.Reg_98 = 44815;
 		CMV_Settings_W.Setting_6 = 798;
 		CMV_Settings_W.Setting_7 = 90;
@@ -253,9 +257,6 @@ void cmvApplyCameraState(void)
 
 	// Set the frame interval.
 	CMV_Input->frame_interval = tFrame * 60E6;
-
-	CMV_Settings_W.Offset_bot = 520;
-	CMV_Settings_W.Offset_top = 520;
 
 	CMV_Settings_W.Vtfl = 84 * 128 + 104;
 
