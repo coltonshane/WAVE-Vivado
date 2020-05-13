@@ -89,6 +89,7 @@ int frameLastCaptured(void);
 
 extern FrameHeader_s * fhBuffer;
 
+extern u8 frameCompressionProfile;
 extern float frameCompressionRatio;
 
 #endif

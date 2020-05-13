@@ -162,6 +162,10 @@ void isrVSYNC(void * CallbackRef)
 		hdmi->bit_discard_update_LH2 = bitDiscard[1];
 		hdmi->bit_discard_update_HL2 = bitDiscard[2];
 		hdmi->bit_discard_update_HH2 = bitDiscard[3];
+
+		// Load the quantizer settings. TO-DO: Add sharpening/focus assist setting.
+		hdmi->q_mult_inv_HL2_LH2 = 65536 / (fhSnapshot.q_mult_HH2_HL2_LH2 & 0xFFFF);
+		hdmi->q_mult_inv_HH2 = 65536 / (fhSnapshot.q_mult_HH2_HL2_LH2 >> 16);
 	}
 
 	// Apply camera state settings to HDMI module.

@@ -152,7 +152,7 @@ void uiInit(void)
 extern u32 triggerRecordStartStop;
 void uiService(void)
 {
-	char strResult[9];
+	char strResult[12];
 
 	// Menu state machine.
 	// ---------------------------------------------------------------------------------------------
@@ -328,7 +328,7 @@ uiServiceComplete:
 	sprintf(strResult, "c%04d", nClip);
 	uiDrawStringColRow(UI_ID_BOT, strResult, 0, 0);
 
-	sprintf(strResult, "%5.2f:1", frameCompressionRatio);
+	sprintf(strResult, "%5.2f:1 Q%-2d", frameCompressionRatio, frameCompressionProfile);
 	uiDrawStringColRow(UI_ID_BOT, strResult, 8, 0);
 
 	/*

@@ -55,6 +55,7 @@ void frameUpdateTemps(void);
 // Frame header circular buffer in external DDR4 RAM.
 FrameHeader_s * fhBuffer = (FrameHeader_s *) (0x18000000);
 
+u8 frameCompressionProfile = 7;
 float frameCompressionRatio = 5.0f;
 
 // Private Global Variables --------------------------------------------------------------------------------------------
@@ -82,7 +83,6 @@ Frame Overhead Time (FOT) Interrupt Service Routine
 - Constructs frame headers in an external DDR4 buffer. DDR4 access does not compete with frame read-in if
   the ISR returns before the end of the FOT period, which lasts about 20-30us.
 */
-u8 qMultProfileTemp = 7;
 void isrFOT(void * CallbackRef)
 {
 	Encoder_s Encoder_prev, Encoder_next;
@@ -99,7 +99,7 @@ void isrFOT(void * CallbackRef)
 
 	// Time-critical Encoder access. Must complete before end of FOT.
 	memcpy(&Encoder_prev, Encoder, sizeof(Encoder_s));
-	encoderServiceFOT(&Encoder_prev, qMultProfileTemp);
+	encoderServiceFOT(&Encoder_prev, frameCompressionProfile);
 	memcpy(&Encoder_next, Encoder, sizeof(Encoder_s));
 	XGpioPs_WritePin(&Gpio, T_EXP1_PIN, 0);
 
@@ -269,6 +269,8 @@ void frameUpdateCompression(const u32 * csSizeBuffer)
 {
 	float wFrame, hFrame;
 	float szRaw, szCompressed;
+	static u16 nFramesOvercompressed = 0;
+	static u16 nFramesUndercompressed = 0;
 
 	wFrame = cState.cSetting[CSETTING_WIDTH]->valArray[cState.cSetting[CSETTING_WIDTH]->val].fVal;
 	hFrame = cState.cSetting[CSETTING_HEIGHT]->valArray[cState.cSetting[CSETTING_HEIGHT]->val].fVal;
@@ -281,9 +283,28 @@ void frameUpdateCompression(const u32 * csSizeBuffer)
 	}
 	if(szCompressed > 0.0f)
 	{
-		frameCompressionRatio *= 0.9375f;
-		frameCompressionRatio += 0.0625f * szRaw / szCompressed;
+		frameCompressionRatio *= 0.875f;
+		frameCompressionRatio += 0.125f * szRaw / szCompressed;
 	}
+
+	// Heuristic for adjusting qMultProfile to achieve target 5:1 to 6:1 compression.
+	if(frameCompressionRatio > 6.0f) { nFramesOvercompressed++; }
+	else { nFramesOvercompressed = 0.0f; };
+	if(frameCompressionRatio < 5.0f) { nFramesUndercompressed++; }
+	else { nFramesUndercompressed = 0.0f; }
+
+	if((nFramesOvercompressed > 32) && (frameCompressionProfile < (ENCODER_NUM_QMULT_PROFILES - 1)))
+	{
+		frameCompressionProfile++;
+		nFramesOvercompressed = 0;
+	}
+
+	if((nFramesUndercompressed > 32) && (frameCompressionProfile > 0))
+	{
+		frameCompressionProfile--;
+		nFramesUndercompressed = 0;
+	}
+
 }
 
 void frameUpdateTemps(void)
