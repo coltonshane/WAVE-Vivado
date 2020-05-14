@@ -40,11 +40,10 @@ THE SOFTWARE.
 
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
+void mainServiceTrigger(void);
 float psplGetTemp(u16 * psplTemp);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
-
-extern u32 cmvServiceFlag;
 
 extern u16 * psTemp;
 extern u16 * plTemp;

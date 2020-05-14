@@ -175,7 +175,7 @@ void isrVSYNC(void * CallbackRef)
 		hdmiApplyCameraStateSync();
 	}
 
-	cmvServiceFlag = 1;
+	mainServiceTrigger();
 
 	XGpioPs_WritePin(&Gpio, GPIO2_PIN, 0);	// Mark ISR exit.
 }

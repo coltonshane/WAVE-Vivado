@@ -31,6 +31,7 @@ THE SOFTWARE.
 #include "nvme.h"
 #include "fs.h"
 #include "frame.h"
+#include "supervisor.h"
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
@@ -105,6 +106,8 @@ u8 popMenuSelectedVal = 0xFF;
 
 int userInputActive = -1;
 
+u32 uiServiceCounter = 0;
+
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 
 void isrUI(void *CallBackRef, u32 Bank, u32 Status)
@@ -149,7 +152,7 @@ void uiInit(void)
 	uiHideAll();
 	uiClearAll(UI_BG);
 }
-extern u32 triggerRecordStartStop;
+
 void uiService(void)
 {
 	char strWorking[32];
@@ -320,6 +323,8 @@ void uiService(void)
 
 uiServiceComplete:
 
+	uiServiceCounter++;
+
 	// Discard UI events, even if they are unused.
 	uiRecClicked = 0;
 	uiEncClicked = 0;
@@ -333,6 +338,15 @@ uiServiceComplete:
 
 	sprintf(strWorking, "%4d/%-4d GB", fsFreeGB, fsSizeGB);
 	uiDrawStringColRow(UI_ID_BOT, strWorking, 20, 0);
+
+	sprintf(strWorking, "%3.0f*C", psplGetTemp(psTemp));
+	uiDrawStringColRow(UI_ID_BOT, strWorking, 48, 0);
+
+	sprintf(strWorking, "%2d.%1dV", supervisorVBatt / 10, supervisorVBatt % 10);
+	if((supervisorVBatt < 100) && ((uiServiceCounter % 32) < 16))
+	{ uiDrawStringColRow(UI_ID_BOT, " LOW ", 54, 0); }
+	else
+	{ uiDrawStringColRow(UI_ID_BOT, strWorking, 54, 0); }
 
 	/*
 	sprintf(strResult, "PS:%3.0f*C", psplGetTemp(psTemp));

@@ -41,7 +41,10 @@ THE SOFTWARE.
 void supervisorInit(void);
 int supervisorEnableCMVPower(void);
 int supervisorEnableSSDPower(void);
+void supervisorService(void);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
+
+extern u8 supervisorVBatt;
 
 #endif

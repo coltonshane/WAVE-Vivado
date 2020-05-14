@@ -50,6 +50,12 @@
 
 #define INTC_DEVICE_ID XPAR_SCUGIC_0_DEVICE_ID
 
+// Main loop services.
+#define MAIN_SERVICE_IDLE 0
+#define MAIN_SERVICE_CMV 1
+#define MAIN_SERVICE_SUPERVISOR 2
+#define MAIN_SERVICE_UI 3
+
 void isrFOT(void * CallbackRef);
 void isrVSYNC(void * CallbackRef);
 
@@ -59,7 +65,7 @@ u16 * plTemp = (u16 *)((u64) 0xFFA50C00);
 XScuGic Gic;
 
 u32 triggerShutdown = 0;
-u32 cmvServiceFlag = 0;
+u32 mainServiceState = 0;
 u32 closeFileSystem = 0;
 
 int main()
@@ -150,11 +156,25 @@ int main()
     		frameAddToClip();
     	}
 
-    	if(cmvServiceFlag)
+    	// Main loop service state machine.
+    	switch(mainServiceState)
     	{
-    		cmvServiceFlag = 0;
+    	case MAIN_SERVICE_CMV:
     		cmvService();
+    		mainServiceState = MAIN_SERVICE_SUPERVISOR;
+    		break;
+    	case MAIN_SERVICE_SUPERVISOR:
+    		supervisorService();
+    		mainServiceState = MAIN_SERVICE_UI;
+    		break;
+    	case MAIN_SERVICE_UI:
     		uiService();
+    		mainServiceState = MAIN_SERVICE_IDLE;
+    		break;
+    	case MAIN_SERVICE_IDLE:
+    	default:
+    		mainServiceState = MAIN_SERVICE_IDLE;
+    		break;
     	}
 
     	if(cState.cSetting[CSETTING_FORMAT]->val == CSETTING_FORMAT_CONFIRM)
@@ -173,6 +193,11 @@ int main()
     fsDeinit();
     cleanup_platform();
     return 0;
+}
+
+void mainServiceTrigger(void)
+{
+	mainServiceState = MAIN_SERVICE_CMV;
 }
 
 float psplGetTemp(u16 * psplTemp)

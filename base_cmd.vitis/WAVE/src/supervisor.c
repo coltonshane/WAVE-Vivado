@@ -35,6 +35,7 @@ THE SOFTWARE.
 // Supervisor UART protocol.
 #define SUPERVISOR_PREFIX_MASK 0xF0
 #define SUPERVISOR_PREFIX_COMMAND 0xC0
+#define SUPERVISOR_PREFIX_BATTERY 0xB0
 #define SUPERVISOR_PREFIX_REPLY 0xA0
 #define SUPERVISOR_COMMAND_EN_3V3SSD 0x01
 #define SUPERVISOR_COMMAND_EN_CMV 0x02
@@ -46,6 +47,8 @@ THE SOFTWARE.
 // Private Function Prototypes -----------------------------------------------------------------------------------------
 
 // Public Global Variables ---------------------------------------------------------------------------------------------
+
+u8 supervisorVBatt = 120;
 
 // Private Global Variables --------------------------------------------------------------------------------------------
 
@@ -124,6 +127,12 @@ int supervisorEnableSSDPower(void)
 	}
 
 	return SUPERVISOR_OK;
+}
+
+void supervisorService(void)
+{
+	XUartPs_SendByte(uart1Config->BaseAddress, SUPERVISOR_PREFIX_BATTERY);
+	supervisorVBatt = XUartPs_RecvByte(uart1Config->BaseAddress);
 }
 
 // Private Function Definitions ----------------------------------------------------------------------------------------
