@@ -104,6 +104,15 @@ module HDMI_v1_0_S00_AXI
   output wire pop_ui_enabled,
   output wire bot_ui_enabled,
   output wire top_ui_enabled,
+  // URAM 0
+  input wire [11:0] lut_r_raddr,
+  output wire [63:0] lut_r_rdata,
+  // URAM 1
+  input wire [11:0] lut_g_raddr,
+  output wire [63:0] lut_g_rdata,
+  // URAM 2
+  input wire [11:0] lut_b_raddr,
+  output wire [63:0] lut_b_rdata,
   // URAM 3
   input wire [11:0] top_ui_raddr,
   output wire [63:0] top_ui_rdata,
@@ -460,8 +469,8 @@ axi_slave_uram uram0
   .axi_wdata(S_AXI_WDATA),
   .axi_raddr(S_AXI_ARADDR),
   .axi_rdata(uram0_rdata),
-  .mod_raddr(),
-  .mod_rdata()
+  .mod_raddr(lut_r_raddr),
+  .mod_rdata(lut_r_rdata)
 );
 axi_slave_uram uram1
 (
@@ -471,8 +480,8 @@ axi_slave_uram uram1
   .axi_wdata(S_AXI_WDATA),
   .axi_raddr(S_AXI_ARADDR),
   .axi_rdata(uram1_rdata),
-  .mod_raddr(),
-  .mod_rdata()
+  .mod_raddr(lut_g_raddr),
+  .mod_rdata(lut_g_rdata)
 );
 axi_slave_uram uram2
 (
@@ -482,8 +491,8 @@ axi_slave_uram uram2
   .axi_wdata(S_AXI_WDATA),
   .axi_raddr(S_AXI_ARADDR),
   .axi_rdata(uram2_rdata),
-  .mod_raddr(),
-  .mod_rdata()
+  .mod_raddr(lut_b_raddr),
+  .mod_rdata(lut_b_rdata)
 );
 axi_slave_uram uram3
 (

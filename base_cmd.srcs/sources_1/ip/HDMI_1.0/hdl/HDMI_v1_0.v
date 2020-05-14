@@ -197,6 +197,15 @@ wire [11:0] pop_ui_y0;
 wire pop_ui_enabled;
 wire bot_ui_enabled;
 wire top_ui_enabled;
+// URAM 0
+wire [11:0] lut_r_raddr;
+wire [63:0] lut_r_rdata;
+// URAM 1
+wire [11:0] lut_g_raddr;
+wire [63:0] lut_g_rdata;
+// URAM 2
+wire [11:0] lut_b_raddr;
+wire [63:0] lut_b_rdata;
 // URAM 3
 wire [11:0] top_ui_raddr;
 wire [63:0] top_ui_rdata;
@@ -262,6 +271,15 @@ HDMI_v1_0_S00_AXI_inst
   .pop_ui_enabled(pop_ui_enabled),
   .bot_ui_enabled(bot_ui_enabled),
   .top_ui_enabled(top_ui_enabled),
+  // URAM 0
+  .lut_r_raddr(lut_r_raddr),
+  .lut_r_rdata(lut_r_rdata),
+  // URAM 1
+  .lut_g_raddr(lut_g_raddr),
+  .lut_g_rdata(lut_g_rdata),
+  // URAM 2
+  .lut_b_raddr(lut_b_raddr),
+  .lut_b_rdata(lut_b_rdata),
   // URAM 3
   .top_ui_raddr(top_ui_raddr),
   .top_ui_rdata(top_ui_rdata),
@@ -412,8 +430,8 @@ localparam integer vsync_off = 5;
 localparam integer v_de_on = 41;
 localparam integer v_de_off = 1121;
 
-reg [15:0] h_count[4:0];
-reg [15:0] v_count[4:0];
+reg [15:0] h_count[5:0];
+reg [15:0] v_count[5:0];
 
 always @(posedge hdmi_clk)
 begin
@@ -439,7 +457,7 @@ begin
   // Pipeline.
   begin : hv_count_pipeline
   integer i;
-  for (i = 0; i < 4; i = i + 1)
+  for (i = 0; i < 5; i = i + 1)
   begin
     h_count[i+1] <= h_count[i];
     v_count[i+1] <= v_count[i];
@@ -449,13 +467,13 @@ begin
 end
 
 // Combinational HSYNC, VSYNC, and DE generation based on h_count and v_count.
-assign HSYNC = (h_count[4] < hsync_off);
-assign VSYNC = (v_count[4] < vsync_off);
-assign DE = (h_count[4] >= h_de_on) && (h_count[4] < h_de_off) && (v_count[4] >= v_de_on) & (v_count[4] < v_de_off);
+assign HSYNC = (h_count[5] < hsync_off);
+assign VSYNC = (v_count[5] < vsync_off);
+assign DE = (h_count[5] >= h_de_on) && (h_count[5] < h_de_off) && (v_count[5] >= v_de_on) & (v_count[5] < v_de_off);
 
 // Handle VSYNC interrupt: Set once near the bottom of the frame scan, to give the sotware
 // a bit of time to prepare register update values for VSYNC. Cleared by software.
-wire VSYNC_coming = (v_count[4] == v_de_off);
+wire VSYNC_coming = (v_count[5] == v_de_off);
 reg VSYNC_coming_prev;
 always @(posedge hdmi_clk)
 begin
@@ -472,7 +490,7 @@ wire signed [16:0] vyNorm;  // Signed to accommodate negative space for top marg
 reg [15:0] vxNormP;
 reg [15:0] vyNormP;
 wire inViewport;
-reg inViewportP[1:0];
+reg inViewportP[2:0];
 
 viewport_normalize vn
 (
@@ -499,6 +517,7 @@ always @(posedge hdmi_clk)
 begin
   inViewportP[0] <= inViewport;
   inViewportP[1] <= inViewportP[0];
+  inViewportP[2] <= inViewportP[1];
   vxNormP <= vxNorm;
   vyNormP <= vyNorm[15:0];
 end
@@ -1024,10 +1043,10 @@ wire [15:0] x0_R1G2 = ((vxNormP_SW - 16'h30) & 16'hFFC0) + 16'h30;
 wire [15:0] y0_G1R1 = ((vyNormP_SW - 16'h10) & 16'hFFC0) + 16'h10;
 wire [15:0] y0_B1G2 = ((vyNormP_SW - 16'h30) & 16'hFFC0) + 16'h30;
 
-wire [15:0] out_G1;
-wire [15:0] out_R1;
-wire [15:0] out_B1;
-wire [15:0] out_G2;
+wire signed [15:0] out_G1;
+wire signed [15:0] out_R1;
+wire signed [15:0] out_B1;
+wire signed [15:0] out_G2;
 
 bilinear_16b bilinear_G1 
 (
@@ -1086,12 +1105,32 @@ bilinear_16b bilinear_G2
 );
 // -------------------------------------------------------------------------------------------------
 
+// Color correction.
+// -------------------------------------------------------------------------------------------------
+wire [7:0] R_8b;
+wire [7:0] G_8b;
+wire [7:0] B_8b;
+
+color color_inst
+(
+  .out_G1(out_G1),
+  .out_R1(out_R1),
+  .out_B1(out_B1),
+  .out_G2(out_G2),
+  .lut_r_rdata(lut_r_rdata),
+  .lut_g_rdata(lut_g_rdata),
+  .lut_b_rdata(lut_b_rdata),
+  .lut_r_raddr(lut_r_raddr),
+  .lut_g_raddr(lut_g_raddr),
+  .lut_b_raddr(lut_b_raddr),
+  .R_8b(R_8b),
+  .G_8b(G_8b),
+  .B_8b(B_8b)
+);
+// -------------------------------------------------------------------------------------------------
+
 // Color outputs.
 // -------------------------------------------------------------------------------------------------
-wire [7:0] R_8b = (out_R1 >> 2);
-wire [7:0] G_8b = ((out_G1 + out_G2) >> 3);
-wire [7:0] B_8b = (out_B1 >> 2);
-
 ui_mixer ui_mixer_inst
 (
   .hdmi_clk(hdmi_clk),
@@ -1101,9 +1140,9 @@ ui_mixer ui_mixer_inst
   .G_8b(G_8b),
   .B_8b(B_8b),
   
-  .h_count(h_count[3]),
-  .v_count(v_count[3]),
-  .inViewport(inViewportP[1]),
+  .h_count(h_count[4]),
+  .v_count(v_count[4]),
+  .inViewport(inViewportP[2]),
   
   .top_ui_enabled(top_ui_enabled),
   .bot_ui_enabled(bot_ui_enabled),

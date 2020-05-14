@@ -58,7 +58,7 @@ module bilinear_16b
   input wire signed [15:0] in01,
   input wire signed [15:0] in11,
   
-  output reg [15:0] out
+  output reg signed [15:0] out
 );
 
 // X and Y offsets within a grid square.

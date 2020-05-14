@@ -109,6 +109,7 @@ typedef struct
 // Private Function Prototypes -----------------------------------------------------------------------------------------
 
 void hdmiApplyCameraStateSync(void);
+void hdmiBuildLUT(void);
 void hdmiI2CWriteMasked(u8 addr, u8 data, u8 mask);
 void hdmiWriteTestPattern4K(void);
 void hdmiWriteTestPattern2K(void);
@@ -119,7 +120,10 @@ void hdmiPushTestPatternBits(u16 data, u8 count);
 
 // Private Global Variables --------------------------------------------------------------------------------------------
 
-HDMI_s * hdmi = (HDMI_s *) 0xA0040000;
+HDMI_s * const hdmi = (HDMI_s * const) 0xA0040000;
+u32 * const lutR = (u32 * const) 0xA0048000;
+u32 * const lutG = (u32 * const) 0xA0050000;
+u32 * const lutB = (u32 * const) 0xA0058000;
 XIicPs Iic;
 
 u8 SendBuffer[256];    /**< Buffer for Transmitting Data */
@@ -186,6 +190,7 @@ void hdmiInit(void)
 {
 	// hdmiWriteTestPattern4K();
 	// hdmiWriteTestPattern2K();
+	hdmiBuildLUT();
 
 	// Load HDMI peripheral registers with initial values.
 	hdmi->q_mult_inv_HL2_LH2 = 1024;
@@ -344,6 +349,33 @@ void hdmiApplyCameraStateSync(void)
 	hdmi->vyDiv = vyDiv;
 	hdmi->wHDMI = 2200;
 	hdmi->hImage2048 = hImage2048;
+}
+
+void hdmiBuildLUT(void)
+{
+	u32 u32Working;
+
+	for(int i = 0; i < 256; i++)
+	{
+		u32Working = (i << 24) | (i << 16) | (i << 8) | (i << 0);
+		lutR[i] = u32Working;
+		lutG[i] = u32Working;
+		lutB[i] = u32Working;
+	}
+	for(int i = 256; i < 512; i++)
+	{
+		u32Working = 0xFFFFFFFF;
+		lutR[i] = u32Working;
+		lutG[i] = u32Working;
+		lutB[i] = u32Working;
+	}
+	for(int i = 512; i < 1024; i++)
+	{
+		u32Working = 0x00000000;
+		lutR[i] = u32Working;
+		lutG[i] = u32Working;
+		lutB[i] = u32Working;
+	}
 }
 
 void hdmiI2CWriteMasked(u8 addr, u8 data, u8 mask)
