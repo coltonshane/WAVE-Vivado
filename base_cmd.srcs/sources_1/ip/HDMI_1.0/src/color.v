@@ -30,35 +30,78 @@ THE SOFTWARE.
 
 module color
 (
+  input wire clk,
+
   input wire signed [15:0] out_G1,
   input wire signed [15:0] out_R1,
   input wire signed [15:0] out_B1,
   input wire signed [15:0] out_G2,
 
-  input wire [63:0] lut_r_rdata,
-  input wire [63:0] lut_g_rdata,
-  input wire [63:0] lut_b_rdata,
-  output wire [11:0] lut_r_raddr,
-  output wire [11:0] lut_g_raddr,
-  output wire [11:0] lut_b_raddr,
+  input wire [63:0] lut_alpha_rdata,
+  input wire [63:0] lut_beta_rdata,
+  input wire [63:0] lut_gamma_rdata,
+  output wire [11:0] lut_alpha_raddr,
+  output wire [11:0] lut_beta_raddr,
+  output wire [11:0] lut_gamma_raddr,
   
   output wire [7:0] R_8b,
   output wire [7:0] G_8b,
   output wire [7:0] B_8b
 );
 
-wire [11:0] R_12b = out_R1;
-wire [11:0] G_12b = (out_G1 + out_G2) >> 1;
-wire [11:0] B_12b = out_B1;
+// {r, g, b} to {alpha, beta, gamma} with 10-bit full range and signed 16-bit storage.
+wire signed [15:0] alpha;
+wire signed [15:0] beta;
+wire signed [15:0] gamma;
+clarke clarke_inst
+(
+  .r(out_R1),
+  .g((out_G1 + out_G2) >> 1),
+  .b(out_B1),
+  .alpha(alpha),
+  .beta(beta),
+  .gamma(gamma)
+);
 
-// Address generation.
-assign lut_r_raddr = {3'b000, R_12b[11:3]};
-assign lut_g_raddr = {3'b000, G_12b[11:3]};
-assign lut_b_raddr = {3'b000, B_12b[11:3]};
+// LUT index is the 12 LSB of gamma: 10 for address and 2 for 16-bit word select.
+assign lut_alpha_raddr = {2'b00, gamma[11:2]};
+assign lut_beta_raddr = {2'b00, gamma[11:2]};
+assign lut_gamma_raddr = {2'b00, gamma[11:2]};
+wire signed [15:0] lut_alpha_16b = lut_alpha_rdata[16*gamma[1:0]+:16];
+wire signed [15:0] lut_beta_16b = lut_beta_rdata[16*gamma[1:0]+:16];
+wire signed [15:0] lut_gamma_16b = lut_gamma_rdata[16*gamma[1:0]+:16];
 
-// Data byte selection.
-assign R_8b = lut_r_rdata[8*R_12b[2:0]+:8];
-assign G_8b = lut_g_rdata[8*G_12b[2:0]+:8]; 
-assign B_8b = lut_b_rdata[8*B_12b[2:0]+:8]; 
+// One cycle delay for LUT reads.
+reg signed [15:0] alpha_1;
+reg signed [15:0] beta_1;
+always @(posedge clk)
+begin
+  alpha_1 <= alpha;
+  beta_1 <= beta;
+end
+
+// Apply LUT corrections.
+wire signed [15:0] alphaCC = alpha_1 + lut_alpha_16b;   // White/Black Balance
+wire signed [15:0] betaCC = beta_1 + lut_beta_16b;      // White/Black Balance
+wire signed [15:0] gammaCC = lut_gamma_16b;             // Gamma, Brightness, Contrast
+
+// {alpha, beta, gamma} to {r, g, b} with 10-bit full range and signed 16-bit storage. 
+wire signed [15:0] rCC;
+wire signed [15:0] gCC;
+wire signed [15:0] bCC;
+clarke_inv clarke_inv_inst
+(
+  .alpha(alphaCC),
+  .beta(betaCC),
+  .gamma(gammaCC),
+  .r(rCC),
+  .g(gCC),
+  .b(bCC)
+);
+
+// Assign 8-bit outputs with saturation.
+assign R_8b = rCC[15] ? 8'h00 : ((rCC[14:10] == 5'b00000) ? rCC[9:2] : 8'hFF);
+assign G_8b = gCC[15] ? 8'h00 : ((gCC[14:10] == 5'b00000) ? gCC[9:2] : 8'hFF);
+assign B_8b = bCC[15] ? 8'h00 : ((bCC[14:10] == 5'b00000) ? bCC[9:2] : 8'hFF);
 
 endmodule

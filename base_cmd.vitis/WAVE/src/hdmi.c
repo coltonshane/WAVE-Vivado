@@ -121,9 +121,9 @@ void hdmiPushTestPatternBits(u16 data, u8 count);
 // Private Global Variables --------------------------------------------------------------------------------------------
 
 HDMI_s * const hdmi = (HDMI_s * const) 0xA0040000;
-u32 * const lutR = (u32 * const) 0xA0048000;
-u32 * const lutG = (u32 * const) 0xA0050000;
-u32 * const lutB = (u32 * const) 0xA0058000;
+u32 * const lutAlpha = (u32 * const) 0xA0048000;
+u32 * const lutBeta = (u32 * const) 0xA0050000;
+u32 * const lutGamma = (u32 * const) 0xA0058000;
 XIicPs Iic;
 
 u8 SendBuffer[256];    /**< Buffer for Transmitting Data */
@@ -353,28 +353,29 @@ void hdmiApplyCameraStateSync(void)
 
 void hdmiBuildLUT(void)
 {
+	u16 u16Working;
 	u32 u32Working;
 
-	for(int i = 0; i < 256; i++)
+	for(int i = 0; i < 4096; i++)
 	{
-		u32Working = (i << 24) | (i << 16) | (i << 8) | (i << 0);
-		lutR[i] = u32Working;
-		lutG[i] = u32Working;
-		lutB[i] = u32Working;
-	}
-	for(int i = 256; i < 512; i++)
-	{
-		u32Working = 0xFFFFFFFF;
-		lutR[i] = u32Working;
-		lutG[i] = u32Working;
-		lutB[i] = u32Working;
-	}
-	for(int i = 512; i < 1024; i++)
-	{
-		u32Working = 0x00000000;
-		lutR[i] = u32Working;
-		lutG[i] = u32Working;
-		lutB[i] = u32Working;
+		if(i < 1024)
+		{ u16Working = i; }
+		else if(i < 2048)
+		{ u16Working = 1023; }
+		else
+		{ u16Working = 0; }
+
+		if((i % 2) == 0)
+		{
+			u32Working = u16Working;
+		}
+		else
+		{
+			u32Working |= (u32)(u16Working) << 16;
+			lutGamma[i/2] = 0x02080208;
+			lutAlpha[i/2] = 0x00000000;
+			lutBeta[i/2] = 0x00000000;
+		}
 	}
 }
 

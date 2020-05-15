@@ -198,14 +198,14 @@ wire pop_ui_enabled;
 wire bot_ui_enabled;
 wire top_ui_enabled;
 // URAM 0
-wire [11:0] lut_r_raddr;
-wire [63:0] lut_r_rdata;
+wire [11:0] lut_alpha_raddr;
+wire [63:0] lut_alpha_rdata;
 // URAM 1
-wire [11:0] lut_g_raddr;
-wire [63:0] lut_g_rdata;
+wire [11:0] lut_beta_raddr;
+wire [63:0] lut_beta_rdata;
 // URAM 2
-wire [11:0] lut_b_raddr;
-wire [63:0] lut_b_rdata;
+wire [11:0] lut_gamma_raddr;
+wire [63:0] lut_gamma_rdata;
 // URAM 3
 wire [11:0] top_ui_raddr;
 wire [63:0] top_ui_rdata;
@@ -272,14 +272,14 @@ HDMI_v1_0_S00_AXI_inst
   .bot_ui_enabled(bot_ui_enabled),
   .top_ui_enabled(top_ui_enabled),
   // URAM 0
-  .lut_r_raddr(lut_r_raddr),
-  .lut_r_rdata(lut_r_rdata),
+  .lut_alpha_raddr(lut_alpha_raddr),
+  .lut_alpha_rdata(lut_alpha_rdata),
   // URAM 1
-  .lut_g_raddr(lut_g_raddr),
-  .lut_g_rdata(lut_g_rdata),
+  .lut_beta_raddr(lut_beta_raddr),
+  .lut_beta_rdata(lut_beta_rdata),
   // URAM 2
-  .lut_b_raddr(lut_b_raddr),
-  .lut_b_rdata(lut_b_rdata),
+  .lut_gamma_raddr(lut_gamma_raddr),
+  .lut_gamma_rdata(lut_gamma_rdata),
   // URAM 3
   .top_ui_raddr(top_ui_raddr),
   .top_ui_rdata(top_ui_rdata),
@@ -1113,16 +1113,17 @@ wire [7:0] B_8b;
 
 color color_inst
 (
+  .clk(hdmi_clk),
   .out_G1(out_G1),
   .out_R1(out_R1),
   .out_B1(out_B1),
   .out_G2(out_G2),
-  .lut_r_rdata(lut_r_rdata),
-  .lut_g_rdata(lut_g_rdata),
-  .lut_b_rdata(lut_b_rdata),
-  .lut_r_raddr(lut_r_raddr),
-  .lut_g_raddr(lut_g_raddr),
-  .lut_b_raddr(lut_b_raddr),
+  .lut_alpha_rdata(lut_alpha_rdata),
+  .lut_beta_rdata(lut_beta_rdata),
+  .lut_gamma_rdata(lut_gamma_rdata),
+  .lut_alpha_raddr(lut_alpha_raddr),
+  .lut_beta_raddr(lut_beta_raddr),
+  .lut_gamma_raddr(lut_gamma_raddr),
   .R_8b(R_8b),
   .G_8b(G_8b),
   .B_8b(B_8b)
