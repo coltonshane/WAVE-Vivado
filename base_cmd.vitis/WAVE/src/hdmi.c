@@ -120,6 +120,8 @@ void hdmiPushTestPatternBits(u16 data, u8 count);
 
 // Public Global Variables ---------------------------------------------------------------------------------------------
 
+u32 hdmiActive = 0;
+
 // Private Global Variables --------------------------------------------------------------------------------------------
 
 HDMI_s * const hdmi = (HDMI_s * const) 0xA0040000;
@@ -224,36 +226,47 @@ void hdmiInit(void)
 		SendBuffer[i] = 0;
 		RecvBuffer[i] = 0;
 	}
+}
 
-	// Wait for HPD and HDMI clock termination detection.
-	while(RecvBuffer[0] != 0xF0)
+void hdmiService(void)
+{
+	// Check for HPD and HDMI clock termination.
+	SendBuffer[0] = 0x42;
+	XIicPs_SetOptions(&Iic,XIICPS_REP_START_OPTION);
+	XIicPs_MasterSendPolled(&Iic, SendBuffer, 1, IIC_SLAVE_ADDR);
+	XIicPs_ClearOptions(&Iic,XIICPS_REP_START_OPTION);
+	XIicPs_MasterRecvPolled(&Iic, RecvBuffer, 1, IIC_SLAVE_ADDR);
+	while (XIicPs_BusIsBusy(&Iic));
+
+	if(hdmiActive && (RecvBuffer[0] != 0xF0))
 	{
-		SendBuffer[0] = 0x42;
-		XIicPs_SetOptions(&Iic,XIICPS_REP_START_OPTION);
-		XIicPs_MasterSendPolled(&Iic, SendBuffer, 1, IIC_SLAVE_ADDR);
-		XIicPs_ClearOptions(&Iic,XIICPS_REP_START_OPTION);
-		XIicPs_MasterRecvPolled(&Iic, RecvBuffer, 1, IIC_SLAVE_ADDR);
-		while (XIicPs_BusIsBusy(&Iic));
+		// "Power-down the Tx."
+		hdmiI2CWriteMasked(0x41, 0x40, 0x40);
+
+		hdmiActive = 0;
 	}
+	else if(!hdmiActive && (RecvBuffer[0] == 0xF0))
+	{
+		// "Power-up the Tx (HPD must be high)."
+		hdmiI2CWriteMasked(0x41, 0x00, 0x40);
 
-	// "Power-up the Tx (HPD must be high)."
-	hdmiI2CWriteMasked(0x41, 0x00, 0x40);
+		// "Fixed register that must be set on power up."
+		hdmiI2CWriteMasked(0x98, 0x03, 0xFF);
+		hdmiI2CWriteMasked(0x9A, 0xE0, 0xE0);
+		hdmiI2CWriteMasked(0x9C, 0x30, 0xFF);
+		hdmiI2CWriteMasked(0x9D, 0x01, 0x03);
+		hdmiI2CWriteMasked(0xA2, 0xA4, 0xFF);
+		hdmiI2CWriteMasked(0xA3, 0xA4, 0xFF);
+		hdmiI2CWriteMasked(0xE0, 0xD0, 0xFF);
+		hdmiI2CWriteMasked(0xF9, 0x00, 0xFF);
 
-	// "Fixed register that must be set on power up."
-	hdmiI2CWriteMasked(0x98, 0x03, 0xFF);
-	hdmiI2CWriteMasked(0x9A, 0xE0, 0xE0);
-	hdmiI2CWriteMasked(0x9C, 0x30, 0xFF);
-	hdmiI2CWriteMasked(0x9D, 0x01, 0x03);
-	hdmiI2CWriteMasked(0xA2, 0xA4, 0xFF);
-	hdmiI2CWriteMasked(0xA3, 0xA4, 0xFF);
-	hdmiI2CWriteMasked(0xE0, 0xD0, 0xFF);
-	hdmiI2CWriteMasked(0xF9, 0x00, 0xFF);
+		// Set aspect ratio to 16:9.
+		hdmiI2CWriteMasked(0x17, 0x02, 0x02);
+		// Set output mode to HDMI.
+		hdmiI2CWriteMasked(0xAF, 0x02, 0x02);
 
-	// Set aspect ratio to 16:9.
-	hdmiI2CWriteMasked(0x17, 0x02, 0x02);
-
-	// Set output mode to HDMI.
-	hdmiI2CWriteMasked(0xAF, 0x02, 0x02);
+		hdmiActive = 1;
+	}
 }
 
 void hdmiApplyCameraState(void)

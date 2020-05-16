@@ -55,6 +55,7 @@
 #define MAIN_SERVICE_CMV 1
 #define MAIN_SERVICE_SUPERVISOR 2
 #define MAIN_SERVICE_UI 3
+#define MAIN_SERVICE_HDMI 4
 
 void isrFOT(void * CallbackRef);
 void isrVSYNC(void * CallbackRef);
@@ -169,8 +170,11 @@ int main()
     		break;
     	case MAIN_SERVICE_UI:
     		uiService();
-    		mainServiceState = MAIN_SERVICE_IDLE;
+    		mainServiceState = MAIN_SERVICE_HDMI;
     		break;
+    	case MAIN_SERVICE_HDMI:
+    		hdmiService();
+    		mainServiceState = MAIN_SERVICE_IDLE;
     	case MAIN_SERVICE_IDLE:
     	default:
     		mainServiceState = MAIN_SERVICE_IDLE;

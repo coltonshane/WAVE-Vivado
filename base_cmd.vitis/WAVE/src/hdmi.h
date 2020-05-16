@@ -34,6 +34,7 @@ THE SOFTWARE.
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
 void hdmiInit(void);
+void hdmiService(void);
 void hdmiApplyCameraState(void);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
