@@ -372,8 +372,8 @@ void hdmiBuildLUT(void)
 		else
 		{
 			u32Working |= (u32)(u16Working) << 16;
-			lutGamma[i/2] = 0x02080208;
-			lutAlpha[i/2] = 0x00000000;
+			lutGamma[i/2] = u32Working;
+			lutAlpha[i/2] = 0xFF80FF80;
 			lutBeta[i/2] = 0x00000000;
 		}
 	}

@@ -50,13 +50,14 @@ module color
 );
 
 // {r, g, b} to {alpha, beta, gamma} with 10-bit full range and signed 16-bit storage.
+wire signed [15:0] out_G = (out_G1 + out_G2) >>> 1;
 wire signed [15:0] alpha;
 wire signed [15:0] beta;
 wire signed [15:0] gamma;
 clarke clarke_inst
 (
   .r(out_R1),
-  .g((out_G1 + out_G2) >> 1),
+  .g(out_G),
   .b(out_B1),
   .alpha(alpha),
   .beta(beta),

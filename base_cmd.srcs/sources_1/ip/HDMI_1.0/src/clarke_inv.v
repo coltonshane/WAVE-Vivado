@@ -109,8 +109,10 @@ DSP48E2_beta
   .CEP(1'b1)                       // Output enable.
 );
 
+wire signed [15:0] alpha_over_2 = (alpha >>> 1); 
+
 assign g = alpha + gamma;
-assign b = -(alpha >> 1) + betaP[31:16] + gamma;
-assign r = -(alpha >> 1) - betaP[31:16] + gamma;
+assign b = -alpha_over_2 + betaP[31:16] + gamma;
+assign r = -alpha_over_2 - betaP[31:16] + gamma;
 
 endmodule
