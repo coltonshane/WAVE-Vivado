@@ -142,6 +142,10 @@ set_property IOSTANDARD LVCMOS33 [get_ports {T_EXP2}]
 set_property PACKAGE_PIN B10 [get_ports {FRAME_REQ}]
 set_property IOSTANDARD LVCMOS33 [get_ports {FRAME_REQ}]
 
+# REC LED (3.3V)
+set_property PACKAGE_PIN J12 [get_ports {rec_led[0]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {rec_led[0]}]
+
 # Control channel from CMV12000. LVDS inverted.
 set_property PACKAGE_PIN G1 [get_ports cmv_ctr_p]
 set_property IOSTANDARD LVDS [get_ports cmv_ctr_p]

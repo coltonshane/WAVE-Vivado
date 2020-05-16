@@ -175,6 +175,7 @@ void frameApplyCameraState(void)
 
 void frameCreateClip(void)
 {
+	XGpioPs_WritePin(&Gpio, REC_LED_PIN, 1);
 	fsCreateClip();
 
 	// Start recording at the current frame.
@@ -190,6 +191,7 @@ void frameAddToClip(void)
 void frameCloseClip(void)
 {
 	fsCloseClip();
+	XGpioPs_WritePin(&Gpio, REC_LED_PIN, 0);
 }
 
 int frameLastCaptured(void)
