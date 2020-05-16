@@ -30,6 +30,7 @@ THE SOFTWARE.
 #include "frame.h"
 #include "xiicps.h"
 #include "camera_state.h"
+#include <math.h>
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
@@ -109,7 +110,8 @@ typedef struct
 // Private Function Prototypes -----------------------------------------------------------------------------------------
 
 void hdmiApplyCameraStateSync(void);
-void hdmiBuildLUT(void);
+void hdmiBuildAlphaBetaLUT(s16 alphaWhite, s16 betaWhite, s16 alphaBlack, s16 betaBlack);
+void hdmiBuildGammaLUT(int black, float gamma, float brightness, float contrast);
 void hdmiI2CWriteMasked(u8 addr, u8 data, u8 mask);
 void hdmiWriteTestPattern4K(void);
 void hdmiWriteTestPattern2K(void);
@@ -190,7 +192,8 @@ void hdmiInit(void)
 {
 	// hdmiWriteTestPattern4K();
 	// hdmiWriteTestPattern2K();
-	hdmiBuildLUT();
+	hdmiBuildAlphaBetaLUT(-200, 0, 0, 0);
+	hdmiBuildGammaLUT(0, 1.0f, 1.0f, 1.0f);
 
 	// Load HDMI peripheral registers with initial values.
 	hdmi->q_mult_inv_HL2_LH2 = 1024;
@@ -351,30 +354,107 @@ void hdmiApplyCameraStateSync(void)
 	hdmi->hImage2048 = hImage2048;
 }
 
-void hdmiBuildLUT(void)
+#define SHADOW_ROLLOFF 192
+#define HIGHLIGHT_ROLLOFF 832
+void hdmiBuildAlphaBetaLUT(s16 alphaWhite, s16 betaWhite, s16 alphaBlack, s16 betaBlack)
 {
-	u16 u16Working;
-	u32 u32Working;
+	float rangeNormalized;
+	float fWorkingAlpha, fWorkingBeta;
+	int iWorkingAlpha, iWorkingBeta;
+	u32 lutAlphaEntry, lutBetaEntry;
+
+	for(int i = 0; i < 4096; i++)
+	{
+		if(i < SHADOW_ROLLOFF)
+		{
+			// Shadow Range
+			rangeNormalized = (float)(i - 0) / (float)(SHADOW_ROLLOFF - 0);
+			fWorkingAlpha = rangeNormalized * (float)alphaBlack;
+			fWorkingBeta = rangeNormalized * (float)betaBlack;
+			iWorkingAlpha = (int)fWorkingAlpha;
+			iWorkingBeta = (int)fWorkingBeta;
+		}
+		else if(i < HIGHLIGHT_ROLLOFF)
+		{
+			// Normal Range
+			rangeNormalized = (float)(i - SHADOW_ROLLOFF) / (float)(HIGHLIGHT_ROLLOFF - SHADOW_ROLLOFF);
+			fWorkingAlpha = rangeNormalized * (float)alphaWhite;
+			fWorkingAlpha += (1.0f - rangeNormalized) * (float)alphaBlack;
+			fWorkingBeta = rangeNormalized * (float)betaWhite;
+			fWorkingBeta += (1.0f - rangeNormalized) * (float)betaBlack;
+			iWorkingAlpha = (int)fWorkingAlpha;
+			iWorkingBeta = (int)fWorkingBeta;
+		}
+		else if(i < 1024)
+		{
+			// Highlight Range
+			rangeNormalized = (float)(i - HIGHLIGHT_ROLLOFF) / (float)(1024 - HIGHLIGHT_ROLLOFF);
+			fWorkingAlpha = (1.0f - rangeNormalized) * (float)alphaWhite;
+			fWorkingBeta = (1.0f - rangeNormalized) * (float)betaWhite;
+			iWorkingAlpha = (int)fWorkingAlpha;
+			iWorkingBeta = (int)fWorkingBeta;
+		}
+		else
+		{
+			// Out of Range
+			iWorkingAlpha = 0;
+			iWorkingBeta = 0;
+		}
+
+		// Skipping range check since they are inherently bounded to s16 range.
+
+		if((i % 2) == 0)
+		{
+			lutAlphaEntry = iWorkingAlpha & 0xFFFF;
+			lutBetaEntry = iWorkingBeta & 0xFFFF;
+		}
+		else
+		{
+			lutAlphaEntry |= (iWorkingAlpha & 0xFFFF) << 16;
+			lutBetaEntry |= (iWorkingBeta & 0xFFFF) << 16;
+			lutAlpha[i/2] = lutAlphaEntry;
+			lutBeta[i/2] = lutBetaEntry;
+		}
+	}
+}
+
+void hdmiBuildGammaLUT(int black, float gamma, float brightness, float contrast)
+{
+	float fWorking;
+	int iWorking;
+	u32 lutGammaEntry;
 
 	for(int i = 0; i < 4096; i++)
 	{
 		if(i < 1024)
-		{ u16Working = i; }
+		{
+			// Black Level from 10-bit
+			fWorking = (float)(i - black) / (float)(1024 - black);
+
+			// Gamma
+			fWorking = powf(fWorking, 1.0f / gamma);
+
+			// Brightness And Contrast
+			fWorking = (fWorking - 0.5f * (2.0f - brightness)) * contrast + 0.5f;
+
+			// Back to 10-bit
+			iWorking = (int)(fWorking * 1024.0f);
+			if(iWorking > 1023) { iWorking = 1023; }
+			else if(iWorking < 0) { iWorking = 0; }
+		}
 		else if(i < 2048)
-		{ u16Working = 1023; }
+		{ iWorking = 1023; }
 		else
-		{ u16Working = 0; }
+		{ iWorking = 0; }
 
 		if((i % 2) == 0)
 		{
-			u32Working = u16Working;
+			lutGammaEntry = iWorking;
 		}
 		else
 		{
-			u32Working |= (u32)(u16Working) << 16;
-			lutGamma[i/2] = u32Working;
-			lutAlpha[i/2] = 0xFF80FF80;
-			lutBeta[i/2] = 0x00000000;
+			lutGammaEntry |= iWorking << 16;
+			lutGamma[i/2] = lutGammaEntry;
 		}
 	}
 }
