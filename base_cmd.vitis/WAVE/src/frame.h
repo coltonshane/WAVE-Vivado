@@ -72,8 +72,11 @@ typedef struct __attribute__((packed))
 	u8 tempCMV;
 	u8 tempSSD;
 
-	// Padding [284B];
-	u8 reserved2[284];
+	// Color Temperature Hint [2B]
+	u16 colorTemp;
+
+	// Padding [282B];
+	u8 reserved2[282];
 } FrameHeader_s;
 
 // Public Function Prototypes ------------------------------------------------------------------------------------------

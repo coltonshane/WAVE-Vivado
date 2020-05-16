@@ -192,7 +192,6 @@ void hdmiInit(void)
 {
 	// hdmiWriteTestPattern4K();
 	// hdmiWriteTestPattern2K();
-	hdmiBuildAlphaBetaLUT(-200, 0, 0, 0);
 	hdmiBuildGammaLUT(0, 1.0f, 1.0f, 1.0f);
 
 	// Load HDMI peripheral registers with initial values.
@@ -273,6 +272,9 @@ void hdmiApplyCameraStateSync(void)
 	float xOffset, yOffset;
 	int vx0, vy0, vxDiv, vyDiv;
 	u16 hImage2048;
+	float fColorTemp;
+	float fAlphaWorking, fBetaWorking;
+	int iAlphaWorking, iBetaWorking;
 
 	wFrame = cState.cSetting[CSETTING_WIDTH]->valArray[cState.cSetting[CSETTING_WIDTH]->val].fVal;
 	hFrame = cState.cSetting[CSETTING_HEIGHT]->valArray[cState.cSetting[CSETTING_HEIGHT]->val].fVal;
@@ -352,6 +354,21 @@ void hdmiApplyCameraStateSync(void)
 	hdmi->vyDiv = vyDiv;
 	hdmi->wHDMI = 2200;
 	hdmi->hImage2048 = hImage2048;
+
+	// Compute the normalized alpha and beta corrections as a function of color temperature.
+	fColorTemp = cState.cSetting[CSETTING_COLOR]->valArray[cState.cSetting[CSETTING_COLOR]->val].fVal;
+	fAlphaWorking = -0.195f;
+	fBetaWorking = (5600.0f - fColorTemp) * 0.0002f;
+
+	// Convert to 10-bit range with 16-bit storage.
+	iAlphaWorking = (int)(fAlphaWorking * 1024.0f);
+	if(iAlphaWorking > 32767) { iAlphaWorking = 32767; }
+	else if(iAlphaWorking < -32768) { iAlphaWorking = -32768; }
+	iBetaWorking = (int)(fBetaWorking * 1024.0f);
+	if(iBetaWorking > 32767) { iBetaWorking = 32767; }
+	else if(iBetaWorking < -32768) { iBetaWorking = -32768; }
+
+	hdmiBuildAlphaBetaLUT((s16)iAlphaWorking, (s16)iBetaWorking, 0, 0);
 }
 
 #define SHADOW_ROLLOFF 192

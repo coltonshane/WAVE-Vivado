@@ -127,7 +127,7 @@ void isrFOT(void * CallbackRef)
 	fhBuffer[iFrameIn].tFrameRead_us = tFrameIn * US_PER_COUNT;
 	fhBuffer[iFrameIn].nFrame = nFramesIn;
 
-	// Frame delimeter and info for the upcoming frame.
+	// Frame delimeter and quick info for the upcoming frame.
 	memcpy(fhBuffer[iFrameIn].delimeter, "WAVE HELLO!\n",12);
 	fhBuffer[iFrameIn].wFrame = (u16)(cState.cSetting[CSETTING_WIDTH]->valArray[cState.cSetting[CSETTING_WIDTH]->val].fVal);
 	fhBuffer[iFrameIn].hFrame = (u16)(cState.cSetting[CSETTING_HEIGHT]->valArray[cState.cSetting[CSETTING_HEIGHT]->val].fVal);;
@@ -239,6 +239,9 @@ void frameRecord(void)
 	fhBuffer[iFrameOut].tempPL = frameTempPL;
 	fhBuffer[iFrameOut].tempCMV = frameTempCMV;
 	fhBuffer[iFrameOut].tempSSD = frameTempSSD;
+
+	// Fill in color temperature hint from settings.
+	fhBuffer[iFrameOut].colorTemp = (u16)cState.cSetting[CSETTING_COLOR]->valArray[cState.cSetting[CSETTING_COLOR]->val].fVal;
 
 	// Copy the codestream addresses and sizes once to minimize DDR access.
 	memcpy(csAddrBuffer, fhBuffer[iFrameOut].csAddr, 16 * sizeof(u32));

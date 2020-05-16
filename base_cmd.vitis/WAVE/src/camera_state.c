@@ -46,10 +46,12 @@ void cSettingWidthSetVal(u8 val);
 void cSettingHeightSetVal(u8 val);
 void cSettingFPSSetVal(u8 val);
 void cSettingShutterSetVal(u8 val);
+void cSettingColorSetVal(u8 val);
 void cSettingFormatSetVal(u8 val);
 
 void cSettingFPSPreviewVal(u8 val);
 void cSettingShutterPreviewVal(u8 val);
+void cSettingColorPreviewVal(u8 val);
 
 void cSettingDoNothing(u8 val);
 
@@ -67,6 +69,7 @@ CameraSetting_s cSettingWidth;
 CameraSetting_s cSettingHeight;
 CameraSetting_s cSettingFPS;
 CameraSetting_s cSettingShutter;
+CameraSetting_s cSettingColor;
 CameraSetting_s cSettingFormat;
 
 char * cSettingModeName = "  MODE  ";
@@ -198,6 +201,29 @@ CameraSettingValue_s cSettingShutterValArray[] = {{"   360* ", 360.0f},				// +1
 												  {"  0.99* ", 0.9943689110435816f},
 												  {"  0.70* ", 0.703125f}}; 		// -8
 
+char * cSettingColorName = "  COLOR ";
+char * cSettingColorValFormat = " %6d ";
+CameraSettingValue_s cSettingColorValArray[] = {{"  2000K ", 2000.0f},
+												{"  2400K ", 2400.0f},
+												{"  2800K ", 2800.0f},
+												{"  3200K ", 3200.0f},
+												{"  3600K ", 3600.0f},
+												{"  4000K ", 4000.0f},
+												{"  4400K ", 4400.0f},
+												{"  4800K ", 4800.0f},
+												{"  5200K ", 5200.0f},
+												{"  5600K ", 5600.0f},
+												{"  6000K ", 6000.0f},
+												{"  6400K ", 6400.0f},
+												{"  6800K ", 6800.0f},
+												{"  7200K ", 7200.0f},
+												{"  7600K ", 7600.0f},
+												{"  8000K ", 8000.0f},
+												{"  8400K ", 8400.0f},
+												{"  8800K ", 8800.0f},
+												{"  9200K ", 9200.0f},
+												{"  9600K ", 9600.0f}};
+
 char * cSettingFormatName = " FORMAT ";
 char * cSettingFormatValFormat = " %6d ";
 CameraSettingValue_s cSettingFormatValArray[] = {{"Cancel  ", 0.0f},
@@ -299,7 +325,25 @@ void cStateInit(void)
 	cSettingShutter.SetVal = &cSettingShutterSetVal;
 	cSettingShutter.PreviewVal = &cSettingShutterPreviewVal;
 
-	cSettingFormat.id = 5;
+	cSettingColor.id = 5;
+	cSettingColor.val = 9;
+	cSettingColor.count = 20;
+	cSettingColor.enable[0] = 0x00000000000FFFFF;
+	cSettingColor.enable[1] = 0x0000000000000000;
+	cSettingColor.enable[2] = 0x0000000000000000;
+	cSettingColor.enable[3] = 0x0000000000000000;
+	cSettingColor.user[0] = 0x0000000000000000;
+	cSettingColor.user[1] = 0x0000000000000000;
+	cSettingColor.user[2] = 0x0000000000000000;
+	cSettingColor.user[3] = 0x0000000000000000;
+	cSettingColor.strName = cSettingColorName;
+	cSettingColor.strValFormat = cSettingColorValFormat;
+	cSettingColor.valArray = cSettingColorValArray;
+	cSettingColor.uiDisplayType = CSETTING_UI_DISPLAY_TYPE_VAL_ARRAY;
+	cSettingColor.SetVal = &cSettingColorSetVal;
+	cSettingColor.PreviewVal = &cSettingColorPreviewVal;
+
+	cSettingFormat.id = 6;
 	cSettingFormat.val = 0;
 	cSettingFormat.count = 2;
 	cSettingFormat.enable[0] = 0x0000000000000003;
@@ -322,7 +366,8 @@ void cStateInit(void)
 	cState.cSetting[2] = &cSettingHeight;
 	cState.cSetting[3] = &cSettingFPS;
 	cState.cSetting[4] = &cSettingShutter;
-	cState.cSetting[5] = &cSettingFormat;
+	cState.cSetting[5] = &cSettingColor;
+	cState.cSetting[6] = &cSettingFormat;
 
 	// Manually trigger cSettingWidthSetVal() to make sure initial state is applied.
 	cSettingWidthSetVal(CSETTING_WIDTH_4K);
@@ -468,6 +513,14 @@ void cSettingShutterSetVal(u8 val)
 	cSettingShutter.val = val;
 }
 
+void cSettingColorSetVal(u8 val)
+{
+	if(!cSettingGetEnabled(CSETTING_COLOR, val)) { return; }
+
+	// Change the color temperature.
+	cSettingColor.val = val;
+}
+
 void cSettingFormatSetVal(u8 val)
 {
 	if(!cSettingGetEnabled(CSETTING_FORMAT, val)) { return; }
@@ -504,6 +557,15 @@ void cSettingShutterPreviewVal(u8 val)
 	// Change the shutter angle and immediately apply it to the CMV_Input module.
 	cSettingShutter.val = val;
 	cmvApplyCameraState();
+}
+
+void cSettingColorPreviewVal(u8 val)
+{
+	if(!cSettingGetEnabled(CSETTING_COLOR, val)) { return; }
+
+	// Change the color temperature and immediately apply it to the HDMI module.
+	cSettingColor.val = val;
+	hdmiApplyCameraState();
 }
 
 void cSettingDoNothing(u8 val)
