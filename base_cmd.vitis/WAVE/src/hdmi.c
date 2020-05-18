@@ -371,7 +371,7 @@ void hdmiApplyCameraStateSync(void)
 	// Compute the normalized alpha and beta corrections as a function of color temperature.
 	fColorTemp = cState.cSetting[CSETTING_COLOR]->valArray[cState.cSetting[CSETTING_COLOR]->val].fVal;
 	fAlphaWorking = -0.195f;
-	fBetaWorking = (5600.0f - fColorTemp) * 0.0002f;
+	fBetaWorking = (5600.0f - fColorTemp) * 0.0001f;
 
 	// Convert to 10-bit range with 16-bit storage.
 	iAlphaWorking = (int)(fAlphaWorking * 1024.0f);

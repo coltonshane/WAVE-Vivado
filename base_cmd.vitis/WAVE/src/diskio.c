@@ -94,9 +94,9 @@ DRESULT disk_write (
 	int nvmeRWStatus = nvmeWrite(buff, (u64) sector, count);
 	if(nvmeRWStatus != NVME_RW_OK) { return RES_ERROR; }
 
-	// APPLICATION SPECIFIC: If we're writing from DDR4, allow write slip
+	// APPLICATION SPECIFIC: If we're writing from image DDR4, allow write slip
 	// of up to 1/4 of the IO queue depth for high-speed transfer.
-	if((u64)buff < 0x80000000)
+	if((u64)buff > 0x10000000)
 	{
 		nSlipAllowed = 16;
 	}

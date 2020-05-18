@@ -69,6 +69,12 @@ u32 triggerShutdown = 0;
 u32 mainServiceState = 0;
 u32 closeFileSystem = 0;
 
+u32 wQueue = 0;
+u32 wQueueMax = 0;
+u32 lprQueue = 0;
+u32 lprQueueMax = 0;
+u32 hprQueue = 0;
+u32 hprQueueMax = 0;
 int main()
 {
 	XScuGic_Config *gicConfig;
@@ -81,6 +87,7 @@ int main()
     // QSPI Flash Setup
     *(u32 *)((u64) 0xFF0F0014) = 0x00000000;	// Disable LQSPI.
     *(u32 *)((u64) 0xFF0F0114) = 0x00000000;	// Disable GQSPI.
+    *(u32 *)((u64) 0xFF0F0144) = 0x00000000;	// Select LQSPI.
     *(u32 *)((u64) 0xFF0F0000) = 0x800000C1;	// Master Mode.
     *(u32 *)((u64) 0xFF0F00A0) = 0x880002EC;	// LQSPI_CFG (TRM Table 24-6).
     *(u32 *)((u64) 0xFF0F00C0) = 0x00001A28;	// COMMAND (TRM Table 24-6).
@@ -171,6 +178,12 @@ int main()
     	case MAIN_SERVICE_UI:
     		uiService();
     		mainServiceState = MAIN_SERVICE_HDMI;
+    		wQueue = (*(u32*)0xFD070308 >> 16) & 0xFF;
+    		if(wQueue > wQueueMax) { wQueueMax = wQueue; }
+    		lprQueue = (*(u32*)0xFD070308 >> 8) & 0xFF;
+    		if(lprQueue > lprQueueMax) { lprQueueMax = lprQueue; }
+    		hprQueue = (*(u32*)0xFD070308 >> 0) & 0xFF;
+    		if(hprQueue > hprQueueMax) { hprQueueMax = hprQueue; }
     		break;
     	case MAIN_SERVICE_HDMI:
     		hdmiService();

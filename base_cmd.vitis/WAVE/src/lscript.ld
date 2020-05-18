@@ -21,7 +21,7 @@ _EL2_STACK_SIZE = DEFINED(_EL2_STACK_SIZE) ? _EL2_STACK_SIZE : 1024;
 
 MEMORY
 {
-   psu_ddr_0_MEM_0 : ORIGIN = 0x10000000, LENGTH = 0x60000000
+   psu_ddr_0_MEM_0 : ORIGIN = 0x00000000, LENGTH = 0x10000000
    psu_ocm_ram_0_MEM_0 : ORIGIN = 0xFFFC0000, LENGTH = 0x40000
    psu_qspi_linear_0_MEM_0 : ORIGIN = 0xC0000000, LENGTH = 0x20000000
 }
@@ -47,23 +47,23 @@ SECTIONS
    *(.glue_7t)
    *(.ARM.extab)
    *(.gnu.linkonce.armextab.*)
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .init (ALIGN(64)) : {
    KEEP (*(.init))
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .fini (ALIGN(64)) : {
    KEEP (*(.fini))
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .interp : {
    KEEP (*(.interp))
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .note-ABI-tag : {
    KEEP (*(.note-ABI-tag))
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .rodata : {
    . = ALIGN(64);
@@ -72,7 +72,7 @@ SECTIONS
    *(.rodata.*)
    *(.gnu.linkonce.r.*)
    __rodata_end = .;
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .rodata1 : {
    . = ALIGN(64);
@@ -80,7 +80,7 @@ SECTIONS
    *(.rodata1)
    *(.rodata1.*)
    __rodata1_end = .;
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .sdata2 : {
    . = ALIGN(64);
@@ -89,7 +89,7 @@ SECTIONS
    *(.sdata2.*)
    *(.gnu.linkonce.s2.*)
    __sdata2_end = .;
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .sbss2 : {
    . = ALIGN(64);
@@ -98,7 +98,7 @@ SECTIONS
    *(.sbss2.*)
    *(.gnu.linkonce.sb2.*)
    __sbss2_end = .;
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .data : {
    . = ALIGN(64);
@@ -110,7 +110,7 @@ SECTIONS
    *(.got)
    *(.got.plt)
    __data_end = .;
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .data1 : {
    . = ALIGN(64);
@@ -118,19 +118,19 @@ SECTIONS
    *(.data1)
    *(.data1.*)
    __data1_end = .;
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .got : {
    *(.got)
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .got1 : {
    *(.got1)
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .got2 : {
    *(.got2)
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .ctors : {
    . = ALIGN(64);
@@ -142,7 +142,7 @@ SECTIONS
    KEEP (*(.ctors))
    __CTOR_END__ = .;
    ___CTORS_END___ = .;
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .dtors : {
    . = ALIGN(64);
@@ -154,52 +154,52 @@ SECTIONS
    KEEP (*(.dtors))
    __DTOR_END__ = .;
    ___DTORS_END___ = .;
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .fixup : {
    __fixup_start = .;
    *(.fixup)
    __fixup_end = .;
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .eh_frame : {
    *(.eh_frame)
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .eh_framehdr : {
    __eh_framehdr_start = .;
    *(.eh_framehdr)
    __eh_framehdr_end = .;
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .gcc_except_table : {
    *(.gcc_except_table)
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .mmu_tbl0 (ALIGN(4096)) : {
    __mmu_tbl0_start = .;
    *(.mmu_tbl0)
    __mmu_tbl0_end = .;
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .mmu_tbl1 (ALIGN(4096)) : {
    __mmu_tbl1_start = .;
    *(.mmu_tbl1)
    __mmu_tbl1_end = .;
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .mmu_tbl2 (ALIGN(4096)) : {
    __mmu_tbl2_start = .;
    *(.mmu_tbl2)
    __mmu_tbl2_end = .;
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .ARM.exidx : {
    __exidx_start = .;
    *(.ARM.exidx*)
    *(.gnu.linkonce.armexidix.*.*)
    __exidx_end = .;
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .preinit_array : {
    . = ALIGN(64);
@@ -207,7 +207,7 @@ SECTIONS
    KEEP (*(SORT(.preinit_array.*)))
    KEEP (*(.preinit_array))
    __preinit_array_end = .;
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .init_array : {
    . = ALIGN(64);
@@ -215,7 +215,7 @@ SECTIONS
    KEEP (*(SORT(.init_array.*)))
    KEEP (*(.init_array))
    __init_array_end = .;
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .fini_array : {
    . = ALIGN(64);
@@ -223,13 +223,13 @@ SECTIONS
    KEEP (*(SORT(.fini_array.*)))
    KEEP (*(.fini_array))
    __fini_array_end = .;
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .ARM.attributes : {
    __ARM.attributes_start = .;
    *(.ARM.attributes)
    __ARM.attributes_end = .;
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .sdata : {
    . = ALIGN(64);
@@ -238,7 +238,7 @@ SECTIONS
    *(.sdata.*)
    *(.gnu.linkonce.s.*)
    __sdata_end = .;
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .sbss (NOLOAD) : {
    . = ALIGN(64);
@@ -248,7 +248,7 @@ SECTIONS
    *(.gnu.linkonce.sb.*)
    . = ALIGN(64);
    __sbss_end = .;
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .tdata : {
    . = ALIGN(64);
@@ -257,7 +257,7 @@ SECTIONS
    *(.tdata.*)
    *(.gnu.linkonce.td.*)
    __tdata_end = .;
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .tbss : {
    . = ALIGN(64);
@@ -266,7 +266,7 @@ SECTIONS
    *(.tbss.*)
    *(.gnu.linkonce.tb.*)
    __tbss_end = .;
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .bss (NOLOAD) : {
    . = ALIGN(64);
@@ -277,7 +277,7 @@ SECTIONS
    *(COMMON)
    . = ALIGN(64);
    __bss_end__ = .;
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 _SDA_BASE_ = __sdata_start + ((__sbss_end - __sdata_start) / 2 );
 
@@ -293,7 +293,7 @@ _SDA2_BASE_ = __sdata2_start + ((__sbss2_end - __sdata2_start) / 2 );
    . += _HEAP_SIZE;
    _heap_end = .;
    HeapLimit = .;
-} > psu_ocm_ram_0_MEM_0
+} > psu_ddr_0_MEM_0
 
 .stack (NOLOAD) : {
    . = ALIGN(64);
@@ -312,10 +312,6 @@ _SDA2_BASE_ = __sdata2_start + ((__sbss2_end - __sdata2_start) / 2 );
    . += _EL0_STACK_SIZE;
    . = ALIGN(64);
    __el0_stack = .;
-} > psu_ocm_ram_0_MEM_0
-
-.virtflash (NOLOAD) : {
-   . = ALIGN(64);
 } > psu_ddr_0_MEM_0
 
 _end = .;
