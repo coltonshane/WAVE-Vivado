@@ -59,14 +59,14 @@ THE SOFTWARE.
 typedef struct
 {
 	// Slave Reg 0
-	u16 vx0;			// Left edge of viewport w.r.t. HSYNC. Visible start: 192.
-	u16 vy0;			// Top edge of viewport w.r.t. VSYNC. Visible start: 41.
+	u32 vy0_vx0;			// vx0: Left edge of viewport w.r.t. HSYNC. Visible start: 192.
+							// vy0: Top edge of viewport w.r.t. VSYNC. Visible start: 41.
 	// Slave Reg 1
-	u16 vxDiv;			// Viewport X scaling factor. Preview width on screen is (2^24 / vxDiv).
-	u16 vyDiv;			// Viewport Y scaling factor. Match vxDiv to preserve aspect ratio.
+	u32 vyDiv_vxDiv;		// vxDiv: Viewport X scaling factor. Preview width on screen is (2^24 / vxDiv).
+							// vyDiv: Viewport Y scaling factor. Match vxDiv to preserve aspect ratio.
 	// Slave Reg 2
-	u16 wHDMI;			// HSYNC interval. 1080p30: 2200, 1080p25: 2640, 1080p24: 2750.
-	u16 hImage2048;		// Normalized aspect ratio. Preview height on screen is (2^24 / vyDiv) * (hImage2048 / 2048).
+	u32 hImage2048_wHDMI;	// wHDMI: HSYNC interval. 1080p30: 2200, 1080p25: 2640, 1080p24: 2750.
+							// hImage2048: Normalized aspect ratio. Preview height on screen is (2^24 / vyDiv) * (hImage2048 / 2048).
 	// Slave Reg 3
 	s32 q_mult_inv_HL2_LH2;		// Inverse quantizer multiplier for HL2 and LH2. Default: (65536 / q_mult_HL2_LH2).
 	// Slave Reg 4
@@ -134,6 +134,8 @@ u8 SendBuffer[256];    /**< Buffer for Transmitting Data */
 u8 RecvBuffer[256];    /**< Buffer for Receiving Data */
 
 s32 hdmiFrame = -1;
+
+HDMI_s hdmiSync;
 u32 hdmiApplyCameraStateSyncFlag = 0;
 
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
@@ -179,7 +181,6 @@ void isrVSYNC(void * CallbackRef)
 	// Apply camera state settings to HDMI module.
 	if(hdmiApplyCameraStateSyncFlag)
 	{
-		hdmiApplyCameraStateSyncFlag = 0;
 		hdmiApplyCameraStateSync();
 	}
 
@@ -208,6 +209,7 @@ void hdmiInit(void)
 	hdmi->bit_discard_update_HL2 = 0;
 	hdmi->bit_discard_update_HH2 = 0;
 
+	hdmiApplyCameraState();
 	hdmiApplyCameraStateSync();
 
 	hdmi->ui_control = 0x000690C0;
@@ -271,14 +273,6 @@ void hdmiService(void)
 
 void hdmiApplyCameraState(void)
 {
-	// Wait for the next VSYNC to apply camera settings.
-	hdmiApplyCameraStateSyncFlag = 1;
-}
-
-// Private Function Definitions ----------------------------------------------------------------------------------------
-
-void hdmiApplyCameraStateSync(void)
-{
 	float wFrame, hFrame;
 	float xScale, yScale;
 	float wViewport, hViewport;
@@ -295,10 +289,10 @@ void hdmiApplyCameraStateSync(void)
 	if(wFrame == 4096.0f)
 	{
 		// 4K Mode
-		hdmi->SS = 0;
-		hdmi->opx_count_iv2_out_offset = OPX_COUNT_IV2_OUT_OFFSET_4K;
-		hdmi->opx_count_iv2_in_offset = OPX_COUNT_IV2_IN_OFFSET_4K;
-		hdmi->opx_count_dc_en_offset = OPX_COUNT_DC_EN_OFFFSET_4K;
+		hdmiSync.SS = 0;
+		hdmiSync.opx_count_iv2_out_offset = OPX_COUNT_IV2_OUT_OFFSET_4K;
+		hdmiSync.opx_count_iv2_in_offset = OPX_COUNT_IV2_IN_OFFSET_4K;
+		hdmiSync.opx_count_dc_en_offset = OPX_COUNT_DC_EN_OFFFSET_4K;
 
 		hImage2048 = (u16)(hFrame / 2.0f) - 4.0f;
 
@@ -320,11 +314,10 @@ void hdmiApplyCameraStateSync(void)
 	else
 	{
 		// 2K Mode
-		hdmi->SS = 1;
-		hdmi->opx_count_iv2_out_offset = OPX_COUNT_IV2_OUT_OFFSET_2K;
-		hdmi->opx_count_iv2_in_offset = OPX_COUNT_IV2_IN_OFFSET_2K;
-		hdmi->opx_count_dc_en_offset = OPX_COUNT_DC_EN_OFFFSET_2K;
-
+		hdmiSync.SS = 1;
+		hdmiSync.opx_count_iv2_out_offset = OPX_COUNT_IV2_OUT_OFFSET_2K;
+		hdmiSync.opx_count_iv2_in_offset = OPX_COUNT_IV2_IN_OFFSET_2K;
+		hdmiSync.opx_count_dc_en_offset = OPX_COUNT_DC_EN_OFFFSET_2K;
 		hImage2048 = (u16)hFrame - 4.0f;
 
 		if(hFrame <= 1152.0f)
@@ -361,12 +354,9 @@ void hdmiApplyCameraStateSync(void)
 	if(vyDiv < 0x2000) { vyDiv = 0x2000; }
 	else if (vyDiv > 0x4000) { vyDiv = 0x4000; }
 
-	hdmi->vx0 = vx0;
-	hdmi->vy0 = vy0;
-	hdmi->vxDiv = vxDiv;
-	hdmi->vyDiv = vyDiv;
-	hdmi->wHDMI = 2200;
-	hdmi->hImage2048 = hImage2048;
+	hdmiSync.vy0_vx0 = ((u32)vy0 << 16) | (u32)vx0;
+	hdmiSync.vyDiv_vxDiv = ((u32)vyDiv << 16) | (u32)vxDiv;
+	hdmiSync.hImage2048_wHDMI = ((u32)hImage2048 << 16) | 2200;
 
 	// Compute the normalized alpha and beta corrections as a function of color temperature.
 	fColorTemp = cState.cSetting[CSETTING_COLOR]->valArray[cState.cSetting[CSETTING_COLOR]->val].fVal;
@@ -382,6 +372,25 @@ void hdmiApplyCameraStateSync(void)
 	else if(iBetaWorking < -32768) { iBetaWorking = -32768; }
 
 	hdmiBuildAlphaBetaLUT((s16)iAlphaWorking, (s16)iBetaWorking, 0, 0);
+
+	// Wait for the next VSYNC to apply camera settings.
+	hdmiApplyCameraStateSyncFlag = 1;
+}
+
+// Private Function Definitions ----------------------------------------------------------------------------------------
+
+void hdmiApplyCameraStateSync(void)
+{
+	hdmi->SS = hdmiSync.SS;
+	hdmi->opx_count_iv2_out_offset = hdmiSync.opx_count_iv2_out_offset;
+	hdmi->opx_count_iv2_in_offset = hdmiSync.opx_count_iv2_in_offset;
+	hdmi->opx_count_dc_en_offset = hdmiSync.opx_count_dc_en_offset;
+
+	hdmi->vy0_vx0 = hdmiSync.vy0_vx0;
+	hdmi->vyDiv_vxDiv = hdmiSync.vyDiv_vxDiv;
+	hdmi->hImage2048_wHDMI = hdmiSync.hImage2048_wHDMI;
+
+	hdmiApplyCameraStateSyncFlag = 0;
 }
 
 #define SHADOW_ROLLOFF 192

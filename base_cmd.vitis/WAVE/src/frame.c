@@ -65,9 +65,12 @@ s32 nFramesIn = -1;
 s32 nFramesOutStart = 0;
 s32 nFramesOut = 0;
 
-u32 frameApplyCameraStateSyncFlag = 0;
 u32 nFramesPerFile = 481;
 u32 nSubframesPerFrame = 1;
+
+u32 nFramesPerFileSync = 481;
+u32 nSubframesPerFrameSync = 1;
+u32 frameApplyCameraStateSyncFlag = 0;
 
 u8 frameTempPS = 0x00;
 u8 frameTempPL = 0x00;
@@ -101,7 +104,7 @@ void isrFOT(void * CallbackRef)
 	memcpy(&Encoder_prev, Encoder, sizeof(Encoder_s));
 	encoderServiceFOT(&Encoder_prev, frameCompressionProfile);
 	memcpy(&Encoder_next, Encoder, sizeof(Encoder_s));
-	XGpioPs_WritePin(&Gpio, T_EXP1_PIN, 0);
+	XGpioPs_WritePin(&Gpio, GPIO1_PIN, 0);		// Mark time-critical exit.
 
 	// Record information for the just-captured frame (if one exists).
 	if(nFramesIn >= 0)
@@ -152,11 +155,10 @@ void isrFOT(void * CallbackRef)
 	// Apply camera state settings to the frame module.
 	if(frameApplyCameraStateSyncFlag)
 	{
-		frameApplyCameraStateSyncFlag = 0;
 		frameApplyCameraStateSync();
 	}
 
-	XGpioPs_WritePin(&Gpio, GPIO1_PIN, 0);		// Mark ISR exit.
+	// XGpioPs_WritePin(&Gpio, GPIO1_PIN, 0);		// Mark ISR exit.
 }
 
 // Public Function Definitions -----------------------------------------------------------------------------------------
@@ -164,11 +166,27 @@ void isrFOT(void * CallbackRef)
 void frameInit(void)
 {
 	CMV_Input->FRAME_REQ_on = 0;
+	frameApplyCameraState();
 	frameApplyCameraStateSync();
 }
 
 void frameApplyCameraState(void)
 {
+	float wFrame, hFrame;
+	float h4x3;
+	float szFrame;
+
+	wFrame = cState.cSetting[CSETTING_WIDTH]->valArray[cState.cSetting[CSETTING_WIDTH]->val].fVal;
+	hFrame = cState.cSetting[CSETTING_HEIGHT]->valArray[cState.cSetting[CSETTING_HEIGHT]->val].fVal;
+	h4x3 = (wFrame == 4096.0f) ? 3072.0f : 1536.0f;
+
+	// Set nSubframesPerFrame based on integer fill of 4x3 height.
+	nSubframesPerFrameSync = (u32)(h4x3 / hFrame);
+
+	// Set nFramesPerFile for roughly 1GiB files at 5:1 compression (2b/px = 0.25B/px).
+	szFrame = (float)(nSubframesPerFrame) * wFrame * hFrame * 0.25f;
+	nFramesPerFileSync = (u32)((float)(1 << 30) / szFrame);
+
 	// Wait for next FOT to apply camera settings.
 	frameApplyCameraStateSyncFlag = 1;
 }
@@ -205,20 +223,9 @@ int frameLastCaptured(void)
 
 void frameApplyCameraStateSync(void)
 {
-	float wFrame, hFrame;
-	float h4x3;
-	float szFrame;
-
-	wFrame = cState.cSetting[CSETTING_WIDTH]->valArray[cState.cSetting[CSETTING_WIDTH]->val].fVal;
-	hFrame = cState.cSetting[CSETTING_HEIGHT]->valArray[cState.cSetting[CSETTING_HEIGHT]->val].fVal;
-	h4x3 = (wFrame == 4096.0f) ? 3072.0f : 1536.0f;
-
-	// Set nSubframesPerFrame based on integer fill of 4x3 height.
-	nSubframesPerFrame = (u32)(h4x3 / hFrame);
-
-	// Set nFramesPerFile for roughly 1GiB files at 5:1 compression (2b/px = 0.25B/px).
-	szFrame = (float)(nSubframesPerFrame) * wFrame * hFrame * 0.25f;
-	nFramesPerFile = (u32)((float)(1 << 30) / szFrame);
+	nSubframesPerFrame = nSubframesPerFrameSync;
+	nFramesPerFile = nFramesPerFileSync;
+	frameApplyCameraStateSyncFlag = 0;
 }
 
 void frameRecord(void)
