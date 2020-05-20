@@ -47,6 +47,9 @@ THE SOFTWARE.
 #define ENC_SW_PIN 69		// Bank 2, Pin 17, MIO 69
 
 // EMIO Pin Assignments
+#define GPIO_BANK 3
+#define GPIO_MASK 			0x00000008
+#define GPIO_REC_SW_MASK 	0x00000008
 #define GPIO1_PIN 78		// Bank 3, Pin 0, EMIO 0
 #define GPIO2_PIN 79		// Bank 3, Pin 1, EMIO 1
 #define GPIO3_PIN 80		// Bank 3, Pin 2, EMIO 2

@@ -54,11 +54,26 @@ void gpioInit(void)
 
 	// Set up MIO UI input interrupt on rising and falling edges.
     XGpioPs_SetIntrType(&Gpio, UI_BANK, 0x03FFFFFFF, 0x00000000, 0x03FFFFFF);
-    XGpioPs_SetCallbackHandler(&Gpio, (void *) &Gpio, isrUI);
     XGpioPs_IntrEnable(&Gpio, UI_BANK, UI_MASK);
+    XGpioPs_IntrClear(&Gpio, UI_BANK, UI_MASK);
 
-    // Set all EMIO GPIO to output low.
-    for(u32 i = GPIO1_PIN; i <= T_EXP2_PIN; i++)
+    // Set up EMIO GPIO input interrupt on rising and falling edges.
+    XGpioPs_SetIntrType(&Gpio, GPIO_BANK, 0xFFFFFFFF, 0x00000000, 0xFFFFFFFF);
+    XGpioPs_IntrDisable(&Gpio, GPIO_BANK, ~GPIO_MASK);
+    XGpioPs_IntrEnable(&Gpio, GPIO_BANK, GPIO_MASK);
+    XGpioPs_IntrClear(&Gpio, GPIO_BANK, 0xFFFFFFFF);
+
+    // Both MIO UI and EMIO GPIO input interrupts trigger the same handler.
+    XGpioPs_SetCallbackHandler(&Gpio, (void *) &Gpio, isrUI);
+
+    // Set all EMIO outputs to low.
+    for(u32 i = GPIO1_PIN ; i <= GPIO2_PIN ; i++)
+    {
+       	XGpioPs_SetDirectionPin(&Gpio, i, 1);
+       	XGpioPs_SetOutputEnablePin(&Gpio, i, 1);
+       	XGpioPs_WritePin(&Gpio, i, 0);
+    }
+    for(u32 i = LVDS_CLK_EN_PIN; i <= T_EXP2_PIN; i++)
     {
     	XGpioPs_SetDirectionPin(&Gpio, i, 1);
     	XGpioPs_SetOutputEnablePin(&Gpio, i, 1);

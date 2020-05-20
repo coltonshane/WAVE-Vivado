@@ -86,13 +86,16 @@ u16 uiRowY0(u8 row);
 
 // UI Hardware
 u32 * const uiControl = (u32 *)((u64) 0xA0040050);
-u32 * const uiGPIOState = (u32 *)((u64) 0xFF0A0068);
+u32 * const uiPinState = (u32 *)((u64) 0xFF0A0068);
+u32 * const gpioPinState = (u32 *)((u64) 0xFF0A006C);
 const u32 uiBaseAddr[] = {0xA0060000, 0xA0068000, 0xA0070000};
 const u16 uiW[] = {1024, 1024, 128};
 const u16 uiH[] = {32, 32, 256};
 
 // UI Event Tracking
-u32 uiGPIOStatePrev = UI_MASK;
+u32 uiPinStatePrev = UI_MASK;
+u32 gpioPinStatePrev = GPIO_MASK;
+XTime tLastRecClick = 0;
 u8 uiRecClicked = 0;
 u8 uiEncClicked = 0;
 int16_t uiEncScrolled = 0;
@@ -109,40 +112,64 @@ int userInputActive = -1;
 u32 uiServiceCounter = 0;
 
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
-
 void isrUI(void *CallBackRef, u32 Bank, u32 Status)
 {
-	u32 uiGPIOStateNow = *uiGPIOState & UI_MASK;
-	u32 uiGPIOStateDiff = uiGPIOStateNow ^ uiGPIOStatePrev;
+	u32 uiPinStateNow = *uiPinState & UI_MASK;
+	u32 uiPinStateDiff = uiPinStateNow ^ uiPinStatePrev;
+	u32 gpioPinStateNow = *gpioPinState & GPIO_MASK;
+	u32 gpioPinStateDiff = gpioPinStateNow ^ gpioPinStatePrev;
+	XTime tThisRecClick;
 	u8 dir;
 
-	// Register record button click on rising edge.
-	if(uiGPIOStateDiff & UI_REC_SW_MASK)
+	if (Bank == UI_BANK)
 	{
-		if(uiGPIOStateNow & UI_REC_SW_MASK)
+		// Register record button click on rising edge.
+		if(uiPinStateDiff & UI_REC_SW_MASK)
 		{
-			uiRecClicked = 1;
+			if(uiPinStateNow & UI_REC_SW_MASK)
+			{
+				uiRecClicked = 1;
+			}
 		}
-	}
 
-	// Register encoder button click on rising edge.
-	if(uiGPIOStateDiff & UI_ENC_SW_MASK)
-	{
-		if(uiGPIOStateNow & UI_ENC_SW_MASK)
+		// Register encoder button click on rising edge.
+		if(uiPinStateDiff & UI_ENC_SW_MASK)
 		{
-			uiEncClicked = 1;
+			if(uiPinStateNow & UI_ENC_SW_MASK)
+			{
+				uiEncClicked = 1;
+			}
 		}
-	}
 
-	// Register encoder scroll on both ENC_A edges, with direction from ENC_B.
-	if(uiGPIOStateDiff & UI_ENC_A_MASK)
+		// Register encoder scroll on both ENC_A edges, with direction from ENC_B.
+		if(uiPinStateDiff & UI_ENC_A_MASK)
+		{
+			dir = ((uiPinStateNow >> UI_ENC_A_POS) ^ (uiPinStateNow >> UI_ENC_B_POS)) & 0x1;
+			if(dir) { uiEncScrolled++; }
+			else { uiEncScrolled--; }
+		}
+
+		uiPinStatePrev = uiPinStateNow;
+	}
+	else if (Bank == GPIO_BANK)
 	{
-		dir = ((uiGPIOStateNow >> UI_ENC_A_POS) ^ (uiGPIOStateNow >> UI_ENC_B_POS)) & 0x1;
-		if(dir) { uiEncScrolled++; }
-		else { uiEncScrolled--; }
-	}
+		// Register remote start stop input on rising edge.
+		if(gpioPinStateDiff & GPIO_REC_SW_MASK)
+		{
+			if(gpioPinStateNow & GPIO_REC_SW_MASK)
+			{
+				// Ignore glitches / bouncing less than 500ms.
+				XTime_GetTime(&tThisRecClick);
+				if((tThisRecClick - tLastRecClick) * US_PER_COUNT > 500000)
+				{
+					uiRecClicked = 1;
+					tLastRecClick = tThisRecClick;
+				}
+			}
+		}
 
-	uiGPIOStatePrev = uiGPIOStateNow;
+		gpioPinStatePrev = gpioPinStateNow;
+	}
 }
 
 // Public Function Definitions -----------------------------------------------------------------------------------------

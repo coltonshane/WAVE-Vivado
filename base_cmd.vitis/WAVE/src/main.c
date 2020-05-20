@@ -139,9 +139,9 @@ int main()
     XScuGic_SetPriorityTriggerType(&Gic, 125, 0x08, 0x03);
     XScuGic_Enable(&Gic, 125);
 
-    // Configure and enable the UI interrupt (Third Highest Priority: 0x10).
+    // Configure and enable the UI/GPIO interrupt (Third Highest Priority: 0x10).
     XScuGic_Connect(&Gic, 48, (Xil_ExceptionHandler)XGpioPs_IntrHandler, (void *) &Gpio);
-    XScuGic_SetPriorityTriggerType(&Gic, 48, 0x10, 0x03);
+    XScuGic_SetPriorityTriggerType(&Gic, 48, 0x10, 0x01);
     XScuGic_Enable(&Gic, 48);
 
     Xil_ExceptionEnable();

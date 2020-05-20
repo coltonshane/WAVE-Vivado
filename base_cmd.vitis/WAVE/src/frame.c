@@ -31,15 +31,12 @@ THE SOFTWARE.
 #include "encoder.h"
 #include "fs.h"
 #include "nvme.h"
-#include "xtime_l.h"
 #include "camera_state.h"
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
 #define FH_BUFFER_SIZE 4096		// 2MiB: 0x18000000 - 0x18200000
 #define FRAME_LB_EXP 9
-
-#define US_PER_COUNT 1000 / (COUNTS_PER_SECOND / 1000)
 
 // Private Type Definitions --------------------------------------------------------------------------------------------
 

@@ -32,9 +32,12 @@ THE SOFTWARE.
 #include "xparameters.h"
 #include "xil_printf.h"
 #include "xil_cache.h"
+#include "xtime_l.h"
 #include "sleep.h"
 
 // Public Pre-Processor Definitions ------------------------------------------------------------------------------------
+
+#define US_PER_COUNT 1000 / (COUNTS_PER_SECOND / 1000)
 
 // Public Type Definitions ---------------------------------------------------------------------------------------------
 
