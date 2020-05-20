@@ -230,8 +230,15 @@ void hdmiInit(void)
 	}
 }
 
+u32 skip = 30;
 void hdmiService(void)
 {
+	if(skip > 0)
+	{
+		skip--;
+		return;
+	}
+
 	// Check for HPD and HDMI clock termination.
 	SendBuffer[0] = 0x42;
 	XIicPs_SetOptions(&Iic,XIICPS_REP_START_OPTION);
