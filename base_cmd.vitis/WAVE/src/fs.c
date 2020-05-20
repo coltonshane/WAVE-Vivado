@@ -147,7 +147,7 @@ void fsCreateFile(void)
 		fsUpdateFreeSizeGB();
 	}
 
-	sprintf(strWorking, "/c%04d/f%06d.bin", nClip, nFile);
+	sprintf(strWorking, "/c%04d/f%06d.kwv", nClip, nFile);
 	res = f_open(&fil, strWorking, FA_CREATE_NEW | FA_WRITE);
 	res = f_expand(&fil, 0x1000000, 1);		// Reserve 16MiB.
 
