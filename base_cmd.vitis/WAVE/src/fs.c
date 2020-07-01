@@ -26,8 +26,11 @@ THE SOFTWARE.
 
 #include "fs.h"
 #include "ff.h"
+#include "xrtcpsu.h"
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
+
+#define RTC_DEVICE_ID              XPAR_XRTCPSU_0_DEVICE_ID
 
 // Private Type Definitions --------------------------------------------------------------------------------------------
 
@@ -36,6 +39,8 @@ THE SOFTWARE.
 void fsUpdateFreeSizeGB(void);
 
 // Public Global Variables ---------------------------------------------------------------------------------------------
+
+XRtcPsu RtcPsu;
 
 int nClip = -1;
 
@@ -54,7 +59,13 @@ u32 fsSizeGB = 0;
 
 void fsInit(void)
 {
+	XRtcPsu_Config *RtcPsuConfig;
+	u32 tNowRTC;
 	FRESULT res;
+
+	RtcPsuConfig = XRtcPsu_LookupConfig(RTC_DEVICE_ID);
+	XRtcPsu_CfgInitialize(&RtcPsu, RtcPsuConfig, RtcPsuConfig->BaseAddr);
+	tNowRTC = XRtcPsu_GetCurrentTime(&RtcPsu);
 
 	res = f_mount(&fs, "", 0);
 	if(res) { xil_printf("SSD mount failed.\r\n"); }
