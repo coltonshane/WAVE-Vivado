@@ -39,6 +39,8 @@ THE SOFTWARE.
 #define SUPERVISOR_PREFIX_REPLY 0xA0
 #define SUPERVISOR_COMMAND_EN_3V3SSD 0x01
 #define SUPERVISOR_COMMAND_EN_CMV 0x02
+#define SUPERVISOR_COMMAND_EN_FAN 0x04
+#define SUPERVISOR_COMMAND_FAN_SPEED 0x08
 #define SUPERVISOR_REPLY_ENPG_CMV 0x0E
 #define SUPERVISOR_REPLY_ENPG_SSD 0x01
 
@@ -75,6 +77,8 @@ void supervisorInit()
 	uart1Config = XUartPs_LookupConfig(UART1_DEVICE_ID);
 	XUartPs_CfgInitialize(&Uart1, uart1Config, uart1Config->BaseAddress);
 	XUartPs_SetBaudRate(&Uart1, 115200);
+
+	supervisorSetFan(SUPERVISOR_FAN_HIGH);
 }
 
 int supervisorEnableCMVPower(void)
@@ -88,7 +92,8 @@ int supervisorEnableCMVPower(void)
 	{
 	   	XUartPs_SendByte(uart1Config->BaseAddress, SUPERVISOR_PREFIX_COMMAND | supervisor_command_en);
 	   	usleep(10000);
-	   	uart1Reply = XUartPs_RecvByte(uart1Config->BaseAddress);
+	   	// uart1Reply = XUartPs_RecvByte(uart1Config->BaseAddress);
+	   	uart1Reply = XUartPs_ReadReg(uart1Config->BaseAddress, XUARTPS_FIFO_OFFSET);
 	   	if((uart1Reply & SUPERVISOR_PREFIX_MASK) == SUPERVISOR_PREFIX_REPLY)
 	   	{
 	   		// Reply prefix is valid, check EN and PG flags.
@@ -127,6 +132,29 @@ int supervisorEnableSSDPower(void)
 	}
 
 	return SUPERVISOR_OK;
+}
+
+void supervisorSetFan(u8 fanSpeed)
+{
+	if(fanSpeed == SUPERVISOR_FAN_OFF)
+	{
+		supervisor_command_en &= ~SUPERVISOR_COMMAND_EN_FAN;
+	}
+	else
+	{
+		supervisor_command_en |= SUPERVISOR_COMMAND_EN_FAN;
+		if(fanSpeed == SUPERVISOR_FAN_LOW)
+		{
+			supervisor_command_en &= ~SUPERVISOR_COMMAND_FAN_SPEED;
+		}
+		else
+		{
+			// Any fanSpeed other than OFF or LOW will be HIGH.
+			supervisor_command_en |= SUPERVISOR_COMMAND_FAN_SPEED;
+		}
+	}
+
+	XUartPs_SendByte(uart1Config->BaseAddress, SUPERVISOR_PREFIX_COMMAND | supervisor_command_en);
 }
 
 void supervisorService(void)

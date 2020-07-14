@@ -34,6 +34,10 @@ THE SOFTWARE.
 #define SUPERVISOR_OK 0
 #define SUPERVISOR_ERROR 1
 
+#define SUPERVISOR_FAN_OFF 0
+#define SUPERVISOR_FAN_LOW 1
+#define SUPERVISOR_FAN_HIGH 2
+
 // Public Type Definitions ---------------------------------------------------------------------------------------------
 
 // Public Function Prototypes ------------------------------------------------------------------------------------------
@@ -41,6 +45,7 @@ THE SOFTWARE.
 void supervisorInit(void);
 int supervisorEnableCMVPower(void);
 int supervisorEnableSSDPower(void);
+void supervisorSetFan(u8 fanSpeed);
 void supervisorService(void);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------

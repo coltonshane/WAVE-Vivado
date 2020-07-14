@@ -376,20 +376,18 @@ uiServiceComplete:
 	{ uiDrawStringColRow(UI_ID_BOT, strWorking, 54, 0); }
 
 	/*
-	sprintf(strResult, "PS:%3.0f*C", psplGetTemp(psTemp));
-	uiDrawStringColRow(UI_ID_BOT, strResult, 16, 0);
+	// Temperature Details
+	sprintf(strWorking, "PS:%3.0f*C", psplGetTemp(psTemp));
+	uiDrawStringColRow(UI_ID_BOT, strWorking, 0, 0);
 
-	uiDrawStringColRow(UI_ID_BOT, "12.3V", 32, 0);
-	uiDrawStringColRow(UI_ID_BOT, "991GB", 48, 0);
+	sprintf(strWorking, "PL:%3.0f*C", psplGetTemp(plTemp));
+	uiDrawStringColRow(UI_ID_BOT, strWorking, 16, 0);
 
-	sprintf(strResult, "PL:%3.0f*C", psplGetTemp(plTemp));
-	uiDrawStringColRow(UI_ID_BOT, strResult, 16, 0);
+	sprintf(strWorking, "IS:%3.0f*C", cmvGetTemp());
+	uiDrawStringColRow(UI_ID_BOT, strWorking, 32, 0);
 
-	sprintf(strResult, "IS:%3.0f*C", cmvGetTemp());
-	uiDrawStringColRow(UI_ID_BOT, strResult, 32, 0);
-
-	sprintf(strResult, "SD:%3.0f*C", nvmeGetTemp());
-	uiDrawStringColRow(UI_ID_BOT, strResult, 48, 0);
+	sprintf(strWorking, "SD:%3.0f*C", nvmeGetTemp());
+	uiDrawStringColRow(UI_ID_BOT, strWorking, 48, 0);
 	*/
 }
 
