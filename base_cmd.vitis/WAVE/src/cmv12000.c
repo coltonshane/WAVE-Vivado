@@ -189,6 +189,8 @@ void cmvApplyCameraState(void)
 	float tExp, tExpMax;
 	float fExpLines;
 	int iExpLines;
+	int iExp_kp1;
+	int iExp_kp2;
 
 	h = (u16)(cState.cSetting[CSETTING_HEIGHT]->valArray[cState.cSetting[CSETTING_HEIGHT]->val].fVal);
 
@@ -247,13 +249,17 @@ void cmvApplyCameraState(void)
 	if(iExpLines < 0) { iExpLines = 0; }
 	else if(iExpLines > 0xFFFFFF) { iExpLines = 0xFFFFFF; }
 
+	// Set the multi-slope exposure times to 10% and 1%.
+	iExp_kp1 = iExpLines / 10;
+	iExp_kp2 = iExpLines / 100;
+
 	CMV_Settings_W.Exp_time_L = (iExpLines & 0xFFFF);
 	CMV_Settings_W.Exp_time_H = (iExpLines >> 16) & 0xFF;
-	CMV_Settings_W.Exp_kp1_L = 80;
-	CMV_Settings_W.Exp_kp1_H = 0;
-	CMV_Settings_W.Exp_kp2_L = 8;
-	CMV_Settings_W.Exp_kp2_H = 0;
-	CMV_Settings_W.Number_slopes = 1;
+	CMV_Settings_W.Exp_kp1_L = (iExp_kp1 & 0xFFFF);
+	CMV_Settings_W.Exp_kp1_H = (iExp_kp1 >> 16) & 0xFF;
+	CMV_Settings_W.Exp_kp2_L = (iExp_kp2 & 0xFFFF);
+	CMV_Settings_W.Exp_kp2_H = (iExp_kp2 >> 16) & 0xFF;
+	CMV_Settings_W.Number_slopes = 3;
 
 	// Set the frame interval.
 	CMV_Input->frame_interval = tFrame * 60E6;
