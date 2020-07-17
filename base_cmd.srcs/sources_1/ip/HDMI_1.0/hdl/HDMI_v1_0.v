@@ -46,7 +46,7 @@ module HDMI_v1_0
 
 	// Parameters for AXI-Lite Slave.
 	parameter integer C_S00_AXI_DATA_WIDTH = 32,
-	parameter integer C_S00_AXI_ADDR_WIDTH = 18,
+	parameter integer C_S00_AXI_ADDR_WIDTH = 19,
 	
   // Parameters of AXI Master.
   parameter C_M00_AXI_TARGET_SLAVE_BASE_ADDR = 32'h00000000,
@@ -198,21 +198,45 @@ wire pop_ui_enabled;
 wire bot_ui_enabled;
 wire top_ui_enabled;
 // URAM 0
-wire [11:0] lut_alpha_raddr;
-wire [63:0] lut_alpha_rdata;
+wire [11:0] lut_row_raddr;
+wire [63:0] lut_row_rdata;
 // URAM 1
-wire [11:0] lut_beta_raddr;
-wire [63:0] lut_beta_rdata;
+wire [11:0] lut_col_raddr;
+wire [63:0] lut_col_rdata;
 // URAM 2
-wire [11:0] lut_gamma_raddr;
-wire [63:0] lut_gamma_rdata;
+wire [11:0] lut_r_raddr;
+wire [63:0] lut_r_rdata;
 // URAM 3
+wire [11:0] lut_g_raddr;
+wire [63:0] lut_g_rdata;
+// URAM 4
+wire [11:0] lut_b_raddr;
+wire [63:0] lut_b_rdata;
+// URAM 5
+wire [11:0] lut3d_c30_r_raddr;
+wire [63:0] lut3d_c30_r_rdata;
+// URAM 6
+wire [11:0] lut3d_c74_r_raddr;
+wire [63:0] lut3d_c74_r_rdata;
+// URAM 7
+wire [11:0] lut3d_c30_g_raddr;
+wire [63:0] lut3d_c30_g_rdata;
+// URAM 8
+wire [11:0] lut3d_c74_g_raddr;
+wire [63:0] lut3d_c74_g_rdata;
+// URAM 9
+wire [11:0] lut3d_c30_b_raddr;
+wire [63:0] lut3d_c30_b_rdata;
+// URAM 10
+wire [11:0] lut3d_c74_b_raddr;
+wire [63:0] lut3d_c74_b_rdata;
+// URAM 11
 wire [11:0] top_ui_raddr;
 wire [63:0] top_ui_rdata;
-// URAM 4
+// URAM 12
 wire [11:0] bot_ui_raddr;
 wire [63:0] bot_ui_rdata;
-// URAM 5
+// URAM 13
 wire [11:0] pop_ui_raddr;
 wire [63:0] pop_ui_rdata;
 
@@ -272,21 +296,45 @@ HDMI_v1_0_S00_AXI_inst
   .bot_ui_enabled(bot_ui_enabled),
   .top_ui_enabled(top_ui_enabled),
   // URAM 0
-  .lut_alpha_raddr(lut_alpha_raddr),
-  .lut_alpha_rdata(lut_alpha_rdata),
+  .lut_row_raddr(lut_row_raddr),
+  .lut_row_rdata(lut_row_rdata),
   // URAM 1
-  .lut_beta_raddr(lut_beta_raddr),
-  .lut_beta_rdata(lut_beta_rdata),
+  .lut_col_raddr(lut_col_raddr),
+  .lut_col_rdata(lut_col_rdata),
   // URAM 2
-  .lut_gamma_raddr(lut_gamma_raddr),
-  .lut_gamma_rdata(lut_gamma_rdata),
+  .lut_r_raddr(lut_r_raddr),
+  .lut_r_rdata(lut_r_rdata),
   // URAM 3
+  .lut_g_raddr(lut_g_raddr),
+  .lut_g_rdata(lut_g_rdata),
+  // URAM 4
+  .lut_b_raddr(lut_b_raddr),
+  .lut_b_rdata(lut_b_rdata),
+  // URAM 5
+  .lut3d_c30_r_raddr(lut3d_c30_r_raddr),
+  .lut3d_c30_r_rdata(lut3d_c30_r_rdata),
+  // URAM 6
+  .lut3d_c74_r_raddr(lut3d_c74_r_raddr),
+  .lut3d_c74_r_rdata(lut3d_c74_r_rdata),
+  // URAM 7
+  .lut3d_c30_g_raddr(lut3d_c30_g_raddr),
+  .lut3d_c30_g_rdata(lut3d_c30_g_rdata),
+  // URAM 8
+  .lut3d_c74_g_raddr(lut3d_c74_g_raddr),
+  .lut3d_c74_g_rdata(lut3d_c74_g_rdata),
+  // URAM 9
+  .lut3d_c30_b_raddr(lut3d_c30_b_raddr),
+  .lut3d_c30_b_rdata(lut3d_c30_b_rdata),
+  // URAM 10
+  .lut3d_c74_b_raddr(lut3d_c74_b_raddr),
+  .lut3d_c74_b_rdata(lut3d_c74_b_rdata),
+  // URAM 11
   .top_ui_raddr(top_ui_raddr),
   .top_ui_rdata(top_ui_rdata),
-  // URAM 4
+  // URAM 12
   .bot_ui_raddr(bot_ui_raddr),
   .bot_ui_rdata(bot_ui_rdata),
-  // URAM 5
+  // URAM 13
   .pop_ui_raddr(pop_ui_raddr),
   .pop_ui_rdata(pop_ui_rdata),
    
@@ -430,8 +478,8 @@ localparam integer vsync_off = 5;
 localparam integer v_de_on = 41;
 localparam integer v_de_off = 1121;
 
-reg [15:0] h_count[5:0];
-reg [15:0] v_count[5:0];
+reg [15:0] h_count[7:0];
+reg [15:0] v_count[7:0];
 
 always @(posedge hdmi_clk)
 begin
@@ -457,7 +505,7 @@ begin
   // Pipeline.
   begin : hv_count_pipeline
   integer i;
-  for (i = 0; i < 5; i = i + 1)
+  for (i = 0; i < 7; i = i + 1)
   begin
     h_count[i+1] <= h_count[i];
     v_count[i+1] <= v_count[i];
@@ -467,13 +515,13 @@ begin
 end
 
 // Combinational HSYNC, VSYNC, and DE generation based on h_count and v_count.
-assign HSYNC = (h_count[5] < hsync_off);
-assign VSYNC = (v_count[5] < vsync_off);
-assign DE = (h_count[5] >= h_de_on) && (h_count[5] < h_de_off) && (v_count[5] >= v_de_on) & (v_count[5] < v_de_off);
+assign HSYNC = (h_count[7] < hsync_off);
+assign VSYNC = (v_count[7] < vsync_off);
+assign DE = (h_count[7] >= h_de_on) && (h_count[7] < h_de_off) && (v_count[7] >= v_de_on) & (v_count[7] < v_de_off);
 
 // Handle VSYNC interrupt: Set once near the bottom of the frame scan, to give the sotware
 // a bit of time to prepare register update values for VSYNC. Cleared by software.
-wire VSYNC_coming = (v_count[5] == v_de_off);
+wire VSYNC_coming = (v_count[7] == v_de_off);
 reg VSYNC_coming_prev;
 always @(posedge hdmi_clk)
 begin
@@ -490,7 +538,7 @@ wire signed [16:0] vyNorm;  // Signed to accommodate negative space for top marg
 reg [15:0] vxNormP;
 reg [15:0] vyNormP;
 wire inViewport;
-reg inViewportP[2:0];
+reg inViewportP[4:0];
 
 viewport_normalize vn
 (
@@ -518,6 +566,8 @@ begin
   inViewportP[0] <= inViewport;
   inViewportP[1] <= inViewportP[0];
   inViewportP[2] <= inViewportP[1];
+  inViewportP[3] <= inViewportP[2];
+  inViewportP[4] <= inViewportP[3];
   vxNormP <= vxNorm;
   vyNormP <= vyNorm[15:0];
 end
@@ -1107,23 +1157,56 @@ bilinear_16b bilinear_G2
 
 // Color correction.
 // -------------------------------------------------------------------------------------------------
-wire [7:0] R_8b;
-wire [7:0] G_8b;
-wire [7:0] B_8b;
+wire signed [15:0] R_14b;
+wire signed [15:0] G_14b;
+wire signed [15:0] B_14b;
 
-color color_inst
+color_1dlut color_1dlut_inst
 (
   .clk(hdmi_clk),
+
   .out_G1(out_G1),
   .out_R1(out_R1),
   .out_B1(out_B1),
   .out_G2(out_G2),
-  .lut_alpha_rdata(lut_alpha_rdata),
-  .lut_beta_rdata(lut_beta_rdata),
-  .lut_gamma_rdata(lut_gamma_rdata),
-  .lut_alpha_raddr(lut_alpha_raddr),
-  .lut_beta_raddr(lut_beta_raddr),
-  .lut_gamma_raddr(lut_gamma_raddr),
+
+  .lut_r_rdata(lut_r_rdata),
+  .lut_g_rdata(lut_g_rdata),
+  .lut_b_rdata(lut_b_rdata),
+  .lut_r_raddr(lut_r_raddr),
+  .lut_g_raddr(lut_g_raddr),
+  .lut_b_raddr(lut_b_raddr),
+  
+  .R_14b(R_14b),
+  .G_14b(G_14b),
+  .B_14b(B_14b)
+);
+
+wire [7:0] R_8b;
+wire [7:0] G_8b;
+wire [7:0] B_8b;
+
+color_3dlut color_3dlut_inst
+(
+  .clk(hdmi_clk),
+
+  .R_14b(R_14b),
+  .G_14b(G_14b),
+  .B_14b(B_14b),
+
+  .lut3d_c30_r_rdata(lut3d_c30_r_rdata),
+  .lut3d_c74_r_rdata(lut3d_c74_r_rdata),
+  .lut3d_c30_g_rdata(lut3d_c30_g_rdata),
+  .lut3d_c74_g_rdata(lut3d_c74_g_rdata),
+  .lut3d_c30_b_rdata(lut3d_c30_b_rdata),
+  .lut3d_c74_b_rdata(lut3d_c74_b_rdata),
+  .lut3d_c30_r_raddr(lut3d_c30_r_raddr),
+  .lut3d_c74_r_raddr(lut3d_c74_r_raddr),
+  .lut3d_c30_g_raddr(lut3d_c30_g_raddr),
+  .lut3d_c74_g_raddr(lut3d_c74_g_raddr),
+  .lut3d_c30_b_raddr(lut3d_c30_b_raddr),
+  .lut3d_c74_b_raddr(lut3d_c74_b_raddr),
+  
   .R_8b(R_8b),
   .G_8b(G_8b),
   .B_8b(B_8b)
@@ -1141,9 +1224,9 @@ ui_mixer ui_mixer_inst
   .G_8b(G_8b),
   .B_8b(B_8b),
   
-  .h_count(h_count[4]),
-  .v_count(v_count[4]),
-  .inViewport(inViewportP[2]),
+  .h_count(h_count[6]),
+  .v_count(v_count[6]),
+  .inViewport(inViewportP[4]),
   
   .top_ui_enabled(top_ui_enabled),
   .bot_ui_enabled(bot_ui_enabled),
