@@ -204,39 +204,42 @@ wire [63:0] lut_row_rdata;
 wire [11:0] lut_col_raddr;
 wire [63:0] lut_col_rdata;
 // URAM 2
-wire [11:0] lut_r_raddr;
-wire [63:0] lut_r_rdata;
+wire [11:0] lut_g1_raddr;
+wire [63:0] lut_g1_rdata;
 // URAM 3
-wire [11:0] lut_g_raddr;
-wire [63:0] lut_g_rdata;
+wire [11:0] lut_r1_raddr;
+wire [63:0] lut_r1_rdata;
 // URAM 4
-wire [11:0] lut_b_raddr;
-wire [63:0] lut_b_rdata;
+wire [11:0] lut_b1_raddr;
+wire [63:0] lut_b1_rdata;
 // URAM 5
+wire [11:0] lut_g2_raddr;
+wire [63:0] lut_g2_rdata;
+// URAM 6
 wire [11:0] lut3d_c30_r_raddr;
 wire [63:0] lut3d_c30_r_rdata;
-// URAM 6
+// URAM 7
 wire [11:0] lut3d_c74_r_raddr;
 wire [63:0] lut3d_c74_r_rdata;
-// URAM 7
+// URAM 8
 wire [11:0] lut3d_c30_g_raddr;
 wire [63:0] lut3d_c30_g_rdata;
-// URAM 8
+// URAM 9
 wire [11:0] lut3d_c74_g_raddr;
 wire [63:0] lut3d_c74_g_rdata;
-// URAM 9
+// URAM 10
 wire [11:0] lut3d_c30_b_raddr;
 wire [63:0] lut3d_c30_b_rdata;
-// URAM 10
+// URAM 11
 wire [11:0] lut3d_c74_b_raddr;
 wire [63:0] lut3d_c74_b_rdata;
-// URAM 11
+// URAM 12
 wire [11:0] top_ui_raddr;
 wire [63:0] top_ui_rdata;
-// URAM 12
+// URAM 13
 wire [11:0] bot_ui_raddr;
 wire [63:0] bot_ui_rdata;
-// URAM 13
+// URAM 14
 wire [11:0] pop_ui_raddr;
 wire [63:0] pop_ui_rdata;
 
@@ -302,39 +305,42 @@ HDMI_v1_0_S00_AXI_inst
   .lut_col_raddr(lut_col_raddr),
   .lut_col_rdata(lut_col_rdata),
   // URAM 2
-  .lut_r_raddr(lut_r_raddr),
-  .lut_r_rdata(lut_r_rdata),
+  .lut_r_raddr(lut_g1_raddr),
+  .lut_r_rdata(lut_g1_rdata),
   // URAM 3
-  .lut_g_raddr(lut_g_raddr),
-  .lut_g_rdata(lut_g_rdata),
+  .lut_g_raddr(lut_r1_raddr),
+  .lut_g_rdata(lut_r1_rdata),
   // URAM 4
-  .lut_b_raddr(lut_b_raddr),
-  .lut_b_rdata(lut_b_rdata),
+  .lut_b_raddr(lut_b1_raddr),
+  .lut_b_rdata(lut_b1_rdata),
   // URAM 5
+  .lut_r_raddr(lut_g2_raddr),
+  .lut_r_rdata(lut_g2_rdata),
+  // URAM 6
   .lut3d_c30_r_raddr(lut3d_c30_r_raddr),
   .lut3d_c30_r_rdata(lut3d_c30_r_rdata),
-  // URAM 6
+  // URAM 7
   .lut3d_c74_r_raddr(lut3d_c74_r_raddr),
   .lut3d_c74_r_rdata(lut3d_c74_r_rdata),
-  // URAM 7
+  // URAM 8
   .lut3d_c30_g_raddr(lut3d_c30_g_raddr),
   .lut3d_c30_g_rdata(lut3d_c30_g_rdata),
-  // URAM 8
+  // URAM 9
   .lut3d_c74_g_raddr(lut3d_c74_g_raddr),
   .lut3d_c74_g_rdata(lut3d_c74_g_rdata),
-  // URAM 9
+  // URAM 10
   .lut3d_c30_b_raddr(lut3d_c30_b_raddr),
   .lut3d_c30_b_rdata(lut3d_c30_b_rdata),
-  // URAM 10
+  // URAM 11
   .lut3d_c74_b_raddr(lut3d_c74_b_raddr),
   .lut3d_c74_b_rdata(lut3d_c74_b_rdata),
-  // URAM 11
+  // URAM 12
   .top_ui_raddr(top_ui_raddr),
   .top_ui_rdata(top_ui_rdata),
-  // URAM 12
+  // URAM 13
   .bot_ui_raddr(bot_ui_raddr),
   .bot_ui_rdata(bot_ui_rdata),
-  // URAM 13
+  // URAM 14
   .pop_ui_raddr(pop_ui_raddr),
   .pop_ui_rdata(pop_ui_rdata),
    
@@ -1170,12 +1176,14 @@ color_1dlut color_1dlut_inst
   .out_B1(out_B1),
   .out_G2(out_G2),
 
-  .lut_r_rdata(lut_r_rdata),
-  .lut_g_rdata(lut_g_rdata),
-  .lut_b_rdata(lut_b_rdata),
-  .lut_r_raddr(lut_r_raddr),
-  .lut_g_raddr(lut_g_raddr),
-  .lut_b_raddr(lut_b_raddr),
+  .lut_g1_rdata(lut_g1_rdata),
+  .lut_r1_rdata(lut_r1_rdata),
+  .lut_b1_rdata(lut_b1_rdata),
+  .lut_g2_rdata(lut_g2_rdata),
+  .lut_g1_raddr(lut_g1_raddr),
+  .lut_r1_raddr(lut_r1_raddr),
+  .lut_b1_raddr(lut_b1_raddr),
+  .lut_g2_raddr(lut_g2_raddr),
   
   .R_14b(R_14b),
   .G_14b(G_14b),
