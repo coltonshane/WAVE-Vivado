@@ -110,9 +110,8 @@ typedef struct
 // Private Function Prototypes -----------------------------------------------------------------------------------------
 
 void hdmiApplyCameraStateSync(void);
-void hdmiBuildAlphaBetaLUT(s16 alphaWhite, s16 betaWhite, s16 alphaBlack, s16 betaBlack);
-void hdmiBuildGammaLUT(int black, float gamma, float brightness, float contrast);
 void hdmiI2CWriteMasked(u8 addr, u8 data, u8 mask);
+void hdmiBuildLUTs(void);
 void hdmiWriteTestPattern4K(void);
 void hdmiWriteTestPattern2K(void);
 void hdmiResetTestPatternState(u32 wrAddr);
@@ -124,10 +123,17 @@ u32 hdmiActive = 0;
 
 // Private Global Variables --------------------------------------------------------------------------------------------
 
-HDMI_s * const hdmi = (HDMI_s * const) 0xA0040000;
-u32 * const lutAlpha = (u32 * const) 0xA0048000;
-u32 * const lutBeta = (u32 * const) 0xA0050000;
-u32 * const lutGamma = (u32 * const) 0xA0058000;
+HDMI_s * const hdmi = (HDMI_s * const) 0xA0100000;
+u32 * const lutG1 = (u32 * const) 0xA0108000;
+u32 * const lutR1 = (u32 * const) 0xA0110000;
+u32 * const lutB1 = (u32 * const) 0xA0118000;
+u32 * const lutG2 = (u32 * const) 0xA0120000;
+u32 * const lut3dC30R = (u32 * const) 0xA0128000;
+u32 * const lut3dC74R = (u32 * const) 0xA0130000;
+u32 * const lut3dC30G = (u32 * const) 0xA0138000;
+u32 * const lut3dC74G = (u32 * const) 0xA0140000;
+u32 * const lut3dC30B = (u32 * const) 0xA0148000;
+u32 * const lut3dC74B = (u32 * const) 0xA0150000;
 XIicPs Iic;
 
 u8 SendBuffer[256];    /**< Buffer for Transmitting Data */
@@ -195,7 +201,7 @@ void hdmiInit(void)
 {
 	// hdmiWriteTestPattern4K();
 	// hdmiWriteTestPattern2K();
-	hdmiBuildGammaLUT(0, 1.0f, 1.0f, 1.0f);
+	hdmiBuildLUTs();
 
 	// Load HDMI peripheral registers with initial values.
 	hdmi->q_mult_inv_HL2_LH2 = 1024;
@@ -286,9 +292,6 @@ void hdmiApplyCameraState(void)
 	float xOffset, yOffset;
 	int vx0, vy0, vxDiv, vyDiv;
 	u16 hImage2048;
-	float fColorTemp;
-	float fAlphaWorking, fBetaWorking;
-	int iAlphaWorking, iBetaWorking;
 
 	wFrame = cState.cSetting[CSETTING_WIDTH]->valArray[cState.cSetting[CSETTING_WIDTH]->val].fVal;
 	hFrame = cState.cSetting[CSETTING_HEIGHT]->valArray[cState.cSetting[CSETTING_HEIGHT]->val].fVal;
@@ -365,21 +368,6 @@ void hdmiApplyCameraState(void)
 	hdmiSync.vyDiv_vxDiv = ((u32)vyDiv << 16) | (u32)vxDiv;
 	hdmiSync.hImage2048_wHDMI = ((u32)hImage2048 << 16) | 2200;
 
-	// Compute the normalized alpha and beta corrections as a function of color temperature.
-	fColorTemp = cState.cSetting[CSETTING_COLOR]->valArray[cState.cSetting[CSETTING_COLOR]->val].fVal;
-	fAlphaWorking = -0.170f;
-	fBetaWorking = (5600.0f - fColorTemp) * 0.0001f;
-
-	// Convert to 10-bit range with 16-bit storage.
-	iAlphaWorking = (int)(fAlphaWorking * 1024.0f);
-	if(iAlphaWorking > 32767) { iAlphaWorking = 32767; }
-	else if(iAlphaWorking < -32768) { iAlphaWorking = -32768; }
-	iBetaWorking = (int)(fBetaWorking * 1024.0f);
-	if(iBetaWorking > 32767) { iBetaWorking = 32767; }
-	else if(iBetaWorking < -32768) { iBetaWorking = -32768; }
-
-	hdmiBuildAlphaBetaLUT((s16)iAlphaWorking, (s16)iBetaWorking, 0, 0);
-
 	// Wait for the next VSYNC to apply camera settings.
 	hdmiApplyCameraStateSyncFlag = 1;
 }
@@ -398,111 +386,6 @@ void hdmiApplyCameraStateSync(void)
 	hdmi->hImage2048_wHDMI = hdmiSync.hImage2048_wHDMI;
 
 	hdmiApplyCameraStateSyncFlag = 0;
-}
-
-#define SHADOW_ROLLOFF 192
-#define HIGHLIGHT_ROLLOFF 832
-void hdmiBuildAlphaBetaLUT(s16 alphaWhite, s16 betaWhite, s16 alphaBlack, s16 betaBlack)
-{
-	float rangeNormalized;
-	float fWorkingAlpha, fWorkingBeta;
-	int iWorkingAlpha, iWorkingBeta;
-	u32 lutAlphaEntry, lutBetaEntry;
-
-	for(int i = 0; i < 4096; i++)
-	{
-		if(i < SHADOW_ROLLOFF)
-		{
-			// Shadow Range
-			rangeNormalized = (float)(i - 0) / (float)(SHADOW_ROLLOFF - 0);
-			fWorkingAlpha = rangeNormalized * (float)alphaBlack;
-			fWorkingBeta = rangeNormalized * (float)betaBlack;
-			iWorkingAlpha = (int)fWorkingAlpha;
-			iWorkingBeta = (int)fWorkingBeta;
-		}
-		else if(i < HIGHLIGHT_ROLLOFF)
-		{
-			// Normal Range
-			rangeNormalized = (float)(i - SHADOW_ROLLOFF) / (float)(HIGHLIGHT_ROLLOFF - SHADOW_ROLLOFF);
-			fWorkingAlpha = rangeNormalized * (float)alphaWhite;
-			fWorkingAlpha += (1.0f - rangeNormalized) * (float)alphaBlack;
-			fWorkingBeta = rangeNormalized * (float)betaWhite;
-			fWorkingBeta += (1.0f - rangeNormalized) * (float)betaBlack;
-			iWorkingAlpha = (int)fWorkingAlpha;
-			iWorkingBeta = (int)fWorkingBeta;
-		}
-		else if(i < 1024)
-		{
-			// Highlight Range
-			rangeNormalized = (float)(i - HIGHLIGHT_ROLLOFF) / (float)(1024 - HIGHLIGHT_ROLLOFF);
-			fWorkingAlpha = (1.0f - rangeNormalized) * (float)alphaWhite;
-			fWorkingBeta = (1.0f - rangeNormalized) * (float)betaWhite;
-			iWorkingAlpha = (int)fWorkingAlpha;
-			iWorkingBeta = (int)fWorkingBeta;
-		}
-		else
-		{
-			// Out of Range
-			iWorkingAlpha = 0;
-			iWorkingBeta = 0;
-		}
-
-		// Skipping range check since they are inherently bounded to s16 range.
-
-		if((i % 2) == 0)
-		{
-			lutAlphaEntry = iWorkingAlpha & 0xFFFF;
-			lutBetaEntry = iWorkingBeta & 0xFFFF;
-		}
-		else
-		{
-			lutAlphaEntry |= (iWorkingAlpha & 0xFFFF) << 16;
-			lutBetaEntry |= (iWorkingBeta & 0xFFFF) << 16;
-			lutAlpha[i/2] = lutAlphaEntry;
-			lutBeta[i/2] = lutBetaEntry;
-		}
-	}
-}
-
-void hdmiBuildGammaLUT(int black, float gamma, float brightness, float contrast)
-{
-	float fWorking;
-	int iWorking;
-	u32 lutGammaEntry;
-
-	for(int i = 0; i < 4096; i++)
-	{
-		if(i < 1024)
-		{
-			// Black Level from 10-bit
-			fWorking = (float)(i - black) / (float)(1024 - black);
-
-			// Gamma
-			fWorking = powf(fWorking, 1.0f / gamma);
-
-			// Brightness And Contrast
-			fWorking = (fWorking - 0.5f * (2.0f - brightness)) * contrast + 0.5f;
-
-			// Back to 10-bit
-			iWorking = (int)(fWorking * 1024.0f);
-			if(iWorking > 1023) { iWorking = 1023; }
-			else if(iWorking < 0) { iWorking = 0; }
-		}
-		else if(i < 2048)
-		{ iWorking = 1023; }
-		else
-		{ iWorking = 0; }
-
-		if((i % 2) == 0)
-		{
-			lutGammaEntry = iWorking;
-		}
-		else
-		{
-			lutGammaEntry |= iWorking << 16;
-			lutGamma[i/2] = lutGammaEntry;
-		}
-	}
 }
 
 void hdmiI2CWriteMasked(u8 addr, u8 data, u8 mask)
@@ -525,6 +408,101 @@ void hdmiI2CWriteMasked(u8 addr, u8 data, u8 mask)
 	SendBuffer[1] = data;
 	XIicPs_MasterSendPolled(&Iic, SendBuffer, 2, IIC_SLAVE_ADDR);
 	while (XIicPs_BusIsBusy(&Iic));
+}
+
+void hdmiBuildLUTs(void)
+{
+	int iWorking = 0;
+	u32 iLUTEntry;
+
+	// Build independent color 1DLUTs:
+	//    0 to 1023 is in-range, scale to 14b-normalized.
+	// 1024 to 2047 is clipped high, set to 14b-normalized maximum.
+	// 2048 to 4095 is assumed to be negative i.e. clipped low, set to zero.
+	// 4096 to 8191 are not modified, should remained zero-initialized.
+	for(int i = 0; i < 4096; i++)
+	{
+		if(i < 1024)
+		{ iWorking = i << 4; }	// In-Range
+		else if(i < 2048)
+		{ iWorking = 16383; }	// Clip High: 2^14 - 1
+		else
+		{ iWorking = 0; }		// Clip Low: 0
+
+		if((i % 2) == 0)
+		{
+			// Lower 16b Word
+			iLUTEntry = iWorking & 0xFFFF;
+		}
+		else
+		{
+			// Upper 16b Word and 32b LUT Write
+			iLUTEntry |= (iWorking & 0xFFFF) << 16;
+			lutG1[i/2] = iLUTEntry;
+			lutR1[i/2] = iLUTEntry;
+			lutB1[i/2] = iLUTEntry;
+			lutG2[i/2] = iLUTEntry;
+		}
+	}
+
+	// Build 3DLUT:
+	s16 c0_10b, c1_10b, c2_10b, c3_10b, c4_10b, c5_10b, c6_10b, c7_10b;
+	u32 idx32L, idx32H;
+	for(int b = 0; b < 16; b++)
+	{
+		for(int g = 0; g < 16; g++)
+		{
+			for(int r = 0; r < 16; r++)
+			{
+				// LUT Indices
+				idx32L = (b << 9) + (g << 5) + (r << 1);
+				idx32H = (b << 9) + (g << 5) + (r << 1) + 1;
+
+				// Red Output
+				c0_10b = r * 64;
+				c1_10b = 0;
+				c2_10b = 1024;
+				c3_10b = 0;
+				c4_10b = 0;
+				c5_10b = 0;
+				c6_10b = 0;
+				c7_10b = 0;
+				lut3dC30R[idx32L] = (c1_10b << 16) | c0_10b;
+				lut3dC30R[idx32H] = (c3_10b << 16) | c2_10b;
+				lut3dC74R[idx32L] = (c5_10b << 16) | c4_10b;
+				lut3dC74R[idx32H] = (c7_10b << 16) | c6_10b;
+
+				// Green Output
+				c0_10b = g * 64;
+				c1_10b = 0;
+				c2_10b = 0;
+				c3_10b = 1024;
+				c4_10b = 0;
+				c5_10b = 0;
+				c6_10b = 0;
+				c7_10b = 0;
+				lut3dC30G[idx32L] = (c1_10b << 16) | c0_10b;
+				lut3dC30G[idx32H] = (c3_10b << 16) | c2_10b;
+				lut3dC74G[idx32L] = (c5_10b << 16) | c4_10b;
+				lut3dC74G[idx32H] = (c7_10b << 16) | c6_10b;
+
+				// Blue Output
+				c0_10b = b * 64;
+				c1_10b = 1024;
+				c2_10b = 0;
+				c3_10b = 0;
+				c4_10b = 0;
+				c5_10b = 0;
+				c6_10b = 0;
+				c7_10b = 0;
+				lut3dC30B[idx32L] = (c1_10b << 16) | c0_10b;
+				lut3dC30B[idx32H] = (c3_10b << 16) | c2_10b;
+				lut3dC74B[idx32L] = (c5_10b << 16) | c4_10b;
+				lut3dC74B[idx32H] = (c7_10b << 16) | c6_10b;
+			}
+		}
+	}
+
 }
 
 void hdmiWriteTestPattern4K(void)

@@ -46,7 +46,7 @@ module HDMI_v1_0
 
 	// Parameters for AXI-Lite Slave.
 	parameter integer C_S00_AXI_DATA_WIDTH = 32,
-	parameter integer C_S00_AXI_ADDR_WIDTH = 19,
+	parameter integer C_S00_AXI_ADDR_WIDTH = 20,
 	
   // Parameters of AXI Master.
   parameter C_M00_AXI_TARGET_SLAVE_BASE_ADDR = 32'h00000000,

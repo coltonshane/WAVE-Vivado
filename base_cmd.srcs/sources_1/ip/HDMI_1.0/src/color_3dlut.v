@@ -87,19 +87,19 @@ begin
 end
 
 // Separate out the interpolation coefficients.
-wire signed [15:0] cR_14b [7:0];
-wire signed [15:0] cG_14b [7:0];
-wire signed [15:0] cB_14b [7:0];
+wire signed [15:0] cR_10b [7:0];
+wire signed [15:0] cG_10b [7:0];
+wire signed [15:0] cB_10b [7:0];
 
 genvar i;
 for(i = 0; i < 4; i = i + 1)
 begin
-  assign cR_14b[i] = lut3d_c30_r_rdata[16*i+:16];
-  assign cR_14b[4+i] = lut3d_c74_r_rdata[16*i+:16];
-  assign cG_14b[i] = lut3d_c30_g_rdata[16*i+:16];
-  assign cG_14b[4+i] = lut3d_c74_g_rdata[16*i+:16];
-  assign cB_14b[i] = lut3d_c30_b_rdata[16*i+:16];
-  assign cB_14b[4+i] = lut3d_c74_b_rdata[16*i+:16];
+  assign cR_10b[i] = lut3d_c30_r_rdata[16*i+:16];
+  assign cR_10b[4+i] = lut3d_c74_r_rdata[16*i+:16];
+  assign cG_10b[i] = lut3d_c30_g_rdata[16*i+:16];
+  assign cG_10b[4+i] = lut3d_c74_g_rdata[16*i+:16];
+  assign cB_10b[i] = lut3d_c30_b_rdata[16*i+:16];
+  assign cB_10b[4+i] = lut3d_c74_b_rdata[16*i+:16];
 end
 
 // First-Stage Multiplies (15 DSPs, Combinational)
@@ -108,20 +108,20 @@ wire signed [15:0] dBdR_14b = (dB_14b * dR_14b) >>> 14;
 wire signed [15:0] dRdG_14b = (dR_14b * dG_14b) >>> 14;
 wire signed [15:0] dGdB_14b = (dG_14b * dB_14b) >>> 14;
 // R
-wire signed [29:0] cR1dB_28b = cR_14b[1] * dB_14b;
-wire signed [15:0] cR2dR_28b = cR_14b[2] * dR_14b;
-wire signed [15:0] cR3dG_28b = cR_14b[3] * dG_14b;
-wire signed [15:0] cR7dR_14b = (cR_14b[7] * dR_14b) >>> 14;
+wire signed [31:0] cR1dB_24b = cR_10b[1] * dB_14b;
+wire signed [31:0] cR2dR_24b = cR_10b[2] * dR_14b;
+wire signed [31:0] cR3dG_24b = cR_10b[3] * dG_14b;
+wire signed [15:0] cR7dR_14b = (cR_10b[7] * dR_14b) >>> 10;
 // G
-wire signed [29:0] cG1dB_28b = cG_14b[1] * dB_14b;
-wire signed [15:0] cG2dR_28b = cG_14b[2] * dR_14b;
-wire signed [15:0] cG3dG_28b = cG_14b[3] * dG_14b;
-wire signed [15:0] cG7dR_14b = (cG_14b[7] * dR_14b) >>> 14;
+wire signed [31:0] cG1dB_24b = cG_10b[1] * dB_14b;
+wire signed [31:0] cG2dR_24b = cG_10b[2] * dR_14b;
+wire signed [31:0] cG3dG_24b = cG_10b[3] * dG_14b;
+wire signed [15:0] cG7dR_14b = (cG_10b[7] * dR_14b) >>> 10;
 // B
-wire signed [29:0] cB1dB_28b = cB_14b[1] * dB_14b;
-wire signed [15:0] cB2dR_28b = cB_14b[2] * dR_14b;
-wire signed [15:0] cB3dG_28b = cB_14b[3] * dG_14b;
-wire signed [15:0] cB7dR_14b = (cB_14b[7] * dR_14b) >>> 14;
+wire signed [31:0] cB1dB_24b = cB_10b[1] * dB_14b;
+wire signed [31:0] cB2dR_24b = cB_10b[2] * dR_14b;
+wire signed [31:0] cB3dG_24b = cB_10b[3] * dG_14b;
+wire signed [15:0] cB7dR_14b = (cB_10b[7] * dR_14b) >>> 10;
 
 // Second-Stage Multiplies (12 DSPs, Sequential)
 reg signed [15:0] pR_14b [3:0];
@@ -130,20 +130,20 @@ reg signed [15:0] pB_14b [3:0];
 always @(posedge clk)
 begin
   // R
-  pR_14b[0] <= (cR_14b[4] * dBdR_14b + cR1dB_28b) >>> 14;
-  pR_14b[1] <= (cR_14b[5] * dRdG_14b + cR2dR_28b) >>> 14;
-  pR_14b[2] <= (cR_14b[6] * dGdB_14b + cR3dG_28b) >>> 14;
-  pR_14b[3] <= (cR7dR_14b * dGdB_14b + $signed({cR_14b[0], 14'b00000000000000})) >>> 14;
+  pR_14b[0] <= (cR_10b[4] * dBdR_14b + cR1dB_24b) >>> 10;
+  pR_14b[1] <= (cR_10b[5] * dRdG_14b + cR2dR_24b) >>> 10;
+  pR_14b[2] <= (cR_10b[6] * dGdB_14b + cR3dG_24b) >>> 10;
+  pR_14b[3] <= (cR7dR_14b * dGdB_14b + $signed({cR_10b[0], 14'b00000000000000})) >>> 14;
   // G
-  pG_14b[0] <= (cG_14b[4] * dBdR_14b + cG1dB_28b) >>> 14;
-  pG_14b[1] <= (cG_14b[5] * dRdG_14b + cG2dR_28b) >>> 14;
-  pG_14b[2] <= (cG_14b[6] * dGdB_14b + cG3dG_28b) >>> 14;
-  pG_14b[3] <= (cG7dR_14b * dGdB_14b + $signed({cG_14b[0], 14'b00000000000000})) >>> 14;
+  pG_14b[0] <= (cG_10b[4] * dBdR_14b + cG1dB_24b) >>> 10;
+  pG_14b[1] <= (cG_10b[5] * dRdG_14b + cG2dR_24b) >>> 10;
+  pG_14b[2] <= (cG_10b[6] * dGdB_14b + cG3dG_24b) >>> 10;
+  pG_14b[3] <= (cG7dR_14b * dGdB_14b + $signed({cG_10b[0], 14'b00000000000000})) >>> 14;
   // B
-  pB_14b[0] <= (cB_14b[4] * dBdR_14b + cB1dB_28b) >>> 14;
-  pB_14b[1] <= (cB_14b[5] * dRdG_14b + cB2dR_28b) >>> 14;
-  pB_14b[2] <= (cB_14b[6] * dGdB_14b + cB3dG_28b) >>> 14;
-  pB_14b[3] <= (cB7dR_14b * dGdB_14b + $signed({cB_14b[0], 14'b00000000000000})) >>> 14;
+  pB_14b[0] <= (cB_10b[4] * dBdR_14b + cB1dB_24b) >>> 10;
+  pB_14b[1] <= (cB_10b[5] * dRdG_14b + cB2dR_24b) >>> 10;
+  pB_14b[2] <= (cB_10b[6] * dGdB_14b + cB3dG_24b) >>> 10;
+  pB_14b[3] <= (cB7dR_14b * dGdB_14b + $signed({cB_10b[0], 14'b00000000000000})) >>> 14;
 end
 
 // Output Summer w/ Saturation (Sequential)

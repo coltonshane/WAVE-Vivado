@@ -122,6 +122,13 @@ set_property IOSTANDARD LVCMOS33 [get_ports hdmi_de]
 # Separate HDMI clock domain from AXI clock domain in timing analysis.
 set_clock_groups -asynchronous -group [get_clocks clk_pl_0] -group [get_clocks clk_out1_BoardSetupTest_clk_wiz_0_1_1]
 
+# Additionally, set false (TO-DO: multi-cycle) paths between the 1DLUT URAMs and all other URAMs.
+# The 1DLUT data do drive the 3DLUT address, but with an assumed latency of one hdmi_clk, which is 4x slower than the AXI clock.
+set_false_path -from [get_cells -hierarchical -filter { PRIMITIVE_TYPE =~ BLOCKRAM.URAM.* && NAME =~ "*uram00*" }] -to [get_cells -hierarchical -filter { NAME !~ "*uram00*" && PRIMITIVE_TYPE =~ BLOCKRAM.URAM.* }]
+set_false_path -from [get_cells -hierarchical -filter { PRIMITIVE_TYPE =~ BLOCKRAM.URAM.* && NAME =~ "*uram01*" }] -to [get_cells -hierarchical -filter { NAME !~ "*uram01*" && PRIMITIVE_TYPE =~ BLOCKRAM.URAM.* }]
+set_false_path -from [get_cells -hierarchical -filter { PRIMITIVE_TYPE =~ BLOCKRAM.URAM.* && NAME =~ "*uram02*" }] -to [get_cells -hierarchical -filter { NAME !~ "*uram02*" && PRIMITIVE_TYPE =~ BLOCKRAM.URAM.* }]
+set_false_path -from [get_cells -hierarchical -filter { PRIMITIVE_TYPE =~ BLOCKRAM.URAM.* && NAME =~ "*uram03*" }] -to [get_cells -hierarchical -filter { NAME !~ "*uram03*" && PRIMITIVE_TYPE =~ BLOCKRAM.URAM.* }]
+
 # SPI0 EMIO to CMV12000 (3.3V).
 set_property PACKAGE_PIN D10 [get_ports spi0_sclk]
 set_property IOSTANDARD LVCMOS33 [get_ports spi0_sclk]

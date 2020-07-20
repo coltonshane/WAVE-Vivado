@@ -59,7 +59,7 @@ module HDMI_v1_0_S00_AXI
 	// Width of S_AXI data bus
 	parameter integer C_S_AXI_DATA_WIDTH = 32,
 	// Width of S_AXI address bus
-	parameter integer C_S_AXI_ADDR_WIDTH = 19
+	parameter integer C_S_AXI_ADDR_WIDTH = 20
 )
 (
   // Users to add ports here
@@ -343,7 +343,7 @@ end
 // These registers are cleared when reset (active low) is applied.
 // Slave register write enable is asserted when valid address and data are available
 // and the slave is ready to accept the write address and write data.
-assign slv_reg_wren = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[18:15] == 3'h0);
+assign slv_reg_wren = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[18:15] == 4'h0);
 
 always @( posedge S_AXI_ACLK )
 begin
