@@ -237,12 +237,22 @@ void hdmiInit(void)
 }
 
 u32 skip = 30;
+float debugMultR = 1.0f;
+float debugMultG = 1.0f;
+float debugMultB = 1.0f;
+u32 debugRebuildLUTs = 0;
 void hdmiService(void)
 {
 	if(skip > 0)
 	{
 		skip--;
 		return;
+	}
+
+	if(debugRebuildLUTs)
+	{
+		hdmiBuildLUTs();
+		debugRebuildLUTs = 0;
 	}
 
 	// Check for HPD and HDMI clock termination.
@@ -412,42 +422,80 @@ void hdmiI2CWriteMasked(u8 addr, u8 data, u8 mask)
 
 void hdmiBuildLUTs(void)
 {
-	int iWorking = 0;
-	u32 iLUTEntry;
+	float fR, fG, fB;
+	s16 iOutG1toR, iOutG1toG, iOutG1toB;
+	s16 iOutR1toR, iOutR1toG, iOutR1toB;
+	s16 iOutB1toR, iOutB1toG, iOutB1toB;
+	s16 iOutG2toR, iOutG2toG, iOutG2toB;
+	u32 idx32L, idx32H;
 
-	// Build independent color 1DLUTs:
-	//    0 to 1023 is in-range, scale to 14b-normalized.
-	// 1024 to 2047 is clipped high, set to 14b-normalized maximum.
-	// 2048 to 4095 is assumed to be negative i.e. clipped low, set to zero.
-	// 4096 to 8191 are not modified, should remained zero-initialized.
-	for(int i = 0; i < 4096; i++)
+	// Zero cross-axis colors.
+	iOutG1toR = 0;
+	iOutG1toB = 0;
+	iOutR1toG = 0;
+	iOutR1toB = 0;
+	iOutB1toR = 0;
+	iOutB1toG = 0;
+	iOutG2toR = 0;
+	iOutG2toB = 0;
+
+	// Build color-mixing 1DLUTs.
+	for(int iIn = 0; iIn < 4096; iIn++)
 	{
-		if(i < 1024)
-		{ iWorking = i << 4; }	// In-Range
-		else if(i < 2048)
-		{ iWorking = 16383; }	// Clip High: 2^14 - 1
-		else
-		{ iWorking = 0; }		// Clip Low: 0
+		// LUT indices.
+		idx32L = iIn << 1;
+		idx32H = (iIn << 1) + 1;
 
-		if((i % 2) == 0)
+		if(iIn < 1024)
 		{
-			// Lower 16b Word
-			iLUTEntry = iWorking & 0xFFFF;
+			// In-Range: Scale with saturation.
+			// R
+			fR = (float)iIn * debugMultR * 16.0f;
+			if(fR > 16383.0f) { fR = 16383.0f; }
+			else if (fR < 0.0f) { fR = 0.0f; }
+			iOutR1toR = (s16) fR;
+
+			fG = (float)iIn * debugMultG * 16.0f;
+			if(fG > 16383.0f) { fG = 16383.0f; }
+			else if (fG < 0.0f) { fG = 0.0f; }
+			iOutG1toG = ((s16) fG) >> 1;
+			iOutG2toG = ((s16) fG) >> 1;
+
+			fB = (float)iIn * debugMultB * 16.0f;
+			if(fB > 16383.0f) { fB = 16383.0f; }
+			else if (fB < 0.0f) { fB = 0.0f; }
+			iOutB1toB = (s16) fB;
+		}
+		else if(iIn < 2048)
+		{
+			// Clip High: 2^14 - 1
+			iOutR1toR = 16383;
+			iOutG1toG = 8191;
+			iOutG2toG = 8191;
+			iOutB1toB = 16383;
 		}
 		else
 		{
-			// Upper 16b Word and 32b LUT Write
-			iLUTEntry |= (iWorking & 0xFFFF) << 16;
-			lutG1[i/2] = iLUTEntry;
-			lutR1[i/2] = iLUTEntry;
-			lutB1[i/2] = iLUTEntry;
-			lutG2[i/2] = iLUTEntry;
+			// Clip Low: 0
+			iOutR1toR = 0;
+			iOutG1toG = 0;
+			iOutG2toG = 0;
+			iOutB1toB = 0;
 		}
+
+		lutG1[idx32L] = (iOutG1toG << 16) | iOutG1toR;
+		lutR1[idx32L] = (iOutR1toG << 16) | iOutR1toR;
+		lutB1[idx32L] = (iOutB1toG << 16) | iOutB1toR;
+		lutG2[idx32L] = (iOutG2toG << 16) | iOutG2toR;
+
+		lutG1[idx32H] = iOutG1toB;
+		lutR1[idx32H] = iOutR1toB;
+		lutB1[idx32H] = iOutB1toB;
+		lutG2[idx32H] = iOutG2toB;
 	}
 
 	// Build 3DLUT:
 	s16 c0_10b, c1_10b, c2_10b, c3_10b, c4_10b, c5_10b, c6_10b, c7_10b;
-	u32 idx32L, idx32H;
 	for(int b = 0; b < 16; b++)
 	{
 		for(int g = 0; g < 16; g++)
