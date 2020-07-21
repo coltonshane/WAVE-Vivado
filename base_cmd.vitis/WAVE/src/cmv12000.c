@@ -259,7 +259,7 @@ void cmvApplyCameraState(void)
 	CMV_Settings_W.Exp_kp1_H = (iExp_kp1 >> 16) & 0xFF;
 	CMV_Settings_W.Exp_kp2_L = (iExp_kp2 & 0xFFFF);
 	CMV_Settings_W.Exp_kp2_H = (iExp_kp2 >> 16) & 0xFF;
-	CMV_Settings_W.Number_slopes = 3;
+	CMV_Settings_W.Number_slopes = 1;
 
 	// Set the frame interval.
 	CMV_Input->frame_interval = tFrame * 60E6;

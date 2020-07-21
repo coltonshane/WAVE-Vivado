@@ -459,7 +459,7 @@ void hdmiBuildLUTs(void)
 				idx32H = (b << 9) + (g << 5) + (r << 1) + 1;
 
 				// Red Output
-				c0_10b = r * 64;
+				c0_10b = r * 64 * 16;
 				c1_10b = 0;
 				c2_10b = 1024;
 				c3_10b = 0;
@@ -473,7 +473,7 @@ void hdmiBuildLUTs(void)
 				lut3dC74R[idx32H] = (c7_10b << 16) | c6_10b;
 
 				// Green Output
-				c0_10b = g * 64;
+				c0_10b = g * 64 * 16;
 				c1_10b = 0;
 				c2_10b = 0;
 				c3_10b = 1024;
@@ -487,7 +487,7 @@ void hdmiBuildLUTs(void)
 				lut3dC74G[idx32H] = (c7_10b << 16) | c6_10b;
 
 				// Blue Output
-				c0_10b = b * 64;
+				c0_10b = b * 64 * 16;
 				c1_10b = 1024;
 				c2_10b = 0;
 				c3_10b = 0;

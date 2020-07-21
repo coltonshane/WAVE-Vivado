@@ -75,32 +75,35 @@ assign lut3d_c74_g_raddr = {addrB, addrG, addrR};
 assign lut3d_c30_b_raddr = {addrB, addrG, addrR};
 assign lut3d_c74_b_raddr = {addrB, addrG, addrR};
 
-// Generate remainders using sequential logic so they are aligned with the LUT coefficients.
+// Register the  LUT3D coefficients and color remainders on the same clock edge.
+// TO-DO: This pipeline stage could probably be omitted to save these FFs.
+reg signed [15:0] cR_10b [7:0];
+reg signed [15:0] cG_10b [7:0];
+reg signed [15:0] cB_10b [7:0];
 reg signed [15:0] dR_14b;
 reg signed [15:0] dG_14b;
 reg signed [15:0] dB_14b;
 always @(posedge clk)
-begin
-  dR_14b <= R_14b - $signed({2'b00, addrR, 10'b00000000});
-  dG_14b <= G_14b - $signed({2'b00, addrG, 10'b00000000});
-  dB_14b <= B_14b - $signed({2'b00, addrB, 10'b00000000});
-end
-
-// Separate out the interpolation coefficients.
-wire signed [15:0] cR_10b [7:0];
-wire signed [15:0] cG_10b [7:0];
-wire signed [15:0] cB_10b [7:0];
-
-genvar i;
-for(i = 0; i < 4; i = i + 1)
-begin
-  assign cR_10b[i] = lut3d_c30_r_rdata[16*i+:16];
-  assign cR_10b[4+i] = lut3d_c74_r_rdata[16*i+:16];
-  assign cG_10b[i] = lut3d_c30_g_rdata[16*i+:16];
-  assign cG_10b[4+i] = lut3d_c74_g_rdata[16*i+:16];
-  assign cB_10b[i] = lut3d_c30_b_rdata[16*i+:16];
-  assign cB_10b[4+i] = lut3d_c74_b_rdata[16*i+:16];
-end
+begin : reg_LUT3D
+  integer i;
+  
+  // Separate out the interpolation coefficients.
+  for(i = 0; i < 4; i = i + 1)
+  begin
+    cR_10b[i] <= lut3d_c30_r_rdata[16*i+:16];
+    cR_10b[4+i] <= lut3d_c74_r_rdata[16*i+:16];
+    cG_10b[i] <= lut3d_c30_g_rdata[16*i+:16];
+    cG_10b[4+i] <= lut3d_c74_g_rdata[16*i+:16];
+    cB_10b[i] <= lut3d_c30_b_rdata[16*i+:16];
+    cB_10b[4+i] <= lut3d_c74_b_rdata[16*i+:16];
+  end
+  
+  // Calculate the remainder of each color. This is almost the same as X_14b[9:0], but needs
+  // to account for potentially saturated inputs.
+  dR_14b <= R_14b - $signed({2'b00, addrR, 10'b0000000000});
+  dG_14b <= G_14b - $signed({2'b00, addrG, 10'b0000000000});
+  dB_14b <= B_14b - $signed({2'b00, addrB, 10'b0000000000});
+end : reg_LUT3D
 
 // First-Stage Multiplies (15 DSPs, Combinational)
 // Common

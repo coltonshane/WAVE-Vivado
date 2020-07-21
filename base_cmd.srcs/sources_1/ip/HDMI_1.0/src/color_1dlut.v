@@ -49,9 +49,9 @@ module color_1dlut
   output wire [11:0] lut_b1_raddr,
   output wire [11:0] lut_g2_raddr,
   
-  output wire signed [15:0] R_14b,
-  output wire signed [15:0] G_14b,
-  output wire signed [15:0] B_14b
+  output reg signed [15:0] R_14b,
+  output reg signed [15:0] G_14b,
+  output reg signed [15:0] B_14b
 );
 
 // LUT index is the 12 LSB of each color field: 10 for address and 2 for 16-bit word select.
@@ -60,13 +60,16 @@ assign lut_r1_raddr = {2'b00, out_R1[11:2]};
 assign lut_b1_raddr = {2'b00, out_B1[11:2]};
 assign lut_g2_raddr = {2'b00, out_G2[11:2]};
 
-// Average the two green values from the LUTs using s16 addition and arithmetic right shift.
 wire signed [15:0] G1_14b = lut_g1_rdata[16*out_G1[1:0]+:16];
 wire signed [15:0] G2_14b = lut_g2_rdata[16*out_G2[1:0]+:16];
-assign G_14b = (G1_14b + G2_14b) >>> 1;
+always @(posedge clk)
+begin
+  // Average the two green values from the LUTs using s16 addition and arithmetic right shift.
+  G_14b <= (G1_14b + G2_14b) >>> 1;
 
-// Red and blue values come directly from the LUTs.
-assign R_14b = lut_r1_rdata[16*out_R1[1:0]+:16];
-assign B_14b = lut_b1_rdata[16*out_B1[1:0]+:16];
+  // Red and blue values come directly from the LUTs.
+  R_14b <= lut_r1_rdata[16*out_R1[1:0]+:16];
+  B_14b <= lut_b1_rdata[16*out_B1[1:0]+:16];
+end
 
 endmodule

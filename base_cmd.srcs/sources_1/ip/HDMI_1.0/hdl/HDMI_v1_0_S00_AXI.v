@@ -23,9 +23,9 @@ Also includes six URAM buffers for LUTs and UI overlays. Addressing:
 0x58000 to 0x5FFFF    uram10: Top UI
 0x60000 to 0x67FFF    uram11: Bottom UI
 0x68000 to 0x6FFFF    uram12: Pop-up UI
-0x70000 to 0x7FFFF    Reserved
+0x70000 to 0xFFFFF    Reserved
 
-Total address space is 512K (19-bit).
+Total address space is 1M (20-bit).
 
 Copyright (C) 2020 by Shane W. Colton
 
