@@ -3,8 +3,8 @@
 ===================================================================================
 color_1dlut.v
 
-Applies independent R, G, and B color curves to the bilinear interpolation outputs
-using 1D LUTs. Outputs are 14b-normalized, stored as s16. 
+Applies R, G, and B color mixing curves to the bilinear interpolation outputs using 
+1D LUTs. Outputs are 14b-normalized, stored as s16.
 
 Latency of one HDMI px_clk:
 1. URAM read.
@@ -54,22 +54,33 @@ module color_1dlut
   output reg signed [15:0] B_14b
 );
 
-// LUT index is the 12 LSB of each color field: 10 for address and 2 for 16-bit word select.
-assign lut_g1_raddr = {2'b00, out_G1[11:2]};
-assign lut_r1_raddr = {2'b00, out_R1[11:2]};
-assign lut_b1_raddr = {2'b00, out_B1[11:2]};
-assign lut_g2_raddr = {2'b00, out_G2[11:2]};
+// LUT index is the 12 LSB of each color field (includes range for clipping).
+assign lut_g1_raddr = out_G1[11:0];
+assign lut_r1_raddr = out_R1[11:0];
+assign lut_b1_raddr = out_B1[11:0];
+assign lut_g2_raddr = out_G2[11:0];
 
-wire signed [15:0] G1_14b = lut_g1_rdata[16*out_G1[1:0]+:16];
-wire signed [15:0] G2_14b = lut_g2_rdata[16*out_G2[1:0]+:16];
+// Separate out mixer channels.
+wire signed [15:0] G1toR_14b = lut_g1_rdata[0+:16];
+wire signed [15:0] G1toG_14b = lut_g1_rdata[16+:16];
+wire signed [15:0] G1toB_14b = lut_g1_rdata[32+:16];
+wire signed [15:0] R1toR_14b = lut_r1_rdata[0+:16];
+wire signed [15:0] R1toG_14b = lut_r1_rdata[16+:16];
+wire signed [15:0] R1toB_14b = lut_r1_rdata[32+:16];
+wire signed [15:0] B1toR_14b = lut_b1_rdata[0+:16];
+wire signed [15:0] B1toG_14b = lut_b1_rdata[16+:16];
+wire signed [15:0] B1toB_14b = lut_b1_rdata[32+:16];
+wire signed [15:0] G2toR_14b = lut_g2_rdata[0+:16];
+wire signed [15:0] G2toG_14b = lut_g2_rdata[16+:16];
+wire signed [15:0] G2toB_14b = lut_g2_rdata[32+:16];
+
+// Sum the mixer channels into R, G, and B components and register these as the outputs.
+// Don't worry about saturation here, since it is handled downstream.
 always @(posedge clk)
 begin
-  // Average the two green values from the LUTs using s16 addition and arithmetic right shift.
-  G_14b <= (G1_14b + G2_14b) >>> 1;
-
-  // Red and blue values come directly from the LUTs.
-  R_14b <= lut_r1_rdata[16*out_R1[1:0]+:16];
-  B_14b <= lut_b1_rdata[16*out_B1[1:0]+:16];
+  R_14b <= G1toR_14b + R1toR_14b + B1toR_14b + G2toR_14b;
+  G_14b <= G1toG_14b + R1toG_14b + B1toG_14b + G2toG_14b;
+  B_14b <= G1toB_14b + R1toB_14b + B1toB_14b + G2toB_14b;
 end
 
 endmodule
