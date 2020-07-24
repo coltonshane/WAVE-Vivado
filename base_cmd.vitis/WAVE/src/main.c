@@ -48,6 +48,8 @@
 #include "xscugic.h"
 #include "xil_cache.h"
 
+#include "xsdps.h"
+
 #define INTC_DEVICE_ID XPAR_SCUGIC_0_DEVICE_ID
 
 // Main loop services.
@@ -64,6 +66,8 @@ u16 * psTemp = (u16 *)((u64) 0xFFA50800);
 u16 * plTemp = (u16 *)((u64) 0xFFA50C00);
 
 XScuGic Gic;
+
+XSdPs Sdio;
 
 u32 triggerShutdown = 0;
 u32 mainServiceState = 0;
@@ -83,6 +87,15 @@ int main()
 
     init_platform();
     Xil_DCacheDisable();
+
+    // SDIO Test
+    s32 result;
+    u8 buffer[512];
+    XSdPs_Config *sdioConfig;
+    sdioConfig = XSdPs_LookupConfig(XPAR_PSU_SD_1_DEVICE_ID);
+    result = XSdPs_CfgInitialize(&Sdio, sdioConfig, sdioConfig->BaseAddress);
+    result = XSdPs_SdCardInitialize(&Sdio);
+    result = XSdPs_WritePolled(&Sdio, 0x00000000, 1, buffer);
 
     // QSPI Flash Setup
     *(u32 *)((u64) 0xFF0F0014) = 0x00000000;	// Disable LQSPI.
