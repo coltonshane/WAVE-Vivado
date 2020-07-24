@@ -144,6 +144,9 @@ s32 hdmiFrame = -1;
 HDMI_s hdmiSync;
 u32 hdmiApplyCameraStateSyncFlag = 0;
 
+s16 gamma17[] = {0, 3207, 4822, 6120, 7249, 8266, 9201, 10075, 10898, 11680, 12427, 13143, 13833, 14500, 15146, 15774};
+s16 dgamma17[] = {3207, 1615, 1298, 1129, 1017, 935, 874, 823, 782, 747, 716, 690, 667, 646, 628, 610};
+
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 void isrVSYNC(void * CallbackRef)
 {
@@ -507,9 +510,9 @@ void hdmiBuildLUTs(void)
 				idx32H = (b << 9) + (g << 5) + (r << 1) + 1;
 
 				// Red Output
-				c0_10b = r * 64 * 16;
+				c0_10b = gamma17[r];
 				c1_10b = 0;
-				c2_10b = 1024;
+				c2_10b = dgamma17[r];
 				c3_10b = 0;
 				c4_10b = 0;
 				c5_10b = 0;
@@ -521,10 +524,10 @@ void hdmiBuildLUTs(void)
 				lut3dC74R[idx32H] = (c7_10b << 16) | c6_10b;
 
 				// Green Output
-				c0_10b = g * 64 * 16;
+				c0_10b = gamma17[g];
 				c1_10b = 0;
 				c2_10b = 0;
-				c3_10b = 1024;
+				c3_10b = dgamma17[g];
 				c4_10b = 0;
 				c5_10b = 0;
 				c6_10b = 0;
@@ -535,8 +538,8 @@ void hdmiBuildLUTs(void)
 				lut3dC74G[idx32H] = (c7_10b << 16) | c6_10b;
 
 				// Blue Output
-				c0_10b = b * 64 * 16;
-				c1_10b = 1024;
+				c0_10b = gamma17[b];
+				c1_10b = dgamma17[b];
 				c2_10b = 0;
 				c3_10b = 0;
 				c4_10b = 0;
