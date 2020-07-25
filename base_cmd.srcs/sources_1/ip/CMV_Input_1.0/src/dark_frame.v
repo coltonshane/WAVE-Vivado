@@ -25,10 +25,10 @@ in pairs so that the same lut_dark_col_X_raddr generation can be used:
 lut_dark_row    {Row N+3, Row N+2, Row N+1, Row N+0}
 
       4K    2K   Channel Mapping
-Row  N+0   N+0   CH00 to CH31 when px_count[2] == 1'b0
-Row  N+1   N+1   CH32 to CH63 when px_count[2] == 1'b0
-Row  N+0   N+2   CH00 to CH31 when px_count[2] == 1'b1
-Row  N+1   N+3   CH32 to CH63 when px_count[2] == 1'b1
+Row  N+0   N+0   CH00 to CH31 when px_count[1] == 1'b0
+Row  N+1   N+1   CH32 to CH63 when px_count[1] == 1'b0
+Row  N+0   N+2   CH00 to CH31 when px_count[1] == 1'b1
+Row  N+1   N+3   CH32 to CH63 when px_count[1] == 1'b1
 
 In both 4K and 2K mode, lut_dark_row_raddr updates every 128 px_clk.
 4K: Two rows are consumed per 128 px_clk. Up to 1536 total entries.
@@ -134,7 +134,7 @@ end
 // Map the column and row biases to each channel.
 for(i = 0; i < 64; i = i + 1)
 begin
-  assign px_chXX_out[i] = px_chXX_raw[i] - dark_col[i[4:0]] - (px_count[2] ? dark_row[2+i[5]] : dark_row[0+i[5]]);
+  assign px_chXX_out[i] = px_chXX_raw[i] - dark_col[i[4:0]] - (px_count[1] ? dark_row[2+i[5]] : dark_row[0+i[5]]);
 end
 
 endmodule
