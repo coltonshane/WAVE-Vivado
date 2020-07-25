@@ -6,7 +6,7 @@ Top module of CMV12000 read-in IP. Reads the LVDS channels (64 data + 1 control)
 at 600Mb/s and presents a pixel clock and 10-bit pixel data to the wavelet core.
 Configuration and control (link training) are done via an AXI-Lite slave.
 
-Copyright (C) 2019 by Shane W. Colton
+Copyright (C) 2020 by Shane W. Colton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -32,42 +32,42 @@ module CMV_Input_v1_0
 #(
 	// Parameters for AXI-Lite Slave.
 	parameter integer C_S00_AXI_DATA_WIDTH = 32,
-	parameter integer C_S00_AXI_ADDR_WIDTH = 9
+	parameter integer C_S00_AXI_ADDR_WIDTH = 19
 )
 (
 	// Users to add ports here
 	
 	input wire px_in_rst,
-    input wire lvds_clk_p,
-    input wire lvds_clk_n,
-    input wire cmv_ctr_p,
-    input wire cmv_ctr_n,
-    input wire [63:0] cmv_ch_p,
-    input wire [63:0] cmv_ch_n,
+  input wire lvds_clk_p,
+  input wire lvds_clk_n,
+  input wire cmv_ctr_p,
+  input wire cmv_ctr_n,
+  input wire [63:0] cmv_ch_p,
+  input wire [63:0] cmv_ch_n,
     
-    // 1:10 Pixel clock (60MHz), derived from the 300MHz LVDS input clock.
-    // Also used to drive CMV12000 CLK_IN for temperature sensor, through ODDRE1/OBUF.
-    output wire px_clk,
-    output wire ts_clk,
+  // 1:10 Pixel clock (60MHz), derived from the 300MHz LVDS input clock.
+  // Also used to drive CMV12000 CLK_IN for temperature sensor, through ODDRE1/OBUF.
+  output wire px_clk,
+  output wire ts_clk,
                    
-    // Master pixel counter. Increments by one every px_clk with valid pixel data.
-    // Normal Mode: 2 Rows x 4096px = 8192px = 128 px_count increments.
-    // Subsampled Mode: 4 Rows x 2048px = 8192px = 128 px_count increments.
-    output reg signed [23:0] px_count,
+  // Master pixel counter. Increments by one every px_clk with valid pixel data.
+  // Normal Mode: 2 Rows x 4096px = 8192px = 128 px_count increments.
+  // Subsampled Mode: 4 Rows x 2048px = 8192px = 128 px_count increments.
+  output reg signed [23:0] px_count,
+   
+  // 10-bit control channel output.
+  output wire [9:0] px_ctr,
+   
+  // Concatenation of 10-bit pixel channel outputs.
+  output wire [639:0] px_chXX_concat,
     
-    // 10-bit control channel output.
-    output wire [9:0] px_ctr,
+  // FOT interrupt output to PS.
+  output wire FOT_int,
     
-    // Concatenation of 10-bit pixel channel outputs.
-    output wire [639:0] px_chXX_concat,
-    
-    // FOT interrupt output to PS.
-    output wire FOT_int,
-    
-    // CMV12000 timining control.
-    output wire FRAME_REQ,
-    output wire T_EXP1,
-    output wire T_EXP2,
+  // CMV12000 timining control.
+  output wire FRAME_REQ,
+  output wire T_EXP1,
+  output wire T_EXP2,
 
 	// User ports ends
 	// Do not modify the ports beyond this line
@@ -121,7 +121,37 @@ wire [31:0] frame_interval;
 wire [31:0] FRAME_REQ_on;
 wire [31:0] T_EXP1_on;
 wire [31:0] T_EXP2_on;
-wire [9:0] exp_bias;
+
+// URAM 00
+wire [11:0] lut_dark_col_0_raddr;
+wire [63:0] lut_dark_col_0_rdata;
+// URAM 01
+wire [11:0] lut_dark_col_1_raddr;
+wire [63:0] lut_dark_col_1_rdata;
+// URAM 02
+wire [11:0] lut_dark_col_2_raddr;
+wire [63:0] lut_dark_col_2_rdata;
+// URAM 03
+wire [11:0] lut_dark_col_3_raddr;
+wire [63:0] lut_dark_col_3_rdata;
+// URAM 04
+wire [11:0] lut_dark_col_4_raddr;
+wire [63:0] lut_dark_col_4_rdata;
+// URAM 05
+wire [11:0] lut_dark_col_5_raddr;
+wire [63:0] lut_dark_col_5_rdata;
+// URAM 06
+wire [11:0] lut_dark_col_6_raddr;
+wire [63:0] lut_dark_col_6_rdata;
+// URAM 07
+wire [11:0] lut_dark_col_7_raddr;
+wire [63:0] lut_dark_col_7_rdata;
+// URAM 08
+wire [11:0] lut_dark_row_raddr;
+wire [63:0] lut_dark_row_rdata;
+
+// Always-on pixel counter. Used by AXI slave for data synchronization.
+reg [1:0] px_count_always_on;
 
 // Instantiation of AXI-Lite Slave.
 CMV_Input_v1_0_S00_AXI 
@@ -131,37 +161,67 @@ CMV_Input_v1_0_S00_AXI
 ) 
 CMV_Input_v1_0_S00_AXI_inst 
 (
-    // CMV12000 pixel channels config and data. 
-    // These are arrayed  and tied to slave registers in user logic.
-    .cmv_chXX_delay_target_concat(cmv_chXX_delay_target_concat),
-    .cmv_chXX_bitslip_concat(cmv_chXX_bitslip_concat),
-    .cmv_chXX_px_phase_concat(cmv_chXX_px_phase_concat),
-    .cmv_chXX_px_data_concat(cmv_chXX_px_data_concat),
+  // CMV12000 pixel channels config and data. 
+  // These are arrayed  and tied to slave registers in user logic.
+  .cmv_chXX_delay_target_concat(cmv_chXX_delay_target_concat),
+  .cmv_chXX_bitslip_concat(cmv_chXX_bitslip_concat),
+  .cmv_chXX_px_phase_concat(cmv_chXX_px_phase_concat),
+  .cmv_chXX_px_data_concat(cmv_chXX_px_data_concat),
 
-    // CMV12000 control channel config and data.
-    .cmv_ctr_delay_target(cmv_ctr_delay_target),
-    .cmv_ctr_bitslip(cmv_ctr_bitslip),
-    .cmv_ctr_px_phase(cmv_ctr_px_phase),
-    .cmv_ctr_px_data(cmv_ctr_px_data),
+  // CMV12000 control channel config and data.
+  .cmv_ctr_delay_target(cmv_ctr_delay_target),
+  .cmv_ctr_bitslip(cmv_ctr_bitslip),
+  .cmv_ctr_px_phase(cmv_ctr_px_phase),
+  .cmv_ctr_px_data(cmv_ctr_px_data),
     
-    // Pixel counter limit.
-    .px_count_limit(px_count_limit),
+  // Pixel counter limit.
+  .px_count_limit(px_count_limit),
+   
+  // Maser pixel counter.
+  .px_count(px_count),
     
-    // Maser pixel counter.
-    .px_count(px_count),
+  // FOT interrupt flag.
+  .FOT_IF_reg(FOT_IF_reg),
+  .FOT_IF_mod(FOT_IF_mod),
     
-    // FOT interrupt flag.
-    .FOT_IF_reg(FOT_IF_reg),
-    .FOT_IF_mod(FOT_IF_mod),
-    
-    // CMV12000 timining control.
-    .frame_interval(frame_interval),
-    .FRAME_REQ_on(FRAME_REQ_on),
-    .T_EXP1_on(T_EXP1_on),
-    .T_EXP2_on(T_EXP2_on),
-    .exp_bias(exp_bias),
+  // CMV12000 timining control.
+  .frame_interval(frame_interval),
+  .FRAME_REQ_on(FRAME_REQ_on),
+  .T_EXP1_on(T_EXP1_on),
+  .T_EXP2_on(T_EXP2_on),
+  
+  // URAM 00
+  .lut_dark_col_0_raddr(lut_dark_col_0_raddr),
+  .lut_dark_col_0_rdata(lut_dark_col_0_rdata),
+  // URAM 01
+  .lut_dark_col_1_raddr(lut_dark_col_1_raddr),
+  .lut_dark_col_1_rdata(lut_dark_col_1_rdata),
+  // URAM 02
+  .lut_dark_col_2_raddr(lut_dark_col_2_raddr),
+  .lut_dark_col_2_rdata(lut_dark_col_2_rdata),
+  // URAM 03
+  .lut_dark_col_3_raddr(lut_dark_col_3_raddr),
+  .lut_dark_col_3_rdata(lut_dark_col_3_rdata),
+  // URAM 04
+  .lut_dark_col_4_raddr(lut_dark_col_4_raddr),
+  .lut_dark_col_4_rdata(lut_dark_col_4_rdata),
+  // URAM 05
+  .lut_dark_col_5_raddr(lut_dark_col_5_raddr),
+  .lut_dark_col_5_rdata(lut_dark_col_5_rdata),
+  // URAM 06
+  .lut_dark_col_6_raddr(lut_dark_col_6_raddr),
+  .lut_dark_col_6_rdata(lut_dark_col_6_rdata),
+  // URAM 07
+  .lut_dark_col_7_raddr(lut_dark_col_7_raddr),
+  .lut_dark_col_7_rdata(lut_dark_col_7_rdata),
+  // URAM 08
+  .lut_dark_row_raddr(lut_dark_row_raddr),
+  .lut_dark_row_rdata(lut_dark_row_rdata),
+  
+  // Always-on pixel counter. Used by AXI slave for data synchronization.
+  .px_count_always_on(px_count_always_on),
 
-    // AXI-Lite slave controller signals.
+  // AXI-Lite slave controller signals.
 	.S_AXI_ACLK(s00_axi_aclk),
 	.S_AXI_ARESETN(s00_axi_aresetn),
 	.S_AXI_AWADDR(s00_axi_awaddr),
@@ -301,13 +361,7 @@ wire CMV_DVAL = px_ctr[0];
 wire CMV_FOT = px_ctr[3];
 wire CMV_INTE1 = px_ctr[4];
 
-// Concatenated 10-bit pixel channel output to wavelet block.
-for (i = 0; i < 64; i = i + 1)
-begin
-    assign px_chXX_concat[10*i+:10] = cmv_chXX_px_data[i][9:0] + (CMV_INTE1 ? exp_bias : 10'h0);
-end
-
-// Master pixel counter.
+// Master pixel counter and always-on pixel counter.
 always @(posedge px_clk)
 begin
     if (CMV_FOT)
@@ -318,7 +372,49 @@ begin
     begin
         px_count <= px_count + 24'sh000001;
     end
+    
+    px_count_always_on <= px_count_always_on + 2'b01;
 end
+
+// Concatenated 10-bit pixel channel raw to pass to dark frame subtraction module.
+wire [639:0] px_chXX_raw_concat;
+for (i = 0; i < 64; i = i + 1)
+begin
+    assign px_chXX_raw_concat[10*i+:10] = cmv_chXX_px_data[i][9:0];
+end
+
+// Dark frame subtraction module.
+dark_frame
+#(
+  .PX_MATH_WIDTH(12)
+)
+dark_frame_inst
+(
+  .px_count(px_count),
+  .px_chXX_raw_concat(px_chXX_raw_concat),
+  
+  .lut_dark_col_0_rdata(lut_dark_col_0_rdata),
+  .lut_dark_col_1_rdata(lut_dark_col_1_rdata),
+  .lut_dark_col_2_rdata(lut_dark_col_2_rdata),
+  .lut_dark_col_3_rdata(lut_dark_col_3_rdata),
+  .lut_dark_col_4_rdata(lut_dark_col_4_rdata),
+  .lut_dark_col_5_rdata(lut_dark_col_5_rdata),
+  .lut_dark_col_6_rdata(lut_dark_col_6_rdata),
+  .lut_dark_col_7_rdata(lut_dark_col_7_rdata),
+  .lut_dark_row_rdata(lut_dark_row_rdata),
+  
+  .lut_dark_col_0_raddr(lut_dark_col_0_raddr),
+  .lut_dark_col_1_raddr(lut_dark_col_1_raddr),
+  .lut_dark_col_2_raddr(lut_dark_col_2_raddr),
+  .lut_dark_col_3_raddr(lut_dark_col_3_raddr),
+  .lut_dark_col_4_raddr(lut_dark_col_4_raddr),
+  .lut_dark_col_5_raddr(lut_dark_col_5_raddr),
+  .lut_dark_col_6_raddr(lut_dark_col_6_raddr),
+  .lut_dark_col_7_raddr(lut_dark_col_7_raddr),
+  .lut_dark_row_raddr(lut_dark_row_raddr),
+  
+  .px_chXX_out_concat(px_chXX_concat)
+);
 
 // Handle FOT interrupt: Set once per FOT rising edge, 
 // otherwise use registered value (allows software reset).
