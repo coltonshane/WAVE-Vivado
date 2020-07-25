@@ -1,7 +1,7 @@
 /*
 CMV12000 Driver Include
 
-Copyright (C) 2019 by Shane W. Colton
+Copyright (C) 2020 by Shane W. Colton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -71,8 +71,8 @@ typedef struct
 	u32 frame_interval;		// Frame timer interval in [us/60].
 	u32 FRAME_REQ_on;		// FRAME_REQ pulse time in [us/60].
 	u32 T_EXP1_on;			// T_EXP1 pulse time in [us/60].
-	u32 T_EXP2_on;			// T_EXP2 ulse time in [us/60].
-	u32 exp_bias;			// Black level bias during INTE1.
+	u32 T_EXP2_on;			// T_EXP2 pulse time in [us/60].
+	u32 capture_hold_sw;	// Flag for disabling data capture during peripheral register reads.
 } CMV_Input_s;
 
 typedef struct __attribute__((packed))

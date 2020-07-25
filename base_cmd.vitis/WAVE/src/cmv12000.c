@@ -1,7 +1,7 @@
 /*
 CMV12000 Driver
 
-Copyright (C) 2019 by Shane W. Colton
+Copyright (C) 2020 by Shane W. Colton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -53,21 +53,34 @@ THE SOFTWARE.
 #define CMV_TP1 0x0055
 #define CMV_TPC 0x0080
 
+// Dark frame mapping modes.
+#define CMV_DARK_FRAME_4K 0
+#define CMV_DARK_FRAME_2K 1
+
 // Private Type Definitions --------------------------------------------------------------------------------------------
 
 // Private Function Prototypes -----------------------------------------------------------------------------------------
 
 void cmvLinkTrain(void);
-
 void cmvRegInit(XSpiPs * spiDevice);
-void cmvRegSetMode(XSpiPs * spiDevice);
+void cmvTestDarkFrame(void);
+void cmvMapDarkFrame(float * darkCol, float * darkRow, u8 mode);
 
 u16 cmvRegRead(XSpiPs * spiDevice, u8 addr);
 void cmvRegWrite(XSpiPs * spiDevice, u8 addr, u16 val);
 
 // Public Global Variables ---------------------------------------------------------------------------------------------
 
-CMV_Input_s * CMV_Input = (CMV_Input_s *) 0xA0000000;
+CMV_Input_s * CMV_Input =  (CMV_Input_s *) 0xA0200000;
+u32 * const lutDarkCol[] = { (u32 * const) 0xA0208000,
+							 (u32 * const) 0xA0210000,
+							 (u32 * const) 0xA0218000,
+							 (u32 * const) 0xA0220000,
+							 (u32 * const) 0xA0228000,
+							 (u32 * const) 0xA0230000,
+							 (u32 * const) 0xA0238000,
+							 (u32 * const) 0xA0240000  };
+u32 * const lutDarkRow =     (u32 * const) 0xA0248000;
 
 // Private Global Variables --------------------------------------------------------------------------------------------
 
@@ -160,6 +173,8 @@ void cmvInit(void)
 	cmvRegInit(&Spi0);
 	cmvApplyCameraState();
 	cmvService();
+
+	cmvTestDarkFrame();
 }
 
 void cmvService(void)
@@ -472,6 +487,133 @@ void cmvRegInit(XSpiPs * spiDevice)
 		cmvRegWrite(spiDevice, cmvRegAddrInit[i], cmvRegValInit[i]);
 		usleep(10);
 	}
+}
+
+float darkColTest[4096];
+float darkRowTest[3072];
+void cmvTestDarkFrame(void)
+{
+	/*
+	for(int x = 0; x < 4096; x++)
+	{
+		if(x < 64)
+		{
+			darkColTest[x] = 0.02f;
+		}
+		else
+		{
+			darkColTest[x] = 0.0f;
+		}
+	}
+
+	for(int y = 0; y < 3072; y++)
+	{
+		if(y < 1088)
+		{
+			darkRowTest[y] = 0.02f;
+		}
+		else
+		{
+			darkRowTest[y] = 0.0f;
+		}
+	}
+	*/
+
+	for(int x = 0; x < 2048; x++)
+	{
+		if(x < 1024)
+		{
+			darkColTest[x] = 0.02f;
+		}
+		else
+		{
+			darkColTest[x] = 0.0f;
+		}
+	}
+
+	for(int y = 0; y < 1536; y++)
+	{
+		if(y < 272)
+		{
+			darkRowTest[y] = 0.02f;
+		}
+		else
+		{
+			darkRowTest[y] = 0.0f;
+		}
+	}
+
+	cmvMapDarkFrame(darkColTest, darkRowTest, CMV_DARK_FRAME_2K);
+}
+
+void cmvMapDarkFrame(float * darkCol, float * darkRow, u8 mode)
+{
+	u64 lutEntry;
+	u8 cidx;
+
+	if(mode == CMV_DARK_FRAME_4K)
+	{
+		// 4K Mapping
+		// Columns
+		for(int c = 0; c < 128; c++)
+		{
+			// By Column Group
+			for(int cg = 0; cg < 8; cg++)
+			{
+				// X flip handled here.
+				lutEntry =  (u64)((u16)(darkCol[(4 * (7 - cg) + 0) * 128 + c] * 1024.0f)) << 48;
+				lutEntry += (u64)((u16)(darkCol[(4 * (7 - cg) + 1) * 128 + c] * 1024.0f)) << 32;
+				lutEntry += (u64)((u16)(darkCol[(4 * (7 - cg) + 2) * 128 + c] * 1024.0f)) << 16;
+				lutEntry += (u64)((u16)(darkCol[(4 * (7 - cg) + 3) * 128 + c] * 1024.0f)) << 0;
+				lutDarkCol[cg][2 * c + 0] = lutEntry & 0xFFFFFFFF;
+				lutDarkCol[cg][2 * c + 1] = lutEntry >> 32;
+			}
+		}
+		// Rows
+		for(int r = 0; r < 1536; r++)
+		{
+			lutEntry =  (u64)((u16)(darkRow[2 * r + 0] * 1024.0f)) << 0;
+			lutEntry += (u64)((u16)(darkRow[2 * r + 1] * 1024.0f)) << 16;
+			lutEntry += (u64)((u16)(darkRow[2 * r + 0] * 1024.0f)) << 32;	// Repeat Row N+0
+			lutEntry += (u64)((u16)(darkRow[2 * r + 1] * 1024.0f)) << 48;	// Repeat Row N+1
+			lutDarkRow[2 * r + 0] = lutEntry & 0xFFFFFFFF;
+			lutDarkRow[2 * r + 1] = lutEntry >> 32;
+		}
+	}
+	else
+	{
+		// 2K Mapping
+		// Columns
+		for(int c = 0; c < 64; c++)
+		{
+			// By Column Group
+			for(int cg = 0; cg < 8; cg++)
+			{
+				// X flip handled here.
+				lutEntry =  (u64)((u16)(darkCol[(4 * (7 - cg) + 0) * 64 + c] * 1024.0f)) << 48;
+				lutEntry += (u64)((u16)(darkCol[(4 * (7 - cg) + 1) * 64 + c] * 1024.0f)) << 32;
+				lutEntry += (u64)((u16)(darkCol[(4 * (7 - cg) + 2) * 64 + c] * 1024.0f)) << 16;
+				lutEntry += (u64)((u16)(darkCol[(4 * (7 - cg) + 3) * 64 + c] * 1024.0f)) << 0;
+				cidx = 4 * (c >> 1) + (c & 0x1);
+				lutDarkCol[cg][2 * (cidx) + 0] = lutEntry & 0xFFFFFFFF;
+				lutDarkCol[cg][2 * (cidx) + 1] = lutEntry >> 32;
+				cidx += 2;
+				lutDarkCol[cg][2 * (cidx) + 0] = lutEntry & 0xFFFFFFFF;		// Repeat Col N+0
+				lutDarkCol[cg][2 * (cidx) + 1] = lutEntry >> 32;			// Repeat Col N+1
+			}
+		}
+		// Rows
+		for(int r = 0; r < 384; r++)
+		{
+			lutEntry =  (u64)((u16)(darkRow[4 * r + 0] * 1024.0f)) << 0;
+			lutEntry += (u64)((u16)(darkRow[4 * r + 1] * 1024.0f)) << 16;
+			lutEntry += (u64)((u16)(darkRow[4 * r + 2] * 1024.0f)) << 32;
+			lutEntry += (u64)((u16)(darkRow[4 * r + 3] * 1024.0f)) << 48;
+			lutDarkRow[2 * r + 0] = lutEntry & 0xFFFFFFFF;
+			lutDarkRow[2 * r + 1] = lutEntry >> 32;
+		}
+	}
+
 }
 
 u16 cmvRegRead(XSpiPs * spiDevice, u8 addr)
