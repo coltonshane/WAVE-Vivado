@@ -112,7 +112,8 @@ wire signed [(PX_MATH_WIDTH-1):0] px_chXX_out [63:0];
 for(i = 0; i < 64; i = i + 1)
 begin
   assign px_chXX_raw[i] = px_chXX_raw_concat[10*i+:10];
-  assign px_chXX_out_concat[10*i+:10] = px_chXX_out[i][9:0];
+  // 10b saturation enforced on the output, which is a signed value stored in PX_MATH_WIDTH bits.
+  assign px_chXX_out_concat[10*i+:10] = px_chXX_out[i][PX_MATH_WIDTH-1] ? 10'b00000000 : ((px_chXX_out[i][(PX_MATH_WIDTH-2):10] > 5'b00000) ? 10'b1111111111 : px_chXX_out[i][9:0]);
 end
 
 // Array the column and row bias data for convenience.
