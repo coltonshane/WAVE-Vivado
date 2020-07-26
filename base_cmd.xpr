@@ -100,9 +100,6 @@
         <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_emio_mux_0_0/BoardSetupTest_emio_mux_0_0.xci">
           <Proxy FileSetName="BoardSetupTest_emio_mux_0_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_HDMI_0_0/BoardSetupTest_HDMI_0_0.xci">
-          <Proxy FileSetName="BoardSetupTest_HDMI_0_0"/>
-        </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="BoardSetupTest.bd" FileRelPathName="ip/BoardSetupTest_xdma_0_0/BoardSetupTest_xdma_0_0.xci">
           <Proxy FileSetName="BoardSetupTest_xdma_0_0"/>
         </CompFileExtendedInfo>
@@ -199,12 +196,6 @@
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
-    <FileSet Name="BoardSetupTest_HDMI_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/BoardSetupTest_HDMI_0_0">
-      <Config>
-        <Option Name="TopModule" Val="BoardSetupTest_HDMI_0_0"/>
-        <Option Name="UseBlackboxStub" Val="1"/>
-      </Config>
-    </FileSet>
     <FileSet Name="BoardSetupTest_CMV_Input_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/BoardSetupTest_CMV_Input_0_0">
       <Config>
         <Option Name="TopModule" Val="BoardSetupTest_CMV_Input_0_0"/>
@@ -280,16 +271,6 @@
       <RQSFiles/>
     </Run>
     <Run Id="BoardSetupTest_xdma_0_0_synth_1" Type="Ft3:Synth" SrcSet="BoardSetupTest_xdma_0_0" Part="xczu4ev-sfvc784-1-e" ConstrsSet="BoardSetupTest_xdma_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/BoardSetupTest_xdma_0_0_synth_1" IncludeInArchive="true">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019"/>
-        <Step Id="synth_design"/>
-      </Strategy>
-      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
-      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2019"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="BoardSetupTest_HDMI_0_0_synth_1" Type="Ft3:Synth" SrcSet="BoardSetupTest_HDMI_0_0" Part="xczu4ev-sfvc784-1-e" ConstrsSet="BoardSetupTest_HDMI_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/BoardSetupTest_HDMI_0_0_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019"/>
         <Step Id="synth_design"/>
@@ -386,23 +367,6 @@
       <RQSFiles/>
     </Run>
     <Run Id="BoardSetupTest_xdma_0_0_impl_1" Type="Ft2:EntireDesign" Part="xczu4ev-sfvc784-1-e" ConstrsSet="BoardSetupTest_xdma_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="BoardSetupTest_xdma_0_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019"/>
-        <Step Id="init_design"/>
-        <Step Id="opt_design"/>
-        <Step Id="power_opt_design"/>
-        <Step Id="place_design"/>
-        <Step Id="post_place_power_opt_design"/>
-        <Step Id="phys_opt_design" EnableStepBool="1"/>
-        <Step Id="route_design"/>
-        <Step Id="post_route_phys_opt_design"/>
-        <Step Id="write_bitstream"/>
-      </Strategy>
-      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2019"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="BoardSetupTest_HDMI_0_0_impl_1" Type="Ft2:EntireDesign" Part="xczu4ev-sfvc784-1-e" ConstrsSet="BoardSetupTest_HDMI_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="BoardSetupTest_HDMI_0_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019"/>
         <Step Id="init_design"/>
