@@ -25,6 +25,7 @@ THE SOFTWARE.
 // Include Headers -----------------------------------------------------------------------------------------------------
 
 #include "cmv12000.h"
+#include "dark_frame.h"
 #include "supervisor.h"
 #include "gpio.h"
 #include "camera_state.h"
@@ -81,9 +82,6 @@ u32 * const lutDarkCol[] = { (u32 * const) 0xA0208000,
 							 (u32 * const) 0xA0238000,
 							 (u32 * const) 0xA0240000  };
 u32 * const lutDarkRow =     (u32 * const) 0xA0248000;
-
-float darkColTest[4096];
-float darkRowTest[3072];
 
 // Private Global Variables --------------------------------------------------------------------------------------------
 
@@ -500,6 +498,7 @@ void cmvRegInit(XSpiPs * spiDevice)
 
 void cmvTestDarkFrame(float val)
 {
+	/*
 	// 4K
 	for(int x = 0; x < 4096; x++)
 	{
@@ -524,6 +523,7 @@ void cmvTestDarkFrame(float val)
 			darkRowTest[y] = 0.0f;
 		}
 	}
+	*/
 
 	/*
 	// 2K

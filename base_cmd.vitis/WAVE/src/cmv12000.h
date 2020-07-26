@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef __CMV_REGISTERS_INCLUDE__
-#define __CMV_REGISTERS_INCLUDE__
+#ifndef __CMV12000_INCLUDE__
+#define __CMV12000_INCLUDE__
 
 // Include Headers -----------------------------------------------------------------------------------------------------
 
