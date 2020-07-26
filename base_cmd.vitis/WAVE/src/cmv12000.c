@@ -63,7 +63,7 @@ THE SOFTWARE.
 
 void cmvLinkTrain(void);
 void cmvRegInit(XSpiPs * spiDevice);
-void cmvTestDarkFrame(void);
+void cmvTestDarkFrame(float val);
 void cmvMapDarkFrame(float * darkCol, float * darkRow, u8 mode);
 
 u16 cmvRegRead(XSpiPs * spiDevice, u8 addr);
@@ -81,6 +81,9 @@ u32 * const lutDarkCol[] = { (u32 * const) 0xA0208000,
 							 (u32 * const) 0xA0238000,
 							 (u32 * const) 0xA0240000  };
 u32 * const lutDarkRow =     (u32 * const) 0xA0248000;
+
+float darkColTest[4096];
+float darkRowTest[3072];
 
 // Private Global Variables --------------------------------------------------------------------------------------------
 
@@ -173,10 +176,10 @@ void cmvInit(void)
 	cmvRegInit(&Spi0);
 	cmvApplyCameraState();
 	cmvService();
-
-	cmvTestDarkFrame();
 }
 
+u32 testDarkFrame = 0;
+float testDarkFrameVal = 0.02f;
 void cmvService(void)
 {
 	// Read CMV12000 settings in CMV_Settings_s packed order.
@@ -192,6 +195,12 @@ void cmvService(void)
 		{
 			cmvRegWrite(&Spi0, cmvRegAddrSettings[i], *((u16 *)(&CMV_Settings_W) + i));
 		}
+	}
+
+	if(testDarkFrame)
+	{
+		cmvTestDarkFrame(testDarkFrameVal);
+		testDarkFrame = 0;
 	}
 }
 
@@ -221,8 +230,8 @@ void cmvApplyCameraState(void)
 		CMV_Settings_W.Setting_3 = 128;
 		CMV_Settings_W.Setting_4 = 128;
 		CMV_Settings_W.Setting_5 = 128;
-		CMV_Settings_W.Offset_bot = 480;
-		CMV_Settings_W.Offset_top = 480;
+		CMV_Settings_W.Offset_bot = 512;
+		CMV_Settings_W.Offset_top = 512;
 		CMV_Settings_W.Reg_98 = 44812;
 		CMV_Settings_W.Setting_6 = 789;
 		CMV_Settings_W.Setting_7 = 84;
@@ -489,16 +498,14 @@ void cmvRegInit(XSpiPs * spiDevice)
 	}
 }
 
-float darkColTest[4096];
-float darkRowTest[3072];
-void cmvTestDarkFrame(void)
+void cmvTestDarkFrame(float val)
 {
-	/*
+	// 4K
 	for(int x = 0; x < 4096; x++)
 	{
-		if(x < 64)
+		if(x < 1024)
 		{
-			darkColTest[x] = 0.02f;
+			darkColTest[x] = val;
 		}
 		else
 		{
@@ -510,15 +517,16 @@ void cmvTestDarkFrame(void)
 	{
 		if(y < 1088)
 		{
-			darkRowTest[y] = 0.02f;
+			darkRowTest[y] = val;
 		}
 		else
 		{
 			darkRowTest[y] = 0.0f;
 		}
 	}
-	*/
 
+	/*
+	// 2K
 	for(int x = 0; x < 2048; x++)
 	{
 		if(x < 1024)
@@ -542,8 +550,9 @@ void cmvTestDarkFrame(void)
 			darkRowTest[y] = 0.0f;
 		}
 	}
+	*/
 
-	cmvMapDarkFrame(darkColTest, darkRowTest, CMV_DARK_FRAME_2K);
+	cmvMapDarkFrame(darkColTest, darkRowTest, CMV_DARK_FRAME_4K);
 }
 
 void cmvMapDarkFrame(float * darkCol, float * darkRow, u8 mode)
@@ -561,10 +570,10 @@ void cmvMapDarkFrame(float * darkCol, float * darkRow, u8 mode)
 			for(int cg = 0; cg < 8; cg++)
 			{
 				// X flip handled here.
-				lutEntry =  (u64)((u16)(darkCol[(4 * (7 - cg) + 0) * 128 + c] * 1024.0f)) << 48;
-				lutEntry += (u64)((u16)(darkCol[(4 * (7 - cg) + 1) * 128 + c] * 1024.0f)) << 32;
-				lutEntry += (u64)((u16)(darkCol[(4 * (7 - cg) + 2) * 128 + c] * 1024.0f)) << 16;
-				lutEntry += (u64)((u16)(darkCol[(4 * (7 - cg) + 3) * 128 + c] * 1024.0f)) << 0;
+				lutEntry =  (u64)((s16)(darkCol[(4 * (7 - cg) + 0) * 128 + c] * 1024.0f)) << 48;
+				lutEntry += (u64)((s16)(darkCol[(4 * (7 - cg) + 1) * 128 + c] * 1024.0f)) << 32;
+				lutEntry += (u64)((s16)(darkCol[(4 * (7 - cg) + 2) * 128 + c] * 1024.0f)) << 16;
+				lutEntry += (u64)((s16)(darkCol[(4 * (7 - cg) + 3) * 128 + c] * 1024.0f)) << 0;
 				lutDarkCol[cg][2 * c + 0] = lutEntry & 0xFFFFFFFF;
 				lutDarkCol[cg][2 * c + 1] = lutEntry >> 32;
 			}
@@ -572,10 +581,10 @@ void cmvMapDarkFrame(float * darkCol, float * darkRow, u8 mode)
 		// Rows
 		for(int r = 0; r < 1536; r++)
 		{
-			lutEntry =  (u64)((u16)(darkRow[2 * r + 0] * 1024.0f)) << 0;
-			lutEntry += (u64)((u16)(darkRow[2 * r + 1] * 1024.0f)) << 16;
-			lutEntry += (u64)((u16)(darkRow[2 * r + 0] * 1024.0f)) << 32;	// Repeat Row N+0
-			lutEntry += (u64)((u16)(darkRow[2 * r + 1] * 1024.0f)) << 48;	// Repeat Row N+1
+			lutEntry =  (u64)((s16)(darkRow[2 * r + 0] * 1024.0f)) << 0;
+			lutEntry += (u64)((s16)(darkRow[2 * r + 1] * 1024.0f)) << 16;
+			lutEntry += (u64)((s16)(darkRow[2 * r + 0] * 1024.0f)) << 32;	// Repeat Row N+0
+			lutEntry += (u64)((s16)(darkRow[2 * r + 1] * 1024.0f)) << 48;	// Repeat Row N+1
 			lutDarkRow[2 * r + 0] = lutEntry & 0xFFFFFFFF;
 			lutDarkRow[2 * r + 1] = lutEntry >> 32;
 		}
@@ -590,10 +599,10 @@ void cmvMapDarkFrame(float * darkCol, float * darkRow, u8 mode)
 			for(int cg = 0; cg < 8; cg++)
 			{
 				// X flip handled here.
-				lutEntry =  (u64)((u16)(darkCol[(4 * (7 - cg) + 0) * 64 + c] * 1024.0f)) << 48;
-				lutEntry += (u64)((u16)(darkCol[(4 * (7 - cg) + 1) * 64 + c] * 1024.0f)) << 32;
-				lutEntry += (u64)((u16)(darkCol[(4 * (7 - cg) + 2) * 64 + c] * 1024.0f)) << 16;
-				lutEntry += (u64)((u16)(darkCol[(4 * (7 - cg) + 3) * 64 + c] * 1024.0f)) << 0;
+				lutEntry =  (u64)((s16)(darkCol[(4 * (7 - cg) + 0) * 64 + c] * 1024.0f)) << 48;
+				lutEntry += (u64)((s16)(darkCol[(4 * (7 - cg) + 1) * 64 + c] * 1024.0f)) << 32;
+				lutEntry += (u64)((s16)(darkCol[(4 * (7 - cg) + 2) * 64 + c] * 1024.0f)) << 16;
+				lutEntry += (u64)((s16)(darkCol[(4 * (7 - cg) + 3) * 64 + c] * 1024.0f)) << 0;
 				cidx = 4 * (c >> 1) + (c & 0x1);
 				lutDarkCol[cg][2 * (cidx) + 0] = lutEntry & 0xFFFFFFFF;
 				lutDarkCol[cg][2 * (cidx) + 1] = lutEntry >> 32;
@@ -605,10 +614,10 @@ void cmvMapDarkFrame(float * darkCol, float * darkRow, u8 mode)
 		// Rows
 		for(int r = 0; r < 384; r++)
 		{
-			lutEntry =  (u64)((u16)(darkRow[4 * r + 0] * 1024.0f)) << 0;
-			lutEntry += (u64)((u16)(darkRow[4 * r + 1] * 1024.0f)) << 16;
-			lutEntry += (u64)((u16)(darkRow[4 * r + 2] * 1024.0f)) << 32;
-			lutEntry += (u64)((u16)(darkRow[4 * r + 3] * 1024.0f)) << 48;
+			lutEntry =  (u64)((s16)(darkRow[4 * r + 0] * 1024.0f)) << 0;
+			lutEntry += (u64)((s16)(darkRow[4 * r + 1] * 1024.0f)) << 16;
+			lutEntry += (u64)((s16)(darkRow[4 * r + 2] * 1024.0f)) << 32;
+			lutEntry += (u64)((s16)(darkRow[4 * r + 3] * 1024.0f)) << 48;
 			lutDarkRow[2 * r + 0] = lutEntry & 0xFFFFFFFF;
 			lutDarkRow[2 * r + 1] = lutEntry >> 32;
 		}
