@@ -1,7 +1,7 @@
 /*
 HDMI Driver
 
-Copyright (C) 2019 by Shane W. Colton
+Copyright (C) 2020 by Shane W. Colton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -144,8 +144,23 @@ s32 hdmiFrame = -1;
 HDMI_s hdmiSync;
 u32 hdmiApplyCameraStateSyncFlag = 0;
 
+s16 gamma10[] = {0, 1024, 2048, 3072, 4096, 5120, 6144, 7168, 8192, 9216, 10240, 11264, 12288, 13312, 14336, 15360};
+s16 dgamma10[] = {1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024};
+
+s16 gamma10_709range[] = {1024, 1920, 2816, 3712, 4608, 5504, 6400, 7296, 8192, 9088, 9984, 10880, 11776, 12672, 13568, 14464};
+s16 dgamma10_709range[] = {896, 896, 896, 896, 896, 896, 896, 896, 896, 896, 896, 896, 896, 896, 896, 896};
+
+s16 gamma14[] = {0, 2261, 3710, 4956, 6087, 7138, 8131, 9078, 9986, 10863, 11712, 12537, 13341, 14126, 14894, 15646};
+s16 dgamma14[] = {2261, 1449, 1246, 1131, 1051, 993, 947, 908, 877, 849, 825, 804, 785, 768, 752, 738};
+
+s16 gamma14_709range[] = {1024, 3003, 4270, 5361, 6350, 7270, 8139, 8967, 9762, 10529, 11272, 11994, 12697, 13384, 14056, 14714};
+s16 dgamma14_709range[] = {1979, 1267, 1091, 989, 920, 869, 828, 795, 767, 743, 722, 703, 687, 672, 658, 646};
+
 s16 gamma17[] = {0, 3207, 4822, 6120, 7249, 8266, 9201, 10075, 10898, 11680, 12427, 13143, 13833, 14500, 15146, 15774};
 s16 dgamma17[] = {3207, 1615, 1298, 1129, 1017, 935, 874, 823, 782, 747, 716, 690, 667, 646, 628, 610};
+
+s16 gamma17_709range[] = {1024, 3830, 5243, 6379, 7367, 8256, 9075, 9839, 10560, 11244, 11897, 12524, 13128, 13712, 14277, 14826};
+s16 dgamma17_709range[] = {2806, 1413, 1136, 988, 889, 819, 764, 721, 684, 653, 627, 604, 584, 565, 549, 534};
 
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 void isrVSYNC(void * CallbackRef)
@@ -243,6 +258,7 @@ u32 skip = 30;
 float debugMultR = 1.0f;
 float debugMultG = 1.0f;
 float debugMultB = 1.0f;
+u32 debugGamma = 0;
 u32 debugRebuildLUTs = 0;
 void hdmiService(void)
 {
@@ -431,6 +447,36 @@ void hdmiBuildLUTs(void)
 	s16 iOutB1toR, iOutB1toG, iOutB1toB;
 	s16 iOutG2toR, iOutG2toG, iOutG2toB;
 	u32 idx32L, idx32H;
+	s16 * gamma;
+	s16 * dgamma;
+
+	switch(debugGamma)
+	{
+	case 0:
+		gamma = gamma10;
+		dgamma = dgamma10;
+		break;
+	case 1:
+		gamma = gamma10_709range;
+		dgamma = dgamma10_709range;
+		break;
+	case 2:
+		gamma = gamma14;
+		dgamma = dgamma14;
+		break;
+	case 3:
+		gamma = gamma14_709range;
+		dgamma = dgamma14_709range;
+		break;
+	case 4:
+		gamma = gamma17;
+		dgamma = dgamma17;
+		break;
+	case 5:
+		gamma = gamma17_709range;
+		dgamma = dgamma17_709range;
+		break;
+	}
 
 	// Zero cross-axis colors.
 	iOutG1toR = 0;
@@ -510,9 +556,9 @@ void hdmiBuildLUTs(void)
 				idx32H = (b << 9) + (g << 5) + (r << 1) + 1;
 
 				// Red Output
-				c0_10b = gamma17[r];
+				c0_10b = gamma[r];
 				c1_10b = 0;
-				c2_10b = dgamma17[r];
+				c2_10b = dgamma[r];
 				c3_10b = 0;
 				c4_10b = 0;
 				c5_10b = 0;
@@ -524,10 +570,10 @@ void hdmiBuildLUTs(void)
 				lut3dC74R[idx32H] = (c7_10b << 16) | c6_10b;
 
 				// Green Output
-				c0_10b = gamma17[g];
+				c0_10b = gamma[g];
 				c1_10b = 0;
 				c2_10b = 0;
-				c3_10b = dgamma17[g];
+				c3_10b = dgamma[g];
 				c4_10b = 0;
 				c5_10b = 0;
 				c6_10b = 0;
@@ -538,8 +584,8 @@ void hdmiBuildLUTs(void)
 				lut3dC74G[idx32H] = (c7_10b << 16) | c6_10b;
 
 				// Blue Output
-				c0_10b = gamma17[b];
-				c1_10b = dgamma17[b];
+				c0_10b = gamma[b];
+				c1_10b = dgamma[b];
 				c2_10b = 0;
 				c3_10b = 0;
 				c4_10b = 0;
