@@ -46,7 +46,7 @@ module HDMI_v1_0
 
 	// Parameters for AXI-Lite Slave.
 	parameter integer C_S00_AXI_DATA_WIDTH = 32,
-	parameter integer C_S00_AXI_ADDR_WIDTH = 20,
+	parameter integer C_S00_AXI_ADDR_WIDTH = 19,
 	
   // Parameters of AXI Master.
   parameter C_M00_AXI_TARGET_SLAVE_BASE_ADDR = 32'h00000000,
@@ -198,42 +198,48 @@ wire pop_ui_enabled;
 wire bot_ui_enabled;
 wire top_ui_enabled;
 // URAM 00
+wire [11:0] dark_row_raddr;
+wire [63:0] dark_row_rdata;
+// URAM 01
+wire [11:0] dark_col_raddr;
+wire [63:0] dark_col_rdata;
+// URAM 02
 wire [11:0] lut_g1_raddr;
 wire [63:0] lut_g1_rdata;
-// URAM 01
+// URAM 03
 wire [11:0] lut_r1_raddr;
 wire [63:0] lut_r1_rdata;
-// URAM 02
+// URAM 04
 wire [11:0] lut_b1_raddr;
 wire [63:0] lut_b1_rdata;
-// URAM 03
+// URAM 05
 wire [11:0] lut_g2_raddr;
 wire [63:0] lut_g2_rdata;
-// URAM 04
+// URAM 06
 wire [11:0] lut3d_c30_r_raddr;
 wire [63:0] lut3d_c30_r_rdata;
-// URAM 05
+// URAM 07
 wire [11:0] lut3d_c74_r_raddr;
 wire [63:0] lut3d_c74_r_rdata;
-// URAM 06
+// URAM 08
 wire [11:0] lut3d_c30_g_raddr;
 wire [63:0] lut3d_c30_g_rdata;
-// URAM 07
+// URAM 09
 wire [11:0] lut3d_c74_g_raddr;
 wire [63:0] lut3d_c74_g_rdata;
-// URAM 08
+// URAM 10
 wire [11:0] lut3d_c30_b_raddr;
 wire [63:0] lut3d_c30_b_rdata;
-// URAM 09
+// URAM 11
 wire [11:0] lut3d_c74_b_raddr;
 wire [63:0] lut3d_c74_b_rdata;
-// URAM 10
+// URAM 12
 wire [11:0] top_ui_raddr;
 wire [63:0] top_ui_rdata;
-// URAM 11
+// URAM 13
 wire [11:0] bot_ui_raddr;
 wire [63:0] bot_ui_rdata;
-// URAM 12
+// URAM 14
 wire [11:0] pop_ui_raddr;
 wire [63:0] pop_ui_rdata;
 
@@ -293,42 +299,48 @@ HDMI_v1_0_S00_AXI_inst
   .bot_ui_enabled(bot_ui_enabled),
   .top_ui_enabled(top_ui_enabled),
   // URAM 00
+  .dark_row_raddr(dark_row_raddr),
+  .dark_row_rdata(dark_row_rdata),
+  // URAM 01
+  .dark_col_raddr(dark_col_raddr),
+  .dark_col_rdata(dark_col_rdata),
+  // URAM 02
   .lut_g1_raddr(lut_g1_raddr),
   .lut_g1_rdata(lut_g1_rdata),
-  // URAM 01
+  // URAM 03
   .lut_r1_raddr(lut_r1_raddr),
   .lut_r1_rdata(lut_r1_rdata),
-  // URAM 02
+  // URAM 04
   .lut_b1_raddr(lut_b1_raddr),
   .lut_b1_rdata(lut_b1_rdata),
-  // URAM 03
+  // URAM 05
   .lut_g2_raddr(lut_g2_raddr),
   .lut_g2_rdata(lut_g2_rdata),
-  // URAM 04
+  // URAM 06
   .lut3d_c30_r_raddr(lut3d_c30_r_raddr),
   .lut3d_c30_r_rdata(lut3d_c30_r_rdata),
-  // URAM 05
+  // URAM 07
   .lut3d_c74_r_raddr(lut3d_c74_r_raddr),
   .lut3d_c74_r_rdata(lut3d_c74_r_rdata),
-  // URAM 06
+  // URAM 08
   .lut3d_c30_g_raddr(lut3d_c30_g_raddr),
   .lut3d_c30_g_rdata(lut3d_c30_g_rdata),
-  // URAM 07
+  // URAM 09
   .lut3d_c74_g_raddr(lut3d_c74_g_raddr),
   .lut3d_c74_g_rdata(lut3d_c74_g_rdata),
-  // URAM 08
+  // URAM 10
   .lut3d_c30_b_raddr(lut3d_c30_b_raddr),
   .lut3d_c30_b_rdata(lut3d_c30_b_rdata),
-  // URAM 09
+  // URAM 11
   .lut3d_c74_b_raddr(lut3d_c74_b_raddr),
   .lut3d_c74_b_rdata(lut3d_c74_b_rdata),
-  // URAM 10
+  // URAM 12
   .top_ui_raddr(top_ui_raddr),
   .top_ui_rdata(top_ui_rdata),
-  // URAM 11
+  // URAM 13
   .bot_ui_raddr(bot_ui_raddr),
   .bot_ui_rdata(bot_ui_rdata),
-  // URAM 12
+  // URAM 14
   .pop_ui_raddr(pop_ui_raddr),
   .pop_ui_rdata(pop_ui_rdata),
    
@@ -472,8 +484,8 @@ localparam integer vsync_off = 5;
 localparam integer v_de_on = 41;
 localparam integer v_de_off = 1121;
 
-reg [15:0] h_count[8:0];
-reg [15:0] v_count[8:0];
+reg [15:0] h_count[9:0];
+reg [15:0] v_count[9:0];
 
 always @(posedge hdmi_clk)
 begin
@@ -499,7 +511,7 @@ begin
   // Pipeline.
   begin : hv_count_pipeline
   integer i;
-  for (i = 0; i < 8; i = i + 1)
+  for (i = 0; i < 9; i = i + 1)
   begin
     h_count[i+1] <= h_count[i];
     v_count[i+1] <= v_count[i];
@@ -509,13 +521,13 @@ begin
 end
 
 // Combinational HSYNC, VSYNC, and DE generation based on h_count and v_count.
-assign HSYNC = (h_count[8] < hsync_off);
-assign VSYNC = (v_count[8] < vsync_off);
-assign DE = (h_count[8] >= h_de_on) && (h_count[8] < h_de_off) && (v_count[8] >= v_de_on) & (v_count[8] < v_de_off);
+assign HSYNC = (h_count[9] < hsync_off);
+assign VSYNC = (v_count[9] < vsync_off);
+assign DE = (h_count[9] >= h_de_on) && (h_count[9] < h_de_off) && (v_count[9] >= v_de_on) & (v_count[9] < v_de_off);
 
 // Handle VSYNC interrupt: Set once near the bottom of the frame scan, to give the sotware
 // a bit of time to prepare register update values for VSYNC. Cleared by software.
-wire VSYNC_coming = (v_count[8] == v_de_off);
+wire VSYNC_coming = (v_count[9] == v_de_off);
 reg VSYNC_coming_prev;
 always @(posedge hdmi_clk)
 begin
@@ -529,10 +541,10 @@ assign VSYNC_int = VSYNC_IF_reg;
 // -------------------------------------------------------------------------------------------------
 wire [15:0] vxNorm;
 wire signed [16:0] vyNorm;  // Signed to accommodate negative space for top margin operations.
-reg [15:0] vxNormP;
-reg [15:0] vyNormP;
+reg [15:0] vxNormP[1:0];
+reg [15:0] vyNormP[1:0];
 wire inViewport;
-reg inViewportP[5:0];
+reg inViewportP[6:0];
 
 viewport_normalize vn
 (
@@ -563,8 +575,11 @@ begin
   inViewportP[3] <= inViewportP[2];
   inViewportP[4] <= inViewportP[3];
   inViewportP[5] <= inViewportP[4];
-  vxNormP <= vxNorm;
-  vyNormP <= vyNorm[15:0];
+  inViewportP[6] <= inViewportP[5];
+  vxNormP[0] <= vxNorm;
+  vxNormP[1] <= vxNormP[0];
+  vyNormP[0] <= vyNorm[15:0];
+  vyNormP[1] <= vyNormP[0];
 end
 
 // -------------------------------------------------------------------------------------------------
@@ -574,10 +589,14 @@ end
 wire [15:0] vxNorm_SW = SS ? (vxNorm >> 1) : vxNorm; 
 wire signed [16:0] vyNorm_SW = SS ? (vyNorm >>> 1) : vyNorm;
 
-wire [9:0] vx10b_G1B1 = (vxNorm_SW - 16'h10) >> 6;    // Rollover is okay in X.
-wire [9:0] vx10b_R1G2 = (vxNorm_SW - 16'h30) >> 6;       
-wire signed [23:0] vy16b_G1R1 = (vyNorm_SW - 17'sh10);   // Using signed 24b intermediate result to
-wire signed [23:0] vy16b_B1G2 = (vyNorm_SW - 17'sh30);   // get the required sign extension.
+// Pixel centers for LL1 on a 16b-normalized grid.
+wire center0 = SS ? 16'd20 : 16'd24;
+wire center1 = SS ? 16'd28 : 16'd40;
+
+wire [9:0] vx10b_G1B1 = (vxNorm_SW - center0) >> 6;    // Rollover is okay in X.
+wire [9:0] vx10b_R1G2 = (vxNorm_SW - center1) >> 6;       
+wire signed [23:0] vy16b_G1R1 = (vyNorm_SW - $signed(center0));   // Using signed 24b intermediate result to
+wire signed [23:0] vy16b_B1G2 = (vyNorm_SW - $signed(center1));   // get the required sign extension.
 
 // Color field-specific pixel counts for IV2 -> IH2 -> Output.
 // 4K Mode: X dimension is 1024.
@@ -1078,20 +1097,20 @@ idwt26_h2 ih2_G2
 // Bilinear ineterpolators.
 // -------------------------------------------------------------------------------------------------
 // Switch in extra 2x scaling for 2K Mode (SS == 1).
-wire [15:0] vxNormP_SW = SS ? (vxNormP >> 1) : vxNormP;
-wire [15:0] vyNormP_SW = SS ? (vyNormP >> 1) : vyNormP;
+wire [15:0] vxNormP_SW = SS ? (vxNormP[0] >> 1) : vxNormP[0];
+wire [15:0] vyNormP_SW = SS ? (vyNormP[0] >> 1) : vyNormP[0];
 
 // Calculate (x0, y0), the upper-left corner of the grid square used to interpolate within a given
 // color field, outside of the interpolators to avoid redundant shared-edge logic.
-wire [15:0] x0_G1B1 = ((vxNormP_SW - 16'h10) & 16'hFFC0) + 16'h10;
-wire [15:0] x0_R1G2 = ((vxNormP_SW - 16'h30) & 16'hFFC0) + 16'h30;
-wire [15:0] y0_G1R1 = ((vyNormP_SW - 16'h10) & 16'hFFC0) + 16'h10;
-wire [15:0] y0_B1G2 = ((vyNormP_SW - 16'h30) & 16'hFFC0) + 16'h30;
+wire [15:0] x0_G1B1 = ((vxNormP_SW - center0) & 16'hFFC0) + center0;
+wire [15:0] x0_R1G2 = ((vxNormP_SW - center1) & 16'hFFC0) + center1;
+wire [15:0] y0_G1R1 = ((vyNormP_SW - center0) & 16'hFFC0) + center0;
+wire [15:0] y0_B1G2 = ((vyNormP_SW - center1) & 16'hFFC0) + center1;
 
-wire signed [15:0] out_G1;
-wire signed [15:0] out_R1;
-wire signed [15:0] out_B1;
-wire signed [15:0] out_G2;
+wire signed [15:0] G1_10b;
+wire signed [15:0] R1_10b;
+wire signed [15:0] B1_10b;
+wire signed [15:0] G2_10b;
 
 bilinear_16b bilinear_G1 
 (
@@ -1104,7 +1123,7 @@ bilinear_16b bilinear_G1
   .in10(out_2px_row0_G1[31:16]),
   .in01(out_2px_row1_G1[15:0]),
   .in11(out_2px_row1_G1[31:16]),
-  .out(out_G1)
+  .out(G1_10b)
 );
 
 bilinear_16b bilinear_R1
@@ -1118,7 +1137,7 @@ bilinear_16b bilinear_R1
   .in10(out_2px_row0_R1[31:16]),
   .in01(out_2px_row1_R1[15:0]),
   .in11(out_2px_row1_R1[31:16]),
-  .out(out_R1)
+  .out(R1_10b)
 );
 
 bilinear_16b bilinear_B1
@@ -1132,7 +1151,7 @@ bilinear_16b bilinear_B1
   .in10(out_2px_row0_B1[31:16]),
   .in01(out_2px_row1_B1[15:0]),
   .in11(out_2px_row1_B1[31:16]),
-  .out(out_B1)
+  .out(B1_10b)
 );
 
 bilinear_16b bilinear_G2
@@ -1146,7 +1165,38 @@ bilinear_16b bilinear_G2
   .in10(out_2px_row0_G2[31:16]),
   .in01(out_2px_row1_G2[15:0]),
   .in11(out_2px_row1_G2[31:16]),
-  .out(out_G2)
+  .out(G2_10b)
+);
+// -------------------------------------------------------------------------------------------------
+
+// Dark frame subtraction.
+// -------------------------------------------------------------------------------------------------
+wire signed [15:0] G1_dark_10b;
+wire signed [15:0] R1_dark_10b;
+wire signed [15:0] B1_dark_10b;
+wire signed [15:0] G2_dark_10b;
+
+dark_frame dark_frame_inst
+(
+  .clk(hdmi_clk),
+  
+  .vxNorm(vxNormP[1]),
+  .vyNorm(vyNormP[1]),
+  
+  .G1_10b(G1_10b),
+  .R1_10b(R1_10b),
+  .B1_10b(B1_10b),
+  .G2_10b(G2_10b),
+  
+  .dark_row_rdata(dark_row_rdata),
+  .dark_col_rdata(dark_col_rdata),
+  .dark_row_raddr(dark_row_raddr),
+  .dark_col_raddr(dark_col_raddr),
+  
+  .G1_dark_10b(G1_dark_10b),
+  .R1_dark_10b(R1_dark_10b),
+  .B1_dark_10b(B1_dark_10b),
+  .G2_dark_10b(G2_dark_10b)
 );
 // -------------------------------------------------------------------------------------------------
 
@@ -1160,10 +1210,10 @@ color_1dlut color_1dlut_inst
 (
   .clk(hdmi_clk),
 
-  .out_G1(out_G1),
-  .out_R1(out_R1),
-  .out_B1(out_B1),
-  .out_G2(out_G2),
+  .G1_10b(G1_dark_10b),
+  .R1_10b(R1_dark_10b),
+  .B1_10b(B1_dark_10b),
+  .G2_10b(G2_dark_10b),
 
   .lut_g1_rdata(lut_g1_rdata),
   .lut_r1_rdata(lut_r1_rdata),
@@ -1210,7 +1260,7 @@ color_3dlut color_3dlut_inst
 );
 // -------------------------------------------------------------------------------------------------
 
-// Color outputs.
+// UI mix into final outputs.
 // -------------------------------------------------------------------------------------------------
 ui_mixer ui_mixer_inst
 (
@@ -1221,9 +1271,9 @@ ui_mixer ui_mixer_inst
   .G_8b(G_8b),
   .B_8b(B_8b),
   
-  .h_count(h_count[7]),
-  .v_count(v_count[7]),
-  .inViewport(inViewportP[5]),
+  .h_count(h_count[8]),
+  .v_count(v_count[8]),
+  .inViewport(inViewportP[6]),
   
   .top_ui_enabled(top_ui_enabled),
   .bot_ui_enabled(bot_ui_enabled),

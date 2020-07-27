@@ -88,7 +88,7 @@ u16 uiRowY0(u8 row);
 u32 * const uiControl = (u32 *)((u64) 0xA0100050);
 u32 * const uiPinState = (u32 *)((u64) 0xFF0A0068);
 u32 * const gpioPinState = (u32 *)((u64) 0xFF0A006C);
-const u32 uiBaseAddr[] = {0xA0158000, 0xA0160000, 0xA0168000};
+const u32 uiBaseAddr[] = {0xA0168000, 0xA0170000, 0xA0178000};
 const u16 uiW[] = {1024, 1024, 128};
 const u16 uiH[] = {32, 32, 256};
 

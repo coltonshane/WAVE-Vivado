@@ -124,16 +124,18 @@ u32 hdmiActive = 0;
 // Private Global Variables --------------------------------------------------------------------------------------------
 
 HDMI_s * const hdmi = (HDMI_s * const) 0xA0100000;
-u32 * const lutG1 = (u32 * const) 0xA0108000;
-u32 * const lutR1 = (u32 * const) 0xA0110000;
-u32 * const lutB1 = (u32 * const) 0xA0118000;
-u32 * const lutG2 = (u32 * const) 0xA0120000;
-u32 * const lut3dC30R = (u32 * const) 0xA0128000;
-u32 * const lut3dC74R = (u32 * const) 0xA0130000;
-u32 * const lut3dC30G = (u32 * const) 0xA0138000;
-u32 * const lut3dC74G = (u32 * const) 0xA0140000;
-u32 * const lut3dC30B = (u32 * const) 0xA0148000;
-u32 * const lut3dC74B = (u32 * const) 0xA0150000;
+u32 * const darkRows =   (u32 * const) 0xA0108000;
+u32 * const darkCols =   (u32 * const) 0xA0110000;
+u32 * const lutG1 =      (u32 * const) 0xA0118000;
+u32 * const lutR1 =      (u32 * const) 0xA0120000;
+u32 * const lutB1 =      (u32 * const) 0xA0128000;
+u32 * const lutG2 =      (u32 * const) 0xA0130000;
+u32 * const lut3dC30R =  (u32 * const) 0xA0138000;
+u32 * const lut3dC74R =  (u32 * const) 0xA0140000;
+u32 * const lut3dC30G =  (u32 * const) 0xA0148000;
+u32 * const lut3dC74G =  (u32 * const) 0xA0150000;
+u32 * const lut3dC30B =  (u32 * const) 0xA0158000;
+u32 * const lut3dC74B =  (u32 * const) 0xA0160000;
 XIicPs Iic;
 
 u8 SendBuffer[256];    /**< Buffer for Transmitting Data */
@@ -487,6 +489,32 @@ void hdmiBuildLUTs(void)
 	iOutB1toG = 0;
 	iOutG2toR = 0;
 	iOutG2toB = 0;
+
+	// Build Dark Row URAM.
+	for(int r = 0; r < 3072; r++)
+	{
+		idx32L = r << 1;
+		idx32H = (r << 1) + 1;
+
+		if(r < 1088)
+		{
+			darkRows[idx32H] = (64 << 16) | 64;
+			darkRows[idx32L] = (64 << 16) | 64;
+		}
+	}
+
+	// Build Dark Col URAM.
+	for(int c = 0; c < 4096; c++)
+	{
+		idx32L = c << 1;
+		idx32H = (c << 1) + 1;
+
+		if(c < 1024)
+		{
+			darkCols[idx32H] = (64 << 16) | 64;
+			darkCols[idx32L] = (64 << 16) | 64;
+		}
+	}
 
 	// Build color-mixing 1DLUTs.
 	for(int iIn = 0; iIn < 4096; iIn++)

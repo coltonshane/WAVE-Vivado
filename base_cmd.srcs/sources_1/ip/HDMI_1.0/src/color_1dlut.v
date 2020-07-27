@@ -35,10 +35,10 @@ module color_1dlut
 (
   input wire clk,
 
-  input wire signed [15:0] out_G1,
-  input wire signed [15:0] out_R1,
-  input wire signed [15:0] out_B1,
-  input wire signed [15:0] out_G2,
+  input wire signed [15:0] G1_10b,
+  input wire signed [15:0] R1_10b,
+  input wire signed [15:0] B1_10b,
+  input wire signed [15:0] G2_10b,
 
   input wire [63:0] lut_g1_rdata,
   input wire [63:0] lut_r1_rdata,
@@ -57,10 +57,10 @@ module color_1dlut
 // LUT index is the 12 LSB of each color field (includes range for clipping).
 always @(posedge clk)
 begin
-  lut_g1_raddr <= out_G1[11:0];
-  lut_r1_raddr <= out_R1[11:0];
-  lut_b1_raddr <= out_B1[11:0];
-  lut_g2_raddr <= out_G2[11:0];
+  lut_g1_raddr <= G1_10b[11:0];
+  lut_r1_raddr <= R1_10b[11:0];
+  lut_b1_raddr <= B1_10b[11:0];
+  lut_g2_raddr <= G2_10b[11:0];
 end
 
 // Separate out mixer channels.
