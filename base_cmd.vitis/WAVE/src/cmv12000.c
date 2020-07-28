@@ -206,8 +206,8 @@ void cmvApplyCameraState(void)
 		CMV_Settings_W.Setting_3 = 128;
 		CMV_Settings_W.Setting_4 = 128;
 		CMV_Settings_W.Setting_5 = 128;
-		CMV_Settings_W.Offset_bot = 480;
-		CMV_Settings_W.Offset_top = 480;
+		CMV_Settings_W.Offset_bot = 432;
+		CMV_Settings_W.Offset_top = 432;
 		CMV_Settings_W.Reg_98 = 44812;
 		CMV_Settings_W.Setting_6 = 789;
 		CMV_Settings_W.Setting_7 = 84;
@@ -224,8 +224,8 @@ void cmvApplyCameraState(void)
 		CMV_Settings_W.Setting_3 = 143;
 		CMV_Settings_W.Setting_4 = 143;
 		CMV_Settings_W.Setting_5 = 71;
-		CMV_Settings_W.Offset_bot = 520;
-		CMV_Settings_W.Offset_top = 520;
+		CMV_Settings_W.Offset_bot = 480;
+		CMV_Settings_W.Offset_top = 480;
 		CMV_Settings_W.Reg_98 = 44815;
 		CMV_Settings_W.Setting_6 = 798;
 		CMV_Settings_W.Setting_7 = 90;
@@ -250,8 +250,8 @@ void cmvApplyCameraState(void)
 	else if(iExpLines > 0xFFFFFF) { iExpLines = 0xFFFFFF; }
 
 	// Set the multi-slope exposure times to 10% and 1%.
-	iExp_kp1 = iExpLines / 10;
-	iExp_kp2 = iExpLines / 100;
+	iExp_kp1 = iExpLines * 155 / 1000;
+	iExp_kp2 = iExpLines * 24 / 1000;
 
 	CMV_Settings_W.Exp_time_L = (iExpLines & 0xFFFF);
 	CMV_Settings_W.Exp_time_H = (iExpLines >> 16) & 0xFF;
@@ -259,12 +259,16 @@ void cmvApplyCameraState(void)
 	CMV_Settings_W.Exp_kp1_H = (iExp_kp1 >> 16) & 0xFF;
 	CMV_Settings_W.Exp_kp2_L = (iExp_kp2 & 0xFFFF);
 	CMV_Settings_W.Exp_kp2_H = (iExp_kp2 >> 16) & 0xFF;
-	CMV_Settings_W.Number_slopes = 1;
+
+	if(cState.cSetting[CSETTING_FPS]->valArray[cState.cSetting[CSETTING_FPS]->val].fVal == 24.0f)
+	{ CMV_Settings_W.Number_slopes = 3; }
+	else
+	{ CMV_Settings_W.Number_slopes = 1; }
 
 	// Set the frame interval.
 	CMV_Input->frame_interval = tFrame * 60E6;
 
-	CMV_Settings_W.Vtfl = 84 * 128 + 104;
+	CMV_Settings_W.Vtfl = 94 * 128 + 107;
 
 	CMV_Settings_W.PGA_gain = CMV_REG_VAL_PGA_GAIN_X1;
 	CMV_Settings_W.DIG_gain = 4;

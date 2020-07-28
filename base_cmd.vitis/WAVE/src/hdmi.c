@@ -257,10 +257,10 @@ void hdmiInit(void)
 }
 
 u32 skip = 30;
-float debugMultR = 1.0f;
+float debugMultR = 1.2f;
 float debugMultG = 1.0f;
-float debugMultB = 1.0f;
-u32 debugGamma = 0;
+float debugMultB = 1.2f;
+u32 debugGamma = 1;
 u32 debugRebuildLUTs = 0;
 void hdmiService(void)
 {
@@ -491,6 +491,7 @@ void hdmiBuildLUTs(void)
 	iOutG2toB = 0;
 
 	// Build Dark Row URAM.
+	/*
 	for(int r = 0; r < 3072; r++)
 	{
 		idx32L = r << 1;
@@ -515,6 +516,7 @@ void hdmiBuildLUTs(void)
 			darkCols[idx32L] = (64 << 16) | 64;
 		}
 	}
+	*/
 
 	// Build color-mixing 1DLUTs.
 	for(int iIn = 0; iIn < 4096; iIn++)
