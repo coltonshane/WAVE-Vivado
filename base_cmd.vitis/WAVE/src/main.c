@@ -153,6 +153,7 @@ int main()
     usbInit();
     frameInit();
     uiInit();
+    imuInit();
 
     // Main loop.
     while(!triggerShutdown)
