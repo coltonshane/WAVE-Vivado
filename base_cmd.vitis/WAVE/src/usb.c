@@ -28,13 +28,15 @@ THE SOFTWARE.
 #include "xusb_ch9_storage.h"
 #include "xusb_class_storage.h"
 #include "xusb_wrapper.h"
+#include "xiicps.h"
 #include "nvme.h"
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
-// TO-DO: What even is this? It gets passed to a dead-end function. Redefining to minimal size.
-// #define MEMORY_SIZE (64U * 1024U)
-#define MEMORY_SIZE 64U
+// FUSB302 I2C Device
+#define IIC_DEVICE_ID		XPAR_XIICPS_0_DEVICE_ID
+#define IIC_SLAVE_ADDR		0x22
+#define IIC_SCLK_RATE		100000
 
 // GT Lane 0 Initialization
 #define SERDES_PLL_REF_SEL0_OFFSET                                                 0XFD410000
@@ -91,6 +93,10 @@ THE SOFTWARE.
 
 #define SERDES_ICM_CFG0_OFFSET                                                     0XFD410010
 
+// TO-DO: What even is this? It gets passed to a dead-end function. Redefining to minimal size.
+// #define MEMORY_SIZE (64U * 1024U)
+#define MEMORY_SIZE 64U
+
 // Private Type Definitions --------------------------------------------------------------------------------------------
 
 // Private Function Prototypes -----------------------------------------------------------------------------------------
@@ -99,6 +105,7 @@ THE SOFTWARE.
 void usbInitLane0(void);
 void usbInitLane1(void);
 void usbPSU_Mask_Write(unsigned long offset, unsigned long mask, unsigned long val);
+void usbI2CWriteMasked(u8 addr, u8 data, u8 mask);
 
 void BulkOutHandler(void *CallBackRef, u32 RequestedBytes,
 							u32 BytesTxed);
@@ -111,6 +118,11 @@ void BulkInHandler(void *CallBackRef, u32 RequestedBytes,
 
 struct Usb_DevData UsbInstance;
 Usb_Config *UsbConfigPtr;
+
+// FUSB302 I2C
+XIicPs Iic;
+u8 SendBuffer[256];    /**< Buffer for Transmitting Data */
+u8 RecvBuffer[256];    /**< Buffer for Receiving Data */
 
 // Scratch Buffer (OCM)
 u8 Buffer[MEMORY_SIZE] ALIGNMENT_CACHELINE;
@@ -155,11 +167,18 @@ static USBCH9_DATA storage_data = {
 void usbInit(void)
 {
 	// Initialize both GT Lane 0 and GT Lane 1.
-	usbInitLane0();
-	usbInitLane1();
+	// usbInitLane0();
+	// usbInitLane1();
 
 	// TO-DO: Select active GT Lane based on CC levels.
-	usbPSU_Mask_Write(SERDES_ICM_CFG0_OFFSET, 0x00000077U, 0x00000003U);
+	// usbPSU_Mask_Write(SERDES_ICM_CFG0_OFFSET, 0x00000077U, 0x00000003U);
+
+	// Initialize FUSB302 I2C Device and set CC1 pull-down only.
+	XIicPs_Config *Config;
+	Config = XIicPs_LookupConfig(IIC_DEVICE_ID);
+	XIicPs_CfgInitialize(&Iic, Config, Config->BaseAddress);
+	XIicPs_SetSClk(&Iic, IIC_SCLK_RATE);
+	usbI2CWriteMasked(0x02, 0x03, 0x03);
 
 	// Get the disk size from NVMe.
 	VFLASH_NUM_BLOCKS = nvmeGetLBACount();
@@ -271,6 +290,28 @@ void usbPSU_Mask_Write(unsigned long offset, unsigned long mask, unsigned long v
 	RegVal &= ~(mask);
 	RegVal |= (val & mask);
 	Xil_Out32(offset, RegVal);
+}
+
+void usbI2CWriteMasked(u8 addr, u8 data, u8 mask)
+{
+	if(mask == 0x00) { return; }
+
+	SendBuffer[0] = addr;
+
+	if(mask != 0xFF)
+	{
+		// XIicPs_SetOptions(&Iic,XIICPS_REP_START_OPTION);
+		XIicPs_MasterSendPolled(&Iic, SendBuffer, 1, IIC_SLAVE_ADDR);
+		// XIicPs_ClearOptions(&Iic,XIICPS_REP_START_OPTION);
+		XIicPs_MasterRecvPolled(&Iic, RecvBuffer, 1, IIC_SLAVE_ADDR);
+		while (XIicPs_BusIsBusy(&Iic));
+
+		data = (data & mask) | (RecvBuffer[0] & ~mask);
+	}
+
+	SendBuffer[1] = data;
+	XIicPs_MasterSendPolled(&Iic, SendBuffer, 2, IIC_SLAVE_ADDR);
+	while (XIicPs_BusIsBusy(&Iic));
 }
 
 void BulkOutHandler(void *CallBackRef, u32 RequestedBytes,

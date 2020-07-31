@@ -45,7 +45,7 @@ THE SOFTWARE.
 #define OPX_COUNT_DC_EN_OFFFSET_2K		0x24FA
 
 // HDMI PHY I2C Device
-#define IIC_DEVICE_ID		XPAR_XIICPS_0_DEVICE_ID
+#define IIC_DEVICE_ID		XPAR_XIICPS_1_DEVICE_ID
 #define IIC_SLAVE_ADDR		0x39
 #define EDID_SLAVE_ADDR		0x3F
 #define IIC_SCLK_RATE		100000
@@ -136,8 +136,9 @@ u32 * const lut3dC30G =  (u32 * const) 0xA0148000;
 u32 * const lut3dC74G =  (u32 * const) 0xA0150000;
 u32 * const lut3dC30B =  (u32 * const) 0xA0158000;
 u32 * const lut3dC74B =  (u32 * const) 0xA0160000;
-XIicPs Iic;
 
+// HDMI PHY I2C
+XIicPs Iic;
 u8 SendBuffer[256];    /**< Buffer for Transmitting Data */
 u8 RecvBuffer[256];    /**< Buffer for Receiving Data */
 
