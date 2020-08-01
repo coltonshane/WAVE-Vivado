@@ -78,10 +78,6 @@ void imuInit(void)
 
 	u8 test;
 	test = imuRegRead(&Spi1, BMI160_CHIPID);
-	if(test == 0xD1)
-	{
-		test = 0x00;
-	}
 }
 
 // Private Function Definitions ----------------------------------------------------------------------------------------

@@ -120,9 +120,9 @@ struct Usb_DevData UsbInstance;
 Usb_Config *UsbConfigPtr;
 
 // FUSB302 I2C
-XIicPs Iic;
-u8 SendBuffer[256];    /**< Buffer for Transmitting Data */
-u8 RecvBuffer[256];    /**< Buffer for Receiving Data */
+XIicPs usbIic;
+u8 usbIicTx[256];    /**< Buffer for Transmitting Data */
+u8 usbIicRx[256];    /**< Buffer for Receiving Data */
 
 // Scratch Buffer (OCM)
 u8 Buffer[MEMORY_SIZE] ALIGNMENT_CACHELINE;
@@ -176,8 +176,8 @@ void usbInit(void)
 	// Initialize FUSB302 I2C Device and set CC1 pull-down only.
 	XIicPs_Config *Config;
 	Config = XIicPs_LookupConfig(IIC_DEVICE_ID);
-	XIicPs_CfgInitialize(&Iic, Config, Config->BaseAddress);
-	XIicPs_SetSClk(&Iic, IIC_SCLK_RATE);
+	XIicPs_CfgInitialize(&usbIic, Config, Config->BaseAddress);
+	XIicPs_SetSClk(&usbIic, IIC_SCLK_RATE);
 	usbI2CWriteMasked(0x02, 0x03, 0x03);
 
 	// Get the disk size from NVMe.
@@ -296,22 +296,22 @@ void usbI2CWriteMasked(u8 addr, u8 data, u8 mask)
 {
 	if(mask == 0x00) { return; }
 
-	SendBuffer[0] = addr;
+	usbIicTx[0] = addr;
 
 	if(mask != 0xFF)
 	{
 		// XIicPs_SetOptions(&Iic,XIICPS_REP_START_OPTION);
-		XIicPs_MasterSendPolled(&Iic, SendBuffer, 1, IIC_SLAVE_ADDR);
+		XIicPs_MasterSendPolled(&usbIic, usbIicTx, 1, IIC_SLAVE_ADDR);
 		// XIicPs_ClearOptions(&Iic,XIICPS_REP_START_OPTION);
-		XIicPs_MasterRecvPolled(&Iic, RecvBuffer, 1, IIC_SLAVE_ADDR);
-		while (XIicPs_BusIsBusy(&Iic));
+		XIicPs_MasterRecvPolled(&usbIic, usbIicRx, 1, IIC_SLAVE_ADDR);
+		while (XIicPs_BusIsBusy(&usbIic));
 
-		data = (data & mask) | (RecvBuffer[0] & ~mask);
+		data = (data & mask) | (usbIicRx[0] & ~mask);
 	}
 
-	SendBuffer[1] = data;
-	XIicPs_MasterSendPolled(&Iic, SendBuffer, 2, IIC_SLAVE_ADDR);
-	while (XIicPs_BusIsBusy(&Iic));
+	usbIicTx[1] = data;
+	XIicPs_MasterSendPolled(&usbIic, usbIicTx, 2, IIC_SLAVE_ADDR);
+	while (XIicPs_BusIsBusy(&usbIic));
 }
 
 void BulkOutHandler(void *CallBackRef, u32 RequestedBytes,

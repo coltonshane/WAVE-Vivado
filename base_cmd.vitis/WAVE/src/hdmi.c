@@ -138,9 +138,9 @@ u32 * const lut3dC30B =  (u32 * const) 0xA0158000;
 u32 * const lut3dC74B =  (u32 * const) 0xA0160000;
 
 // HDMI PHY I2C
-XIicPs Iic;
-u8 SendBuffer[256];    /**< Buffer for Transmitting Data */
-u8 RecvBuffer[256];    /**< Buffer for Receiving Data */
+XIicPs hdmiIic;
+u8 hdmiIicTx[256];    /**< Buffer for Transmitting Data */
+u8 hdmiIicRx[256];    /**< Buffer for Receiving Data */
 
 s32 hdmiFrame = -1;
 
@@ -247,13 +247,13 @@ void hdmiInit(void)
 	// Initialize HDMI PHY I2C Device
 	XIicPs_Config *Config;
 	Config = XIicPs_LookupConfig(IIC_DEVICE_ID);
-	XIicPs_CfgInitialize(&Iic, Config, Config->BaseAddress);
-	XIicPs_SetSClk(&Iic, IIC_SCLK_RATE);
+	XIicPs_CfgInitialize(&hdmiIic, Config, Config->BaseAddress);
+	XIicPs_SetSClk(&hdmiIic, IIC_SCLK_RATE);
 
 	// Clear buffers.
 	for (int i = 0; i < 16; i++) {
-		SendBuffer[i] = 0;
-		RecvBuffer[i] = 0;
+		hdmiIicTx[i] = 0;
+		hdmiIicRx[i] = 0;
 	}
 }
 
@@ -278,21 +278,21 @@ void hdmiService(void)
 	}
 
 	// Check for HPD and HDMI clock termination.
-	SendBuffer[0] = 0x42;
-	XIicPs_SetOptions(&Iic,XIICPS_REP_START_OPTION);
-	XIicPs_MasterSendPolled(&Iic, SendBuffer, 1, IIC_SLAVE_ADDR);
-	XIicPs_ClearOptions(&Iic,XIICPS_REP_START_OPTION);
-	XIicPs_MasterRecvPolled(&Iic, RecvBuffer, 1, IIC_SLAVE_ADDR);
-	while (XIicPs_BusIsBusy(&Iic));
+	hdmiIicTx[0] = 0x42;
+	XIicPs_SetOptions(&hdmiIic,XIICPS_REP_START_OPTION);
+	XIicPs_MasterSendPolled(&hdmiIic, hdmiIicTx, 1, IIC_SLAVE_ADDR);
+	XIicPs_ClearOptions(&hdmiIic,XIICPS_REP_START_OPTION);
+	XIicPs_MasterRecvPolled(&hdmiIic, hdmiIicRx, 1, IIC_SLAVE_ADDR);
+	while (XIicPs_BusIsBusy(&hdmiIic));
 
-	if(hdmiActive && (RecvBuffer[0] != 0xF0))
+	if(hdmiActive && (hdmiIicRx[0] != 0xF0))
 	{
 		// "Power-down the Tx."
 		hdmiI2CWriteMasked(0x41, 0x40, 0x40);
 
 		hdmiActive = 0;
 	}
-	else if(!hdmiActive && (RecvBuffer[0] == 0xF0))
+	else if(!hdmiActive && (hdmiIicRx[0] == 0xF0))
 	{
 		// "Power-up the Tx (HPD must be high)."
 		hdmiI2CWriteMasked(0x41, 0x00, 0x40);
@@ -424,22 +424,22 @@ void hdmiI2CWriteMasked(u8 addr, u8 data, u8 mask)
 {
 	if(mask == 0x00) { return; }
 
-	SendBuffer[0] = addr;
+	hdmiIicTx[0] = addr;
 
 	if(mask != 0xFF)
 	{
-		XIicPs_SetOptions(&Iic,XIICPS_REP_START_OPTION);
-		XIicPs_MasterSendPolled(&Iic, SendBuffer, 1, IIC_SLAVE_ADDR);
-		XIicPs_ClearOptions(&Iic,XIICPS_REP_START_OPTION);
-		XIicPs_MasterRecvPolled(&Iic, RecvBuffer, 1, IIC_SLAVE_ADDR);
-		while (XIicPs_BusIsBusy(&Iic));
+		XIicPs_SetOptions(&hdmiIic,XIICPS_REP_START_OPTION);
+		XIicPs_MasterSendPolled(&hdmiIic, hdmiIicTx, 1, IIC_SLAVE_ADDR);
+		XIicPs_ClearOptions(&hdmiIic,XIICPS_REP_START_OPTION);
+		XIicPs_MasterRecvPolled(&hdmiIic, hdmiIicRx, 1, IIC_SLAVE_ADDR);
+		while (XIicPs_BusIsBusy(&hdmiIic));
 
-		data = (data & mask) | (RecvBuffer[0] & ~mask);
+		data = (data & mask) | (hdmiIicRx[0] & ~mask);
 	}
 
-	SendBuffer[1] = data;
-	XIicPs_MasterSendPolled(&Iic, SendBuffer, 2, IIC_SLAVE_ADDR);
-	while (XIicPs_BusIsBusy(&Iic));
+	hdmiIicTx[1] = data;
+	XIicPs_MasterSendPolled(&hdmiIic, hdmiIicTx, 2, IIC_SLAVE_ADDR);
+	while (XIicPs_BusIsBusy(&hdmiIic));
 }
 
 void hdmiBuildLUTs(void)
