@@ -25,8 +25,9 @@ THE SOFTWARE.
 // Include Headers -----------------------------------------------------------------------------------------------------
 
 #include "main.h"
-#include "gpio.h"
 #include "hdmi.h"
+#include "hdmi_dark_frame.h"
+#include "gpio.h"
 #include "frame.h"
 #include "xiicps.h"
 #include "camera_state.h"
@@ -124,8 +125,6 @@ u32 hdmiActive = 0;
 // Private Global Variables --------------------------------------------------------------------------------------------
 
 HDMI_s * const hdmi = (HDMI_s * const) 0xA0100000;
-u32 * const darkRows =   (u32 * const) 0xA0108000;
-u32 * const darkCols =   (u32 * const) 0xA0110000;
 u32 * const lutG1 =      (u32 * const) 0xA0118000;
 u32 * const lutR1 =      (u32 * const) 0xA0120000;
 u32 * const lutB1 =      (u32 * const) 0xA0128000;
@@ -220,8 +219,12 @@ void isrVSYNC(void * CallbackRef)
 
 void hdmiInit(void)
 {
+	u16 hFrame = 2176;
+
 	// hdmiWriteTestPattern4K();
 	// hdmiWriteTestPattern2K();
+	hdmiDarkFrameTest();
+	hdmiDarkFrameApply((3072 - hFrame) / 2, hFrame);
 	hdmiBuildLUTs();
 
 	// Load HDMI peripheral registers with initial values.
@@ -258,9 +261,9 @@ void hdmiInit(void)
 }
 
 u32 skip = 30;
-float debugMultR = 1.2f;
+float debugMultR = 1.0f;
 float debugMultG = 1.0f;
-float debugMultB = 1.2f;
+float debugMultB = 1.0f;
 u32 debugGamma = 1;
 u32 debugRebuildLUTs = 0;
 void hdmiService(void)
@@ -490,34 +493,6 @@ void hdmiBuildLUTs(void)
 	iOutB1toG = 0;
 	iOutG2toR = 0;
 	iOutG2toB = 0;
-
-	// Build Dark Row URAM.
-	/*
-	for(int r = 0; r < 3072; r++)
-	{
-		idx32L = r << 1;
-		idx32H = (r << 1) + 1;
-
-		if(r < 1088)
-		{
-			darkRows[idx32H] = (64 << 16) | 64;
-			darkRows[idx32L] = (64 << 16) | 64;
-		}
-	}
-
-	// Build Dark Col URAM.
-	for(int c = 0; c < 4096; c++)
-	{
-		idx32L = c << 1;
-		idx32H = (c << 1) + 1;
-
-		if(c < 1024)
-		{
-			darkCols[idx32H] = (64 << 16) | 64;
-			darkCols[idx32L] = (64 << 16) | 64;
-		}
-	}
-	*/
 
 	// Build color-mixing 1DLUTs.
 	for(int iIn = 0; iIn < 4096; iIn++)

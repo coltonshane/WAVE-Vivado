@@ -1,7 +1,7 @@
 /*
-HDMI Driver Include
+HDMI Dark Frame Subtraction Include
 
-Copyright (C) 2020 by Shane W. Colton
+Copyright (C) 2019 by Shane W. Colton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef __HDMI_INCLUDE__
-#define __HDMI_INCLUDE__
+#ifndef __HDMI_DARK_FRAME_INCLUDE__
+#define __HDMI_DARK_FRAME_INCLUDE__
 
 // Include Headers -----------------------------------------------------------------------------------------------------
 
@@ -31,11 +31,16 @@ THE SOFTWARE.
 
 // Public Type Definitions ---------------------------------------------------------------------------------------------
 
-// Public Function Prototypes ------------------------------------------------------------------------------------------
+// Load a dark frame from flash into the active dark frame in RAM.
+void hdmiDarkFrameLoad(u8 index);
 
-void hdmiInit(void);
-void hdmiService(void);
-void hdmiApplyCameraState(void);
+// Build a test dark frame in RAM that darkens the top half and left half of the image.
+void hdmiDarkFrameTest(void);
+
+// Apply the active dark frame in RAM to the HDMI peripheral dark frame URAMs.
+void hdmiDarkFrameApply(u16 yStart, u16 height);
+
+// Public Function Prototypes ------------------------------------------------------------------------------------------
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
 
