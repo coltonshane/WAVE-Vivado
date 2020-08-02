@@ -38,6 +38,7 @@
 #include "encoder.h"
 #include "hdmi.h"
 #include "ui.h"
+#include "imu.h"
 #include "usb.h"
 #include "pcie.h"
 #include "nvme.h"

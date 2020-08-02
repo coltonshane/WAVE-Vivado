@@ -37,6 +37,9 @@ void hdmiDarkFrameLoad(u8 index);
 // Build a test dark frame in RAM that darkens the top half and left half of the image.
 void hdmiDarkFrameTest(void);
 
+// Adapt the dark frame in RAM based on the last captured frame.
+void hdmiDarkFrameAdapt(s32 frame, u32 nSamples, s16 targetBlack);
+
 // Apply the active dark frame in RAM to the HDMI peripheral dark frame URAMs.
 void hdmiDarkFrameApply(u16 yStart, u16 height);
 

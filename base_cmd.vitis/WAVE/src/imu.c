@@ -75,9 +75,6 @@ void imuInit(void)
 	XSpiPs_SetOptions(&Spi1, XSPIPS_MASTER_OPTION | XSPIPS_FORCE_SSELECT_OPTION);
 	XSpiPs_SetClkPrescaler(&Spi1, XSPIPS_CLK_PRESCALE_64);
 	XSpiPs_SetSlaveSelect(&Spi1, 0x0F);
-
-	u8 test;
-	test = imuRegRead(&Spi1, BMI160_CHIPID);
 }
 
 // Private Function Definitions ----------------------------------------------------------------------------------------

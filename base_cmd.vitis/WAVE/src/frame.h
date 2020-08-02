@@ -86,11 +86,10 @@ void frameApplyCameraState(void);
 void frameCreateClip(void);
 void frameAddToClip(void);
 void frameCloseClip(void);
-int frameLastCaptured(void);
+int frameLastCapturedIndex(void);
+FrameHeader_s * frameGetHeader(u32 iFrame);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
-
-extern FrameHeader_s * fhBuffer;
 
 extern u8 frameCompressionProfile;
 extern float frameCompressionRatio;

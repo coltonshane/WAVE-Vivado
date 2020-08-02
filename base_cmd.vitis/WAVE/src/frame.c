@@ -49,13 +49,13 @@ void frameUpdateTemps(void);
 
 // Public Global Variables ---------------------------------------------------------------------------------------------
 
-// Frame header circular buffer in external DDR4 RAM.
-FrameHeader_s * fhBuffer = (FrameHeader_s *) (0x18000000);
-
 u8 frameCompressionProfile = 7;
 float frameCompressionRatio = 5.0f;
 
 // Private Global Variables --------------------------------------------------------------------------------------------
+
+// Frame header circular buffer in external DDR4 RAM.
+FrameHeader_s * fhBuffer = (FrameHeader_s *) (0x18000000);
 
 u32 nSubframesIn = 0xFFFFFFFF;
 s32 nFramesIn = -1;
@@ -209,11 +209,16 @@ void frameCloseClip(void)
 	XGpioPs_WritePin(&Gpio, REC_LED_PIN, 0);
 }
 
-int frameLastCaptured(void)
+int frameLastCapturedIndex(void)
 {
 	if(nFramesIn < 1) { return -1; }
 
 	return (nFramesIn - 1) % FH_BUFFER_SIZE;
+}
+
+FrameHeader_s * frameGetHeader(u32 iFrame)
+{
+	return (FrameHeader_s *)(&fhBuffer[iFrame % FH_BUFFER_SIZE]);
 }
 
 // Private Function Definitions ----------------------------------------------------------------------------------------

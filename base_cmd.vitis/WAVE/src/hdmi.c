@@ -174,12 +174,12 @@ void isrVSYNC(void * CallbackRef)
 
 	hdmi->control &= ~HDMI_CTRL_VSYNC_IF;	// Clear the VSYNC interrupt flag.
 
-	hdmiFrame = frameLastCaptured();
+	hdmiFrame = frameLastCapturedIndex();
 
 	if(hdmiFrame >= 0)
 	{
 		// Take a snapshot of the frame header for the HDMI frame to be displayed, to consolidate RAM read access.
-		memcpy(&fhSnapshot, &fhBuffer[hdmiFrame], sizeof(FrameHeader_s));
+		memcpy(&fhSnapshot, frameGetHeader(hdmiFrame), sizeof(FrameHeader_s));
 
 		// Compute the bits to be discarded for each bitfield.
 		for(u8 i = 0; i < 4; i++)
@@ -219,12 +219,9 @@ void isrVSYNC(void * CallbackRef)
 
 void hdmiInit(void)
 {
-	u16 hFrame = 2176;
-
 	// hdmiWriteTestPattern4K();
 	// hdmiWriteTestPattern2K();
-	hdmiDarkFrameTest();
-	hdmiDarkFrameApply((3072 - hFrame) / 2, hFrame);
+	hdmiDarkFrameApply(448, 2176);
 	hdmiBuildLUTs();
 
 	// Load HDMI peripheral registers with initial values.
@@ -264,8 +261,9 @@ u32 skip = 30;
 float debugMultR = 1.0f;
 float debugMultG = 1.0f;
 float debugMultB = 1.0f;
-u32 debugGamma = 1;
+u32 debugGamma = 0;
 u32 debugRebuildLUTs = 0;
+u32 debugAdaptDarkFrame = 0;
 void hdmiService(void)
 {
 	if(skip > 0)
@@ -278,6 +276,12 @@ void hdmiService(void)
 	{
 		hdmiBuildLUTs();
 		debugRebuildLUTs = 0;
+	}
+
+	if(debugAdaptDarkFrame == 1)
+	{
+		hdmiDarkFrameAdapt(hdmiFrame, 1024, 256);
+		hdmiDarkFrameApply(448, 2176);
 	}
 
 	// Check for HPD and HDMI clock termination.
