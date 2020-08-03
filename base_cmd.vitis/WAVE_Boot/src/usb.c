@@ -1,7 +1,7 @@
 /*
-USB Mass Storage Device Driver
+WAVE Bootloader USB Mass Storage Device Driver
 
-Copyright (C) 2019 by Shane W. Colton
+Copyright (C) 2020 by Shane W. Colton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,12 +24,12 @@ THE SOFTWARE.
 
 // Include Headers -----------------------------------------------------------------------------------------------------
 
+#include "main.h"
 #include "usb.h"
 #include "xusb_ch9_storage.h"
 #include "xusb_class_storage.h"
 #include "xusb_wrapper.h"
 #include "xiicps.h"
-#include "nvme.h"
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
@@ -128,13 +128,13 @@ u8 usbIicRx[256];    /**< Buffer for Receiving Data */
 // Scratch Buffer (OCM)
 u8 Buffer[MEMORY_SIZE] ALIGNMENT_CACHELINE;
 
+u8 VirtFlash[VFLASH_SIZE] ALIGNMENT_CACHELINE;
 USB_CBW CBW ALIGNMENT_CACHELINE;
 USB_CSW CSW ALIGNMENT_CACHELINE;
-u32 VFLASH_NUM_BLOCKS;
 
 u8	Phase;
 u32	rxBytesLeft;
-u8	*VirtFlashWritePointer = (u8 *)((u64) USB2SSD_BUFFER_ADDR);
+u8	*VirtFlashWritePointer = VirtFlash;
 
 /* Initialize a DFU data structure */
 static USBCH9_DATA storage_data = {
@@ -180,9 +180,6 @@ void usbInit(void)
 	XIicPs_CfgInitialize(&usbIic, Config, Config->BaseAddress);
 	XIicPs_SetSClk(&usbIic, IIC_SCLK_RATE);
 	usbI2CWriteMasked(0x02, 0x03, 0x03);
-
-	// Get the disk size from NVMe.
-	VFLASH_NUM_BLOCKS = nvmeGetLBACount();
 
 	UsbConfigPtr = LookupConfig(USB_DEVICE_ID);
 	CfgInitialize(&UsbInstance, UsbConfigPtr, UsbConfigPtr->BaseAddress);
@@ -315,7 +312,6 @@ void usbI2CWriteMasked(u8 addr, u8 data, u8 mask)
 * @note		None.
 *
 *****************************************************************************/
-
 void BulkOutHandler(void *CallBackRef, u32 RequestedBytes,
 							u32 BytesTxed)
 {
@@ -327,21 +323,9 @@ void BulkOutHandler(void *CallBackRef, u32 RequestedBytes,
 		/* WRITE command */
 		switch (CBW.CBWCB[0U]) {
 		case USB_RBC_WRITE:
-		{
-			// NVMe Bridge Write
-			// ----------------------------------------------------------------------------
-			u32 lbOffset = htonl(((SCSI_READ_WRITE *) &CBW.CBWCB)->block);
-			u32 wLength = BytesTxed;
-			nvmeWrite(VirtFlashWritePointer, lbOffset, wLength >> 9);
-			while(nvmeGetIOSlip() > 0)
-			{
-				nvmeServiceIOCompletions(16);
-			}
-			// ----------------------------------------------------------------------------
 			VirtFlashWritePointer += BytesTxed;
 			rxBytesLeft -= BytesTxed;
 			break;
-		}
 		default:
 			break;
 		}
@@ -378,4 +362,3 @@ void BulkInHandler(void *CallBackRef, u32 RequestedBytes,
 							(u8*)&CBW, sizeof(CBW));
 	}
 }
-

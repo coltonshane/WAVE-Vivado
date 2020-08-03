@@ -27,6 +27,7 @@ THE SOFTWARE.
 #include "main.h"
 #include "gpio.h"
 #include "supervisor.h"
+#include "usb.h"
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
@@ -69,7 +70,12 @@ int main()
 		if(tEncSwDown_ms > 1000)
 		{
 			print("Entered firmware update mode.\n\r");
-			while(1);
+			usbInit();
+			while(1)
+			{
+				usbPoll();
+				usleep(1000);
+			}
 		}
 	}
 
