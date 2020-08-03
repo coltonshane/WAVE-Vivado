@@ -27,6 +27,7 @@ THE SOFTWARE.
 #include "main.h"
 #include "gpio.h"
 #include "supervisor.h"
+#include "flash.h"
 #include "usb.h"
 #include "fs.h"
 
@@ -86,9 +87,11 @@ int main()
 	}
 
 	print("Entered firmware update mode.\n\r");
+	flashInit();
 	usbInit();
 	fsFormat();
 	fsCreateDir();
+	usbStart();
 	while(1)
 	{
 		switch(blState)
@@ -116,18 +119,19 @@ int main()
 				{ blState = BL_STATE_FLASHING; }
 				else
 				{ blState = BL_STATE_ERROR; }
-				usbStart();
 			}
 			break;
 		case BL_STATE_ERROR:
 			gpioServiceLED(LED_ON);
+			usbStart();					// To present error log and allow retry.
 			if(gpioEncSwDown())
 			{
 				blState = BL_STATE_INIT;
 			}
 			break;
 		case BL_STATE_FLASHING:
-			gpioServiceLED(LED_FAST_FLASH);
+			flashWrite(APPLICATION_FLASH_OFFSET, fwBinary, fwSize);
+			goto bl_exit;
 			break;
 		}
 

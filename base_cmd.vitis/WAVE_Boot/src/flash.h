@@ -1,5 +1,5 @@
 /*
-WAVE Bootloader File System Wrapper Include
+WAVE Bootloader QSPI Flash Driver Include
 
 Copyright (C) 2020 by Shane W. Colton
 
@@ -22,28 +22,20 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef __FS_INCLUDE__
-#define __FS_INCLUDE__
+#ifndef __FLASH_INCLUDE__
+#define __FLASH_INCLUDE__
 
 // Include Headers -----------------------------------------------------------------------------------------------------
 
 // Public Pre-Processor Definitions ------------------------------------------------------------------------------------
 
-#define MAX_FW_SIZE 0x2800000 // 40MiB
-
 // Public Type Definitions ---------------------------------------------------------------------------------------------
 
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
-void fsInit(void);
-void fsFormat(void);
-void fsCreateDir(void);
-u32 fsValidateFiles(void);
-void fsDeinit(void);
+void flashInit(void);
+void flashWrite(u32 offset, u8 * data, u32 size);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
-
-extern u8 fwBinary[MAX_FW_SIZE];
-extern u32 fwSize;
 
 #endif

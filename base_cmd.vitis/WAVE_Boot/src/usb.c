@@ -198,7 +198,8 @@ void usbInit(void)
 											XUSBPSU_DEVTEN_USBRSTEN |
 											XUSBPSU_DEVTEN_DISCONNEVTEN);
 
-	Usb_Start(UsbInstance.PrivateData);
+	// Defer start until after file system is created.
+	// Usb_Start(UsbInstance.PrivateData);
 }
 
 void usbStart(void)

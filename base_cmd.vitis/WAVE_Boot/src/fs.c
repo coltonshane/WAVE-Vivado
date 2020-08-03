@@ -36,6 +36,9 @@ THE SOFTWARE.
 
 // Public Global Variables ---------------------------------------------------------------------------------------------
 
+u8 fwBinary[MAX_FW_SIZE];
+u32 fwSize = 0;
+
 // Private Global Variables --------------------------------------------------------------------------------------------
 
 FATFS fs;
@@ -135,6 +138,13 @@ u32 fsValidateFiles(void)
 		return 0;
 	}
 
+	// N. Copy the firmware binary into RAM and note its size.
+	f_lseek(&filFirmware, 0x0);
+	f_read(&filFirmware, &fwBinary, MAX_FW_SIZE, &fwSize);
+	f_close(&filFirmware);
+	xil_printf("Copied %d bytes of firmware into RAM.\r\n", fwSize);
+
+	f_close(&filLog);
 	return 1;
 }
 
