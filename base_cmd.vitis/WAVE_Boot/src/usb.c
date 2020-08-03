@@ -201,6 +201,16 @@ void usbInit(void)
 	Usb_Start(UsbInstance.PrivateData);
 }
 
+void usbStart(void)
+{
+	XUsbPsu_Start(UsbInstance.PrivateData);
+}
+
+void usbStop(void)
+{
+	XUsbPsu_Stop(UsbInstance.PrivateData);
+}
+
 void usbPoll(void)
 {
 	UsbPollHandler(UsbInstance.PrivateData);

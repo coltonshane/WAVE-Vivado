@@ -42,6 +42,8 @@ XGpioPs Gpio;
 
 XGpioPs_Config *gpioConfig;
 
+u32 ledCounter = 0;
+
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 
 // Public Function Definitions -----------------------------------------------------------------------------------------
@@ -72,6 +74,33 @@ void gpioInit(void)
 u32 gpioEncSwDown(void)
 {
 	return (1 - XGpioPs_ReadPin(&Gpio, ENC_SW_PIN));
+}
+
+void gpioServiceLED(ledSignalType ledSignal)
+{
+	switch(ledSignal)
+	{
+	case LED_OFF:
+		XGpioPs_WritePin(&Gpio, REC_LED_PIN, 0);
+		break;
+	case LED_SLOW_FLASH:
+		if((ledCounter % 2000) < 1000)
+		{ XGpioPs_WritePin(&Gpio, REC_LED_PIN, 1); }
+		else
+		{ XGpioPs_WritePin(&Gpio, REC_LED_PIN, 0); }
+		break;
+	case LED_FAST_FLASH:
+		if((ledCounter % 250) < 125)
+		{ XGpioPs_WritePin(&Gpio, REC_LED_PIN, 1); }
+		else
+		{ XGpioPs_WritePin(&Gpio, REC_LED_PIN, 0); }
+		break;
+	case LED_ON:
+		XGpioPs_WritePin(&Gpio, REC_LED_PIN, 1);
+		break;
+	}
+
+	ledCounter++;
 }
 
 // Private Function Definitions ----------------------------------------------------------------------------------------

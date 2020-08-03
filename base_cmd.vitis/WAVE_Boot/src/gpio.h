@@ -64,10 +64,19 @@ THE SOFTWARE.
 
 // Public Type Definitions ---------------------------------------------------------------------------------------------
 
+typedef enum
+{
+	LED_OFF,
+	LED_SLOW_FLASH,
+	LED_FAST_FLASH,
+	LED_ON
+} ledSignalType;
+
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
 void gpioInit(void);
 u32 gpioEncSwDown(void);
+void gpioServiceLED(ledSignalType ledSignal);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
 

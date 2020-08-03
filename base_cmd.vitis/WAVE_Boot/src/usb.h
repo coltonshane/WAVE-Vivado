@@ -36,6 +36,8 @@ THE SOFTWARE.
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
 void usbInit(void);
+void usbStart(void);
+void usbStop(void);
 void usbPoll(void);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------

@@ -36,6 +36,15 @@ THE SOFTWARE.
 
 // Private Type Definitions --------------------------------------------------------------------------------------------
 
+typedef enum
+{
+	BL_STATE_INIT,
+	BL_STATE_IDLE_ENC_SW_UP,
+	BL_STATE_IDLE_ENC_SW_DOWN,
+	BL_STATE_FLASHING,
+	BL_STATE_ERROR
+} BootloaderStateType;
+
 // Private Function Prototypes -----------------------------------------------------------------------------------------
 
 void resetToApplication(void);
@@ -47,6 +56,8 @@ void resetToApplication(void);
 // Registers
 u32 * const CSU_MULTI_BOOT = (u32 * const) 0xFFCA0010;
 u32 * const RESET_CTRL = (u32 * const) 0xFF5E0218;
+
+BootloaderStateType blState = BL_STATE_INIT;
 
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 
@@ -63,26 +74,73 @@ int main()
 
 	print("WAVE Hello! Bootloader entry.\n\r");
 
-	while(gpioEncSwDown())
+	while(gpioEncSwDown() & (tEncSwDown_ms < 1000))
 	{
 		usleep(1000);
 		tEncSwDown_ms++;
-
-		if(tEncSwDown_ms > 1000)
-		{
-			print("Entered firmware update mode.\n\r");
-			usbInit();
-			fsFormat();
-			while(1)
-			{
-				usbPoll();
-				usleep(1000);
-			}
-		}
 	}
+
+	if(tEncSwDown_ms < 1000)
+	{
+		goto bl_exit;
+	}
+
+	print("Entered firmware update mode.\n\r");
+	usbInit();
+	fsFormat();
+	fsCreateDir();
+	while(1)
+	{
+		switch(blState)
+		{
+		case BL_STATE_INIT:
+			gpioServiceLED(LED_SLOW_FLASH);
+			if(!gpioEncSwDown())
+			{
+				blState = BL_STATE_IDLE_ENC_SW_UP;
+			}
+			break;
+		case BL_STATE_IDLE_ENC_SW_UP:
+			gpioServiceLED(LED_SLOW_FLASH);
+			if(gpioEncSwDown())
+			{
+				blState = BL_STATE_IDLE_ENC_SW_DOWN;
+			}
+			break;
+		case BL_STATE_IDLE_ENC_SW_DOWN:
+			gpioServiceLED(LED_SLOW_FLASH);
+			if(!gpioEncSwDown())
+			{
+				usbStop();
+				if(fsValidateFiles())
+				{ blState = BL_STATE_FLASHING; }
+				else
+				{ blState = BL_STATE_ERROR; }
+				usbStart();
+			}
+			break;
+		case BL_STATE_ERROR:
+			gpioServiceLED(LED_ON);
+			if(gpioEncSwDown())
+			{
+				blState = BL_STATE_INIT;
+			}
+			break;
+		case BL_STATE_FLASHING:
+			gpioServiceLED(LED_FAST_FLASH);
+			break;
+		}
+
+		usbPoll();
+		usleep(1000);
+	}
+
+bl_exit:
 
 	print("WAVE Goodbye! Bootloader exit.\n\r");
 	resetToApplication();
+
+	// Below here should not be reached.
 
     cleanup_platform();
     return 0;

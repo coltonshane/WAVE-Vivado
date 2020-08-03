@@ -35,6 +35,8 @@ THE SOFTWARE.
 
 void fsInit(void);
 void fsFormat(void);
+void fsCreateDir(void);
+u32 fsValidateFiles(void);
 void fsDeinit(void);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
