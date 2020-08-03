@@ -24,7 +24,6 @@ THE SOFTWARE.
 
 // Include Headers -----------------------------------------------------------------------------------------------------
 
-#include "main.h"
 #include "usb.h"
 #include "xusb_ch9_storage.h"
 #include "xusb_class_storage.h"
@@ -115,6 +114,8 @@ void BulkInHandler(void *CallBackRef, u32 RequestedBytes,
 
 // Public Global Variables ---------------------------------------------------------------------------------------------
 
+u8 VirtFlash[VFLASH_SIZE] ALIGNMENT_CACHELINE;
+
 // Private Global Variables --------------------------------------------------------------------------------------------
 
 struct Usb_DevData UsbInstance;
@@ -128,7 +129,6 @@ u8 usbIicRx[256];    /**< Buffer for Receiving Data */
 // Scratch Buffer (OCM)
 u8 Buffer[MEMORY_SIZE] ALIGNMENT_CACHELINE;
 
-u8 VirtFlash[VFLASH_SIZE] ALIGNMENT_CACHELINE;
 USB_CBW CBW ALIGNMENT_CACHELINE;
 USB_CSW CSW ALIGNMENT_CACHELINE;
 

@@ -1,5 +1,5 @@
 /*
-WAVE Bootloader Main Module
+WAVE Bootloader File System Wrapper
 
 Copyright (C) 2020 by Shane W. Colton
 
@@ -25,78 +25,55 @@ THE SOFTWARE.
 // Include Headers -----------------------------------------------------------------------------------------------------
 
 #include "main.h"
-#include "gpio.h"
-#include "supervisor.h"
-#include "usb.h"
 #include "fs.h"
+#include "ff.h"
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
-
-#define APPLICATION_FLASH_OFFSET 0x1800000
 
 // Private Type Definitions --------------------------------------------------------------------------------------------
 
 // Private Function Prototypes -----------------------------------------------------------------------------------------
 
-void resetToApplication(void);
-
 // Public Global Variables ---------------------------------------------------------------------------------------------
 
 // Private Global Variables --------------------------------------------------------------------------------------------
 
-// Registers
-u32 * const CSU_MULTI_BOOT = (u32 * const) 0xFFCA0010;
-u32 * const RESET_CTRL = (u32 * const) 0xFF5E0218;
+FATFS fs;
+FIL fil;
 
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 
 // Public Function Definitions -----------------------------------------------------------------------------------------
 
-int main()
+void fsInit(void)
 {
-	u32 tEncSwDown_ms = 0;
+	FRESULT res;
 
-	init_platform();
-	Xil_DCacheDisable();
-	gpioInit();
-	supervisorInit();
+	res = f_mount(&fs, "", 0);
+	if(res) { xil_printf("Virtual drive mount failed.\r\n"); }
+	else { xil_printf("Virtual drive mount successful.\r\n"); }
+}
 
-	print("WAVE Hello! Bootloader entry.\n\r");
+void fsFormat(void)
+{
+	FRESULT res;
+	MKFS_PARM opt;
+	BYTE work[FF_MAX_SS];
 
-	while(gpioEncSwDown())
-	{
-		usleep(1000);
-		tEncSwDown_ms++;
+	f_mount(0, "", 0);
 
-		if(tEncSwDown_ms > 1000)
-		{
-			print("Entered firmware update mode.\n\r");
-			usbInit();
-			fsFormat();
-			while(1)
-			{
-				usbPoll();
-				usleep(1000);
-			}
-		}
-	}
+	opt.fmt = FM_FAT32;
+	// opt.au_size = 0x10000;
+	opt.align = 1;
+	opt.n_fat = 1;
+	opt.n_root = 512;
+	res = f_mkfs("", &opt, work, sizeof work);
+	if(res) { xil_printf("Virtual drive format failed.\r\n"); }
+	else { xil_printf("Virtual drive format successful.\r\n"); }
 
-	print("WAVE Goodbye! Bootloader exit.\n\r");
-	resetToApplication();
-
-    cleanup_platform();
-    return 0;
+	res = f_mount(&fs, "", 0);
+	if(res) { xil_printf("Virtual drive mount failed.\r\n"); }
+	else { xil_printf("Virtual drive mount successful.\r\n"); }
 }
 
 // Private Function Definitions ----------------------------------------------------------------------------------------
-
-void resetToApplication(void)
-{
-	// Set multi-boot register to application offset. Offset unit is [32KiB].
-	*CSU_MULTI_BOOT = APPLICATION_FLASH_OFFSET >> 15;
-
-	// Trigger a soft reset.
-	*RESET_CTRL |= 0x10;
-
-	while(1);
-}

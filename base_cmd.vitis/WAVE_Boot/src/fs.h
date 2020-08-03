@@ -1,5 +1,5 @@
 /*
-WAVE Bootloader USB Mass Storage Device Driver Include
+WAVE Bootloader File System Wrapper Include
 
 Copyright (C) 2020 by Shane W. Colton
 
@@ -22,12 +22,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef __USB_INCLUDE__
-#define __USB_INCLUDE__
+#ifndef __FS_INCLUDE__
+#define __FS_INCLUDE__
 
 // Include Headers -----------------------------------------------------------------------------------------------------
-
-#include "main.h"
 
 // Public Pre-Processor Definitions ------------------------------------------------------------------------------------
 
@@ -35,11 +33,10 @@ THE SOFTWARE.
 
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
-void usbInit(void);
-void usbPoll(void);
+void fsInit(void);
+void fsFormat(void);
+void fsDeinit(void);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
-
-extern u8 VirtFlash[];
 
 #endif
