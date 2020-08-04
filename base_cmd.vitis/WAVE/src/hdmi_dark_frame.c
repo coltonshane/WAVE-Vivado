@@ -115,6 +115,7 @@ void hdmiDarkFrameTest(void)
 	}
 }
 
+/*
 void hdmiDarkFrameAdapt(s32 frame, u32 nSamples, s16 targetBlack)
 {
 	u16 wFrame, hFrame;
@@ -153,7 +154,6 @@ void hdmiDarkFrameAdapt(s32 frame, u32 nSamples, s16 targetBlack)
 		yAdapt = (((wLL2 * 3 / 4) - hLL2) / 2 + ySample) * hAdapt;
 
 		// Adapt Rows
-		/*
 		for(int y = yAdapt; y < (yAdapt + hAdapt); y++)
 		{
 			// G1
@@ -173,7 +173,6 @@ void hdmiDarkFrameAdapt(s32 frame, u32 nSamples, s16 targetBlack)
 			if (error > 0) { dfActive.row[y].G2--; }
 			else if (error < 0) { dfActive.row[y].G2++; }
 		}
-		*/
 
 		// Adapt Columns
 		for(int x = xAdapt; x < (xAdapt + wAdapt); x++)
@@ -202,6 +201,7 @@ void hdmiDarkFrameAdapt(s32 frame, u32 nSamples, s16 targetBlack)
 
 	}
 }
+*/
 
 void hdmiDarkFrameApply(u16 yStart, u16 height)
 {

@@ -46,7 +46,7 @@ module HDMI_v1_0
 
 	// Parameters for AXI-Lite Slave.
 	parameter integer C_S00_AXI_DATA_WIDTH = 32,
-	parameter integer C_S00_AXI_ADDR_WIDTH = 19,
+	parameter integer C_S00_AXI_ADDR_WIDTH = 20,
 	
   // Parameters of AXI Master.
   parameter C_M00_AXI_TARGET_SLAVE_BASE_ADDR = 32'h00000000,
@@ -216,30 +216,39 @@ wire [63:0] lut_b1_rdata;
 wire [11:0] lut_g2_raddr;
 wire [63:0] lut_g2_rdata;
 // URAM 06
+wire [11:0] lut_r_raddr;
+wire [63:0] lut_r_rdata;
+// URAM 07
+wire [11:0] lut_g_raddr;
+wire [63:0] lut_g_rdata;
+// URAM 08
+wire [11:0] lut_b_raddr;
+wire [63:0] lut_b_rdata;
+// URAM 09
 wire [11:0] lut3d_c30_r_raddr;
 wire [63:0] lut3d_c30_r_rdata;
-// URAM 07
+// URAM 10
 wire [11:0] lut3d_c74_r_raddr;
 wire [63:0] lut3d_c74_r_rdata;
-// URAM 08
+// URAM 11
 wire [11:0] lut3d_c30_g_raddr;
 wire [63:0] lut3d_c30_g_rdata;
-// URAM 09
+// URAM 12
 wire [11:0] lut3d_c74_g_raddr;
 wire [63:0] lut3d_c74_g_rdata;
-// URAM 10
+// URAM 13
 wire [11:0] lut3d_c30_b_raddr;
 wire [63:0] lut3d_c30_b_rdata;
-// URAM 11
+// URAM 14
 wire [11:0] lut3d_c74_b_raddr;
 wire [63:0] lut3d_c74_b_rdata;
-// URAM 12
+// URAM 15
 wire [11:0] top_ui_raddr;
 wire [63:0] top_ui_rdata;
-// URAM 13
+// URAM 16
 wire [11:0] bot_ui_raddr;
 wire [63:0] bot_ui_rdata;
-// URAM 14
+// URAM 17
 wire [11:0] pop_ui_raddr;
 wire [63:0] pop_ui_rdata;
 
@@ -317,30 +326,39 @@ HDMI_v1_0_S00_AXI_inst
   .lut_g2_raddr(lut_g2_raddr),
   .lut_g2_rdata(lut_g2_rdata),
   // URAM 06
+  .lut_r_raddr(lut_r_raddr),
+  .lut_r_rdata(lut_r_rdata),
+  // URAM 07
+  .lut_g_raddr(lut_g_raddr),
+  .lut_g_rdata(lut_g_rdata),
+  // URAM 08
+  .lut_b_raddr(lut_b_raddr),
+  .lut_b_rdata(lut_b_rdata),
+  // URAM 09
   .lut3d_c30_r_raddr(lut3d_c30_r_raddr),
   .lut3d_c30_r_rdata(lut3d_c30_r_rdata),
-  // URAM 07
+  // URAM 10
   .lut3d_c74_r_raddr(lut3d_c74_r_raddr),
   .lut3d_c74_r_rdata(lut3d_c74_r_rdata),
-  // URAM 08
+  // URAM 11
   .lut3d_c30_g_raddr(lut3d_c30_g_raddr),
   .lut3d_c30_g_rdata(lut3d_c30_g_rdata),
-  // URAM 09
+  // URAM 12
   .lut3d_c74_g_raddr(lut3d_c74_g_raddr),
   .lut3d_c74_g_rdata(lut3d_c74_g_rdata),
-  // URAM 10
+  // URAM 13
   .lut3d_c30_b_raddr(lut3d_c30_b_raddr),
   .lut3d_c30_b_rdata(lut3d_c30_b_rdata),
-  // URAM 11
+  // URAM 14
   .lut3d_c74_b_raddr(lut3d_c74_b_raddr),
   .lut3d_c74_b_rdata(lut3d_c74_b_rdata),
-  // URAM 12
+  // URAM 15
   .top_ui_raddr(top_ui_raddr),
   .top_ui_rdata(top_ui_rdata),
-  // URAM 13
+  // URAM 16
   .bot_ui_raddr(bot_ui_raddr),
   .bot_ui_rdata(bot_ui_rdata),
-  // URAM 14
+  // URAM 17
   .pop_ui_raddr(pop_ui_raddr),
   .pop_ui_rdata(pop_ui_rdata),
    
@@ -484,8 +502,8 @@ localparam integer vsync_off = 5;
 localparam integer v_de_on = 41;
 localparam integer v_de_off = 1121;
 
-reg [15:0] h_count[9:0];
-reg [15:0] v_count[9:0];
+reg [15:0] h_count[10:0];
+reg [15:0] v_count[10:0];
 
 always @(posedge hdmi_clk)
 begin
@@ -511,7 +529,7 @@ begin
   // Pipeline.
   begin : hv_count_pipeline
   integer i;
-  for (i = 0; i < 9; i = i + 1)
+  for (i = 0; i < 10; i = i + 1)
   begin
     h_count[i+1] <= h_count[i];
     v_count[i+1] <= v_count[i];
@@ -521,13 +539,13 @@ begin
 end
 
 // Combinational HSYNC, VSYNC, and DE generation based on h_count and v_count.
-assign HSYNC = (h_count[9] < hsync_off);
-assign VSYNC = (v_count[9] < vsync_off);
-assign DE = (h_count[9] >= h_de_on) && (h_count[9] < h_de_off) && (v_count[9] >= v_de_on) & (v_count[9] < v_de_off);
+assign HSYNC = (h_count[10] < hsync_off);
+assign VSYNC = (v_count[10] < vsync_off);
+assign DE = (h_count[10] >= h_de_on) && (h_count[10] < h_de_off) && (v_count[10] >= v_de_on) & (v_count[10] < v_de_off);
 
 // Handle VSYNC interrupt: Set once near the bottom of the frame scan, to give the sotware
 // a bit of time to prepare register update values for VSYNC. Cleared by software.
-wire VSYNC_coming = (v_count[9] == v_de_off);
+wire VSYNC_coming = (v_count[10] == v_de_off);
 reg VSYNC_coming_prev;
 always @(posedge hdmi_clk)
 begin
@@ -544,7 +562,7 @@ wire signed [16:0] vyNorm;  // Signed to accommodate negative space for top marg
 reg [15:0] vxNormP[1:0];
 reg [15:0] vyNormP[1:0];
 wire inViewport;
-reg inViewportP[6:0];
+reg inViewportP[7:0];
 
 viewport_normalize vn
 (
@@ -570,12 +588,16 @@ viewport_normalize vn
 always @(posedge hdmi_clk)
 begin
   inViewportP[0] <= inViewport;
-  inViewportP[1] <= inViewportP[0];
-  inViewportP[2] <= inViewportP[1];
-  inViewportP[3] <= inViewportP[2];
-  inViewportP[4] <= inViewportP[3];
-  inViewportP[5] <= inViewportP[4];
-  inViewportP[6] <= inViewportP[5];
+
+  // Pipeline.
+  begin : inViewportP_pipeline
+  integer i;
+  for (i = 0; i < 7; i = i + 1)
+  begin
+    inViewportP[i+1] <= inViewportP[i];
+  end
+  end : inViewportP_pipeline
+  
   vxNormP[0] <= vxNorm;
   vxNormP[1] <= vxNormP[0];
   vyNormP[0] <= vyNorm[15:0];
@@ -1219,10 +1241,16 @@ color_1dlut color_1dlut_inst
   .lut_r1_rdata(lut_r1_rdata),
   .lut_b1_rdata(lut_b1_rdata),
   .lut_g2_rdata(lut_g2_rdata),
+  .lut_r_rdata(lut_r_rdata),
+  .lut_g_rdata(lut_g_rdata),
+  .lut_b_rdata(lut_b_rdata),
   .lut_g1_raddr(lut_g1_raddr),
   .lut_r1_raddr(lut_r1_raddr),
   .lut_b1_raddr(lut_b1_raddr),
   .lut_g2_raddr(lut_g2_raddr),
+  .lut_r_raddr(lut_r_raddr),
+  .lut_g_raddr(lut_g_raddr),
+  .lut_b_raddr(lut_b_raddr),
   
   .R_14b(R_14b),
   .G_14b(G_14b),
@@ -1271,9 +1299,9 @@ ui_mixer ui_mixer_inst
   .G_8b(G_8b),
   .B_8b(B_8b),
   
-  .h_count(h_count[8]),
-  .v_count(v_count[8]),
-  .inViewport(inViewportP[6]),
+  .h_count(h_count[9]),
+  .v_count(v_count[9]),
+  .inViewport(inViewportP[7]),
   
   .top_ui_enabled(top_ui_enabled),
   .bot_ui_enabled(bot_ui_enabled),

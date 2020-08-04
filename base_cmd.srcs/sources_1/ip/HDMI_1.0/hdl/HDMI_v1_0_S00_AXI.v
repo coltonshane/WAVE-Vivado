@@ -16,17 +16,21 @@ Also includes six URAM buffers for LUTs and UI overlays. Addressing:
 0x20000 to 0x27FFF    uram03: 1DLUT R1
 0x28000 to 0x2FFFF    uram04: 1DLUT B1
 0x30000 to 0x37FFF    uram05: 1DLUT G2
-0x38000 to 0x3FFFF    uram06: 3DLUT c0-c3 Red
-0x40000 to 0x47FFF    uram07: 3DLUT c4-c7 Red
-0x48000 to 0x4FFFF    uram08: 3DLUT c0-c3 Green
-0x50000 to 0x57FFF    uram09: 3DLUT c4-c7 Green
-0x58000 to 0x5FFFF    uram10: 3DLUT c0-c3 Blue
-0x60000 to 0x67FFF    uram11: 3DLUT c4-c7 Blue
-0x68000 to 0x6FFFF    uram12: Top UI
-0x70000 to 0x77FFF    uram13: Bottom UI
-0x78000 to 0x7FFFF    uram14: Pop-up UI
+0x38000 to 0x3FFFF    uram06: 1DLUT R
+0x40000 to 0x47FFF    uram07: 1DLUT G
+0x48000 to 0x4FFFF    uram08: 1DLUT B
+0x50000 to 0x57FFF    uram09: 3DLUT c0-c3 Red
+0x58000 to 0x5FFFF    uram10: 3DLUT c4-c7 Red
+0x60000 to 0x67FFF    uram11: 3DLUT c0-c3 Green
+0x68000 to 0x6FFFF    uram12: 3DLUT c4-c7 Green
+0x70000 to 0x77FFF    uram13: 3DLUT c0-c3 Blue
+0x78000 to 0x7FFFF    uram14: 3DLUT c4-c7 Blue
+0x80000 to 0x87FFF    uram15: Top UI
+0x88000 to 0x8FFFF    uram16: Bottom UI
+0x90000 to 0x97FFF    uram17: Pop-up UI
+0x98000 to 0xFFFFF    Reserved
 
-Total address space is 512K (19-bit).
+Total address space is 1M (20-bit).
 
 Copyright (C) 2020 by Shane W. Colton
 
@@ -60,7 +64,7 @@ module HDMI_v1_0_S00_AXI
 	// Width of S_AXI data bus
 	parameter integer C_S_AXI_DATA_WIDTH = 32,
 	// Width of S_AXI address bus
-	parameter integer C_S_AXI_ADDR_WIDTH = 19
+	parameter integer C_S_AXI_ADDR_WIDTH = 20
 )
 (
   // Users to add ports here
@@ -131,30 +135,39 @@ module HDMI_v1_0_S00_AXI
   input wire [11:0] lut_g2_raddr,
   output wire [63:0] lut_g2_rdata,
   // URAM 06
+  input wire [11:0] lut_r_raddr,
+  output wire [63:0] lut_r_rdata,
+  // URAM 07
+  input wire [11:0] lut_g_raddr,
+  output wire [63:0] lut_g_rdata,
+  // URAM 08
+  input wire [11:0] lut_b_raddr,
+  output wire [63:0] lut_b_rdata,
+  // URAM 09
   input wire [11:0] lut3d_c30_r_raddr,
   output wire [63:0] lut3d_c30_r_rdata,
-  // URAM 07
+  // URAM 10
   input wire [11:0] lut3d_c74_r_raddr,
   output wire [63:0] lut3d_c74_r_rdata,
-  // URAM 08
+  // URAM 11
   input wire [11:0] lut3d_c30_g_raddr,
   output wire [63:0] lut3d_c30_g_rdata,
-  // URAM 09
+  // URAM 12
   input wire [11:0] lut3d_c74_g_raddr,
   output wire [63:0] lut3d_c74_g_rdata,
-  // URAM 10
+  // URAM 13
   input wire [11:0] lut3d_c30_b_raddr,
   output wire [63:0] lut3d_c30_b_rdata,
-  // URAM 11
+  // URAM 14
   input wire [11:0] lut3d_c74_b_raddr,
   output wire [63:0] lut3d_c74_b_rdata,
-  // URAM 12
+  // URAM 15
   input wire [11:0] top_ui_raddr,
   output wire [63:0] top_ui_rdata,
-  // URAM 13
+  // URAM 16
   input wire [11:0] bot_ui_raddr,
   output wire [63:0] bot_ui_rdata,
-  // URAM 14
+  // URAM 17
   input wire [11:0] pop_ui_raddr,
   output wire [63:0] pop_ui_rdata,
   
@@ -350,7 +363,7 @@ end
 // These registers are cleared when reset (active low) is applied.
 // Slave register write enable is asserted when valid address and data are available
 // and the slave is ready to accept the write address and write data.
-assign slv_reg_wren = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[18:15] == 4'h0);
+assign slv_reg_wren = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[19:15] == 5'h00);
 
 always @( posedge S_AXI_ACLK )
 begin
@@ -480,21 +493,24 @@ end
 // Memory-mapped URAM buffers.
 // --------------------------------------------------------------------------------------------------------
 // Write enable switch.
-wire uram00_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[18:15] == 4'h1);
-wire uram01_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[18:15] == 4'h2);
-wire uram02_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[18:15] == 4'h3);
-wire uram03_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[18:15] == 4'h4);
-wire uram04_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[18:15] == 4'h5);
-wire uram05_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[18:15] == 4'h6);
-wire uram06_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[18:15] == 4'h7);
-wire uram07_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[18:15] == 4'h8);
-wire uram08_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[18:15] == 4'h9);
-wire uram09_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[18:15] == 4'hA);
-wire uram10_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[18:15] == 4'hB);
-wire uram11_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[18:15] == 4'hC);
-wire uram12_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[18:15] == 4'hD);
-wire uram13_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[18:15] == 4'hE);
-wire uram14_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[18:15] == 4'hF);
+wire uram00_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[19:15] == 5'h01);
+wire uram01_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[19:15] == 5'h02);
+wire uram02_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[19:15] == 5'h03);
+wire uram03_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[19:15] == 5'h04);
+wire uram04_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[19:15] == 5'h05);
+wire uram05_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[19:15] == 5'h06);
+wire uram06_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[19:15] == 5'h07);
+wire uram07_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[19:15] == 5'h08);
+wire uram08_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[19:15] == 5'h09);
+wire uram09_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[19:15] == 5'h0A);
+wire uram10_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[19:15] == 5'h0B);
+wire uram11_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[19:15] == 5'h0C);
+wire uram12_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[19:15] == 5'h0D);
+wire uram13_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[19:15] == 5'h0E);
+wire uram14_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[19:15] == 5'h0F);
+wire uram15_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[19:15] == 5'h10);
+wire uram16_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[19:15] == 5'h11);
+wire uram17_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID && (axi_awaddr[19:15] == 5'h12);
 
 // Read data (after 64b to 32b translation).
 wire [31:0] uram00_rdata;
@@ -512,6 +528,9 @@ wire [31:0] uram11_rdata;
 wire [31:0] uram12_rdata;
 wire [31:0] uram13_rdata;
 wire [31:0] uram14_rdata;
+wire [31:0] uram15_rdata;
+wire [31:0] uram16_rdata;
+wire [31:0] uram17_rdata;
 
 // URAM module instanciations.
 axi_slave_uram uram00
@@ -588,8 +607,8 @@ axi_slave_uram uram06
   .axi_wdata(S_AXI_WDATA),
   .axi_raddr(S_AXI_ARADDR),
   .axi_rdata(uram06_rdata),
-  .mod_raddr(lut3d_c30_r_raddr),
-  .mod_rdata(lut3d_c30_r_rdata)
+  .mod_raddr(lut_r_raddr),
+  .mod_rdata(lut_r_rdata)
 );
 axi_slave_uram uram07
 (
@@ -599,8 +618,8 @@ axi_slave_uram uram07
   .axi_wdata(S_AXI_WDATA),
   .axi_raddr(S_AXI_ARADDR),
   .axi_rdata(uram07_rdata),
-  .mod_raddr(lut3d_c74_r_raddr),
-  .mod_rdata(lut3d_c74_r_rdata)
+  .mod_raddr(lut_g_raddr),
+  .mod_rdata(lut_g_rdata)
 );
 axi_slave_uram uram08
 (
@@ -610,8 +629,8 @@ axi_slave_uram uram08
   .axi_wdata(S_AXI_WDATA),
   .axi_raddr(S_AXI_ARADDR),
   .axi_rdata(uram08_rdata),
-  .mod_raddr(lut3d_c30_g_raddr),
-  .mod_rdata(lut3d_c30_g_rdata)
+  .mod_raddr(lut_b_raddr),
+  .mod_rdata(lut_b_rdata)
 );
 axi_slave_uram uram09
 (
@@ -621,8 +640,8 @@ axi_slave_uram uram09
   .axi_wdata(S_AXI_WDATA),
   .axi_raddr(S_AXI_ARADDR),
   .axi_rdata(uram09_rdata),
-  .mod_raddr(lut3d_c74_g_raddr),
-  .mod_rdata(lut3d_c74_g_rdata)
+  .mod_raddr(lut3d_c30_r_raddr),
+  .mod_rdata(lut3d_c30_r_rdata)
 );
 axi_slave_uram uram10
 (
@@ -632,8 +651,8 @@ axi_slave_uram uram10
   .axi_wdata(S_AXI_WDATA),
   .axi_raddr(S_AXI_ARADDR),
   .axi_rdata(uram10_rdata),
-  .mod_raddr(lut3d_c30_b_raddr),
-  .mod_rdata(lut3d_c30_b_rdata)
+  .mod_raddr(lut3d_c74_r_raddr),
+  .mod_rdata(lut3d_c74_r_rdata)
 );
 axi_slave_uram uram11
 (
@@ -643,8 +662,8 @@ axi_slave_uram uram11
   .axi_wdata(S_AXI_WDATA),
   .axi_raddr(S_AXI_ARADDR),
   .axi_rdata(uram11_rdata),
-  .mod_raddr(lut3d_c74_b_raddr),
-  .mod_rdata(lut3d_c74_b_rdata)
+  .mod_raddr(lut3d_c30_g_raddr),
+  .mod_rdata(lut3d_c30_g_rdata)
 );
 axi_slave_uram uram12
 (
@@ -654,8 +673,8 @@ axi_slave_uram uram12
   .axi_wdata(S_AXI_WDATA),
   .axi_raddr(S_AXI_ARADDR),
   .axi_rdata(uram12_rdata),
-  .mod_raddr(top_ui_raddr),
-  .mod_rdata(top_ui_rdata)
+  .mod_raddr(lut3d_c74_g_raddr),
+  .mod_rdata(lut3d_c74_g_rdata)
 );
 axi_slave_uram uram13
 (
@@ -665,8 +684,8 @@ axi_slave_uram uram13
   .axi_wdata(S_AXI_WDATA),
   .axi_raddr(S_AXI_ARADDR),
   .axi_rdata(uram13_rdata),
-  .mod_raddr(bot_ui_raddr),
-  .mod_rdata(bot_ui_rdata)
+  .mod_raddr(lut3d_c30_b_raddr),
+  .mod_rdata(lut3d_c30_b_rdata)
 );
 axi_slave_uram uram14
 (
@@ -676,6 +695,39 @@ axi_slave_uram uram14
   .axi_wdata(S_AXI_WDATA),
   .axi_raddr(S_AXI_ARADDR),
   .axi_rdata(uram14_rdata),
+  .mod_raddr(lut3d_c74_b_raddr),
+  .mod_rdata(lut3d_c74_b_rdata)
+);
+axi_slave_uram uram15
+(
+  .s_axi_aclk(S_AXI_ACLK),
+  .axi_wen(uram15_wen),
+  .axi_waddr(axi_awaddr),
+  .axi_wdata(S_AXI_WDATA),
+  .axi_raddr(S_AXI_ARADDR),
+  .axi_rdata(uram15_rdata),
+  .mod_raddr(top_ui_raddr),
+  .mod_rdata(top_ui_rdata)
+);
+axi_slave_uram uram16
+(
+  .s_axi_aclk(S_AXI_ACLK),
+  .axi_wen(uram16_wen),
+  .axi_waddr(axi_awaddr),
+  .axi_wdata(S_AXI_WDATA),
+  .axi_raddr(S_AXI_ARADDR),
+  .axi_rdata(uram16_rdata),
+  .mod_raddr(bot_ui_raddr),
+  .mod_rdata(bot_ui_rdata)
+);
+axi_slave_uram uram17
+(
+  .s_axi_aclk(S_AXI_ACLK),
+  .axi_wen(uram17_wen),
+  .axi_waddr(axi_awaddr),
+  .axi_wdata(S_AXI_WDATA),
+  .axi_raddr(S_AXI_ARADDR),
+  .axi_rdata(uram17_rdata),
   .mod_raddr(pop_ui_raddr),
   .mod_rdata(pop_ui_rdata)
 );
@@ -688,23 +740,26 @@ axi_slave_uram uram14
 assign slv_reg_rden = axi_arready & S_AXI_ARVALID & ~axi_rvalid;
 always @(*)
 begin
-  case (axi_araddr[18:15])
+  case (axi_araddr[19:15])
   default: reg_data_out <= slv_reg[axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB]];
-  4'h1: reg_data_out <= uram00_rdata;
-  4'h2: reg_data_out <= uram01_rdata;
-  4'h3: reg_data_out <= uram02_rdata;
-  4'h4: reg_data_out <= uram03_rdata;
-  4'h5: reg_data_out <= uram04_rdata;
-  4'h6: reg_data_out <= uram05_rdata;
-  4'h7: reg_data_out <= uram06_rdata;
-  4'h8: reg_data_out <= uram07_rdata;
-  4'h9: reg_data_out <= uram08_rdata;
-  4'hA: reg_data_out <= uram09_rdata;
-  4'hB: reg_data_out <= uram10_rdata;
-  4'hC: reg_data_out <= uram11_rdata;
-  4'hD: reg_data_out <= uram12_rdata;
-  4'hE: reg_data_out <= uram13_rdata;
-  4'hF: reg_data_out <= uram14_rdata;
+  5'h01: reg_data_out <= uram00_rdata;
+  5'h02: reg_data_out <= uram01_rdata;
+  5'h03: reg_data_out <= uram02_rdata;
+  5'h04: reg_data_out <= uram03_rdata;
+  5'h05: reg_data_out <= uram04_rdata;
+  5'h06: reg_data_out <= uram05_rdata;
+  5'h07: reg_data_out <= uram06_rdata;
+  5'h08: reg_data_out <= uram07_rdata;
+  5'h09: reg_data_out <= uram08_rdata;
+  5'h0A: reg_data_out <= uram09_rdata;
+  5'h0B: reg_data_out <= uram10_rdata;
+  5'h0C: reg_data_out <= uram11_rdata;
+  5'h0D: reg_data_out <= uram12_rdata;
+  5'h0E: reg_data_out <= uram13_rdata;
+  5'h0F: reg_data_out <= uram14_rdata;
+  5'h10: reg_data_out <= uram15_rdata;
+  5'h11: reg_data_out <= uram16_rdata;
+  5'h12: reg_data_out <= uram17_rdata;
   endcase
 end
 

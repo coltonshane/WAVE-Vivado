@@ -129,12 +129,15 @@ u32 * const lutG1 =      (u32 * const) 0xA0118000;
 u32 * const lutR1 =      (u32 * const) 0xA0120000;
 u32 * const lutB1 =      (u32 * const) 0xA0128000;
 u32 * const lutG2 =      (u32 * const) 0xA0130000;
-u32 * const lut3dC30R =  (u32 * const) 0xA0138000;
-u32 * const lut3dC74R =  (u32 * const) 0xA0140000;
-u32 * const lut3dC30G =  (u32 * const) 0xA0148000;
-u32 * const lut3dC74G =  (u32 * const) 0xA0150000;
-u32 * const lut3dC30B =  (u32 * const) 0xA0158000;
-u32 * const lut3dC74B =  (u32 * const) 0xA0160000;
+u32 * const lutR =       (u32 * const) 0xA0138000;
+u32 * const lutG =       (u32 * const) 0xA0140000;
+u32 * const lutB =       (u32 * const) 0xA0148000;
+u32 * const lut3dC30R =  (u32 * const) 0xA0150000;
+u32 * const lut3dC74R =  (u32 * const) 0xA0158000;
+u32 * const lut3dC30G =  (u32 * const) 0xA0160000;
+u32 * const lut3dC74G =  (u32 * const) 0xA0168000;
+u32 * const lut3dC30B =  (u32 * const) 0xA0170000;
+u32 * const lut3dC74B =  (u32 * const) 0xA0178000;
 
 // HDMI PHY I2C
 XIicPs hdmiIic;
@@ -263,7 +266,6 @@ float debugMultG = 1.0f;
 float debugMultB = 1.0f;
 u32 debugGamma = 0;
 u32 debugRebuildLUTs = 0;
-u32 debugAdaptDarkFrame = 0;
 void hdmiService(void)
 {
 	if(skip > 0)
@@ -276,12 +278,6 @@ void hdmiService(void)
 	{
 		hdmiBuildLUTs();
 		debugRebuildLUTs = 0;
-	}
-
-	if(debugAdaptDarkFrame == 1)
-	{
-		hdmiDarkFrameAdapt(hdmiFrame, 1024, 256);
-		hdmiDarkFrameApply(448, 2176);
 	}
 
 	// Check for HPD and HDMI clock termination.
@@ -457,6 +453,7 @@ void hdmiBuildLUTs(void)
 	s16 iOutB1toR, iOutB1toG, iOutB1toB;
 	s16 iOutG2toR, iOutG2toG, iOutG2toB;
 	u32 idx32L, idx32H;
+	u64 lutEntry;
 	s16 * gamma;
 	s16 * dgamma;
 
@@ -551,6 +548,27 @@ void hdmiBuildLUTs(void)
 		lutR1[idx32H] = iOutR1toB;
 		lutB1[idx32H] = iOutB1toB;
 		lutG2[idx32H] = iOutG2toB;
+	}
+
+	// Build Color Curve LUTs:
+	for(int iIn = 0; iIn < 4096; iIn++)
+	{
+		// LUT indices.
+		idx32L = iIn << 1;
+		idx32H = (iIn << 1) + 1;
+
+		lutEntry = (u64)((iIn << 2) + 0) << 0;
+		lutEntry += (u64)((iIn << 2) + 1) << 16;
+		lutEntry += (u64)((iIn << 2) + 2) << 32;
+		lutEntry += (u64)((iIn << 2) + 3) << 48;
+
+		lutR[idx32L] = lutEntry & 0xFFFFFFFF;
+		lutG[idx32L] = lutEntry & 0xFFFFFFFF;
+		lutB[idx32L] = lutEntry & 0xFFFFFFFF;
+
+		lutR[idx32H] = lutEntry >> 32;
+		lutG[idx32H] = lutEntry >> 32;
+		lutB[idx32H] = lutEntry >> 32;
 	}
 
 	// Build 3DLUT:

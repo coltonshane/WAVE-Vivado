@@ -59,13 +59,15 @@ u32 fsSizeGB = 0;
 
 void fsInit(void)
 {
+	FRESULT res;
+	/*
 	XRtcPsu_Config *RtcPsuConfig;
 	u32 tNowRTC;
-	FRESULT res;
 
 	RtcPsuConfig = XRtcPsu_LookupConfig(RTC_DEVICE_ID);
 	XRtcPsu_CfgInitialize(&RtcPsu, RtcPsuConfig, RtcPsuConfig->BaseAddr);
 	tNowRTC = XRtcPsu_GetCurrentTime(&RtcPsu);
+	*/
 
 	res = f_mount(&fs, "", 0);
 	if(res) { xil_printf("SSD mount failed.\r\n"); }
