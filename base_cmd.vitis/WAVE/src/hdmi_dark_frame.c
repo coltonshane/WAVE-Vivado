@@ -94,6 +94,17 @@ void hdmiDarkFrameLoad(u8 index)
 	memcpy((void *)&dfActive, (void *)dfLoad, sizeof(DarkFrame_s));
 }
 
+void hdmiDarkFrameZero(void)
+{
+	// Rows
+	for(u16 r = 0; r < DARK_FRAME_H; r++)
+	{ dfActive.row[r] = dfColorZero; }
+
+	// Columns
+	for(u16 c = 0; c < DARK_FRAME_W; c++)
+	{ dfActive.col[c] = dfColorZero; }
+}
+
 void hdmiDarkFrameTest(void)
 {
 	// Rows

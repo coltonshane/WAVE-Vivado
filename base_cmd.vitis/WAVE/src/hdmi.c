@@ -266,6 +266,7 @@ float debugMultG = 1.0f;
 float debugMultB = 1.0f;
 u32 debugGamma = 0;
 u32 debugRebuildLUTs = 0;
+u32 debugDarkFrame = 0;
 void hdmiService(void)
 {
 	if(skip > 0)
@@ -278,6 +279,23 @@ void hdmiService(void)
 	{
 		hdmiBuildLUTs();
 		debugRebuildLUTs = 0;
+	}
+
+	if(debugDarkFrame)
+	{
+		switch(debugDarkFrame)
+		{
+		case 1:
+			hdmiDarkFrameLoad(0);
+			break;
+		case 2:
+			hdmiDarkFrameZero();
+			break;
+		default:
+			break;
+		}
+		hdmiDarkFrameApply(448, 2176);
+		debugDarkFrame = 0;
 	}
 
 	// Check for HPD and HDMI clock termination.

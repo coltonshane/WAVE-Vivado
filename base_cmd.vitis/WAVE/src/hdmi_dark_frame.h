@@ -34,6 +34,9 @@ THE SOFTWARE.
 // Load a dark frame from flash into the active dark frame in RAM.
 void hdmiDarkFrameLoad(u8 index);
 
+// Zero the dark frame in RAM.
+void hdmiDarkFrameZero(void);
+
 // Build a test dark frame in RAM that darkens the top half and left half of the image.
 void hdmiDarkFrameTest(void);
 
