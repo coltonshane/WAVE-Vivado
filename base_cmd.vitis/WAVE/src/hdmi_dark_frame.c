@@ -26,7 +26,6 @@ THE SOFTWARE.
 
 #include "main.h"
 #include "hdmi_dark_frame.h"
-#include "camera_state.h"
 #include "frame.h"
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
@@ -63,8 +62,8 @@ u32 bitOffsetInLL2(u16 x, u16 y, u8 color, u16 wLL2);
 
 // Private Global Variables --------------------------------------------------------------------------------------------
 
-DarkFrameColor_s dfColorZero = {0, 0, 0, 0};
-DarkFrameColor_s dfColorTest = {64, 64, 64, 64};
+const DarkFrameColor_s dfColorZero = {0, 0, 0, 0};
+const DarkFrameColor_s dfColorTest = {64, 64, 64, 64};
 
 // Flash addresses of dark frames.
 DarkFrame_s * const dfFactory = (DarkFrame_s * const) 0xC0900000;
@@ -72,7 +71,7 @@ DarkFrame_s * const dfUser =    (DarkFrame_s * const) 0xC1100000;
 
 // Active dark frame in RAM, which can be modified by user calibration.
 DarkFrame_s dfActive;
-DarkFrame_s dfError;
+// DarkFrame_s dfError;
 
 // HDMI peripheral addresses of dark row and dark column URAMs.
 u32 * const hdmiDarkRows =   (u32 * const) 0xA0108000;
@@ -217,10 +216,10 @@ void hdmiDarkFrameAdapt(s32 frame, u32 nSamples, s16 targetBlack)
 void hdmiDarkFrameApply(u16 yStart, u16 height)
 {
 	// Dark row copy of vertical region-of-interest.
-	memcpy((void *)hdmiDarkRows, (void *)(&dfActive.row[yStart]), sizeof(DarkFrameColor_s) * height);
+	memcpy(hdmiDarkRows, &dfActive.row[yStart], sizeof(DarkFrameColor_s) * height);
 
 	// Dark column copy of fill width.
-	memcpy((void *)hdmiDarkCols, (void *)(&dfActive.col[0]), sizeof(DarkFrameColor_s) * DARK_FRAME_W);
+	memcpy(hdmiDarkCols, &dfActive.col[0], sizeof(DarkFrameColor_s) * DARK_FRAME_W);
 }
 
 // Private Function Definitions ----------------------------------------------------------------------------------------

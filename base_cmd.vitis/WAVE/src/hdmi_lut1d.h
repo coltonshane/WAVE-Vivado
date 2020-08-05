@@ -1,5 +1,5 @@
 /*
-HDMI Dark Frame Subtraction Include
+HDMI 1D LUT Include
 
 Copyright (C) 2020 by Shane W. Colton
 
@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef __HDMI_DARK_FRAME_INCLUDE__
-#define __HDMI_DARK_FRAME_INCLUDE__
+#ifndef __HDMI_LUT1D_INCLUDE__
+#define __HDMI_LUT1D_INCLUDE__
 
 // Include Headers -----------------------------------------------------------------------------------------------------
 
@@ -31,22 +31,13 @@ THE SOFTWARE.
 
 // Public Type Definitions ---------------------------------------------------------------------------------------------
 
-// Load a dark frame from flash into the active dark frame in RAM.
-void hdmiDarkFrameLoad(u8 index);
-
-// Zero the dark frame in RAM.
-void hdmiDarkFrameZero(void);
-
-// Build a test dark frame in RAM that darkens the top half and left half of the image.
-void hdmiDarkFrameTest(void);
-
-// Adapt the dark frame in RAM based on the last captured frame.
-// void hdmiDarkFrameAdapt(s32 frame, u32 nSamples, s16 targetBlack);
-
-// Apply the active dark frame in RAM to the HDMI peripheral dark frame URAMs.
-void hdmiDarkFrameApply(u16 yStart, u16 height);
-
 // Public Function Prototypes ------------------------------------------------------------------------------------------
+
+// Build an identity LUT1D Pack in RAM.
+void hdmiLUT1DIdentity(void);
+
+// Apply the active LUT1D Pack in RAM to the HDMI peripheral LUT1D URAMs.
+void hdmiLUT1DApply(void);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
 
