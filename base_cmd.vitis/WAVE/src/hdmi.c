@@ -393,6 +393,11 @@ void hdmiApplyCameraState(void)
 	hdmiSync.vyDiv_vxDiv = ((u32)vyDiv << 16) | (u32)vxDiv;
 	hdmiSync.hImage2048_wHDMI = ((u32)hImage2048 << 16) | 2200;
 
+	// Set the LUT1D Pack based on the color temperature setting.
+	float colorTemp = cState.cSetting[CSETTING_COLOR]->valArray[cState.cSetting[CSETTING_COLOR]->val].fVal;
+	hdmiLUT1DCreate(colorTemp, 1.4f);
+	hdmiLUT1DApply();
+
 	// Wait for the next VSYNC to apply camera settings.
 	hdmiApplyCameraStateSyncFlag = 1;
 }

@@ -33,6 +33,9 @@ THE SOFTWARE.
 
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
+// Build a LUT1D Pack in RAM from parameters.
+void hdmiLUT1DCreate(float colorTemp, float gamma);
+
 // Build an identity LUT1D Pack in RAM.
 void hdmiLUT1DIdentity(void);
 

@@ -69,6 +69,8 @@ typedef struct
 void buildRGBMixerFromMatrix(LUT1DMatrix_s);
 void buildRGBCurveFromGamma(float gamma);
 
+LUT1DMatrix_s interpolateMatrix(LUT1DMatrix_s m0, LUT1DMatrix_s m1, float x);
+
 // Public Global Variables ---------------------------------------------------------------------------------------------
 
 u32 * const lutG1 =      (u32 * const) 0xA0118000;
@@ -81,6 +83,14 @@ u32 * const lutB =       (u32 * const) 0xA0148000;
 
 const LUT1DMatrix_s mIdentity = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 
+// SC Calibration 8-5-2020
+const LUT1DMatrix_s m5600K = { 1.2971304f, -0.2416602f, -0.3075616f,
+		  	  	  	  	  	  -0.2490946f,   1.000000f, -0.4437257f,
+							  -0.0102325f, -0.4739279f,  1.2122482f };
+const LUT1DMatrix_s m3200K = { 0.9225751f, -0.1705697f, -0.3796657f,
+		  	  	  	  	  	  -0.2360655f,  1.0000000f, -0.4591683f,
+							  -0.0410180f, -0.4957053f,  1.4800359f };
+
 LUT1DPack_s lut1dActive;
 
 // Private Global Variables --------------------------------------------------------------------------------------------
@@ -89,11 +99,19 @@ LUT1DPack_s lut1dActive;
 
 // Public Function Definitions -----------------------------------------------------------------------------------------
 
-float debugTestGamma = 1.0f;
+void hdmiLUT1DCreate(float colorTemp, float gamma)
+{
+	float x = (colorTemp - 3200.0f) / 2400.0f;
+	LUT1DMatrix_s mColorTemp = interpolateMatrix(m3200K, m5600K, x);
+
+	buildRGBMixerFromMatrix(mColorTemp);
+	buildRGBCurveFromGamma(gamma);
+}
+
 void hdmiLUT1DIdentity(void)
 {
 	buildRGBMixerFromMatrix(mIdentity);
-	buildRGBCurveFromGamma(debugTestGamma);
+	buildRGBCurveFromGamma(1.0f);
 }
 
 void hdmiLUT1DApply(void)
@@ -204,4 +222,19 @@ void buildRGBCurveFromGamma(float gamma)
 		lut1dActive.lut1D_G[cIn] = (s16)fOut;
 		lut1dActive.lut1D_B[cIn] = (s16)fOut;
 	}
+}
+
+LUT1DMatrix_s interpolateMatrix(LUT1DMatrix_s m0, LUT1DMatrix_s m1, float x)
+{
+	LUT1DMatrix_s mOut;
+	float * m0Element = (float *) &m0;
+	float * m1Element = (float *) &m1;
+	float * mOutElement = (float *) &mOut;
+
+	for(int i = 0; i < 9; i++)
+	{
+		mOutElement[i] = (1.0f - x) * m0Element[i] + x * m1Element[i];
+	}
+
+	return mOut;
 }
