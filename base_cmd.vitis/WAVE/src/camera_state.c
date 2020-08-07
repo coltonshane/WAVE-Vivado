@@ -47,11 +47,13 @@ void cSettingHeightSetVal(u8 val);
 void cSettingFPSSetVal(u8 val);
 void cSettingShutterSetVal(u8 val);
 void cSettingColorSetVal(u8 val);
+void cSettingGainSetVal(u8 val);
 void cSettingFormatSetVal(u8 val);
 
 void cSettingFPSPreviewVal(u8 val);
 void cSettingShutterPreviewVal(u8 val);
 void cSettingColorPreviewVal(u8 val);
+void cSettingGainPreviewVal(u8 val);
 
 void cSettingDoNothing(u8 val);
 
@@ -70,6 +72,7 @@ CameraSetting_s cSettingHeight;
 CameraSetting_s cSettingFPS;
 CameraSetting_s cSettingShutter;
 CameraSetting_s cSettingColor;
+CameraSetting_s cSettingGain;
 CameraSetting_s cSettingFormat;
 
 char * cSettingModeName = "  MODE  ";
@@ -224,6 +227,14 @@ CameraSettingValue_s cSettingColorValArray[] = {{"  2000K ", 2000.0f},
 												{"  9200K ", 9200.0f},
 												{"  9600K ", 9600.0f}};
 
+char * cSettingGainName = "  GAIN  ";
+char * cSettingGainValFormat = " %6d ";
+CameraSettingValue_s cSettingGainValArray[] = {{" LINEAR ", 0.0f},
+											   {" HDR    ", 1.0f},
+											   {" CAL1   ", 2.0f},
+											   {" CAL2   ", 3.0f},
+											   {" CAL3   ", 4.0f}};
+
 char * cSettingFormatName = " FORMAT ";
 char * cSettingFormatValFormat = " %6d ";
 CameraSettingValue_s cSettingFormatValArray[] = {{"Cancel  ", 0.0f},
@@ -343,7 +354,25 @@ void cStateInit(void)
 	cSettingColor.SetVal = &cSettingColorSetVal;
 	cSettingColor.PreviewVal = &cSettingColorPreviewVal;
 
-	cSettingFormat.id = 6;
+	cSettingGain.id = 6;
+	cSettingGain.val = 0;
+	cSettingGain.count = 5;
+	cSettingGain.enable[0] = 0x000000000000001F;
+	cSettingGain.enable[1] = 0x0000000000000000;
+	cSettingGain.enable[2] = 0x0000000000000000;
+	cSettingGain.enable[3] = 0x0000000000000000;
+	cSettingGain.user[0] = 0x0000000000000000;
+	cSettingGain.user[1] = 0x0000000000000000;
+	cSettingGain.user[2] = 0x0000000000000000;
+	cSettingGain.user[3] = 0x0000000000000000;
+	cSettingGain.strName = cSettingGainName;
+	cSettingGain.strValFormat = cSettingGainValFormat;
+	cSettingGain.valArray = cSettingGainValArray;
+	cSettingGain.uiDisplayType = CSETTING_UI_DISPLAY_TYPE_VAL_ARRAY;
+	cSettingGain.SetVal = &cSettingGainSetVal;
+	cSettingGain.PreviewVal = &cSettingGainPreviewVal;
+
+	cSettingFormat.id = 7;
 	cSettingFormat.val = 0;
 	cSettingFormat.count = 2;
 	cSettingFormat.enable[0] = 0x0000000000000003;
@@ -367,7 +396,8 @@ void cStateInit(void)
 	cState.cSetting[3] = &cSettingFPS;
 	cState.cSetting[4] = &cSettingShutter;
 	cState.cSetting[5] = &cSettingColor;
-	cState.cSetting[6] = &cSettingFormat;
+	cState.cSetting[6] = &cSettingGain;
+	cState.cSetting[7] = &cSettingFormat;
 
 	// Manually trigger cSettingWidthSetVal() to make sure initial state is applied.
 	cSettingWidthSetVal(CSETTING_WIDTH_4K);
@@ -521,6 +551,14 @@ void cSettingColorSetVal(u8 val)
 	cSettingColor.val = val;
 }
 
+void cSettingGainSetVal(u8 val)
+{
+	if(!cSettingGetEnabled(CSETTING_GAIN, val)) { return; }
+
+	// Change the gain setting.
+	cSettingGain.val = val;
+}
+
 void cSettingFormatSetVal(u8 val)
 {
 	if(!cSettingGetEnabled(CSETTING_FORMAT, val)) { return; }
@@ -565,6 +603,16 @@ void cSettingColorPreviewVal(u8 val)
 
 	// Change the color temperature and immediately apply it to the HDMI module.
 	cSettingColor.val = val;
+	hdmiApplyCameraState();
+}
+
+void cSettingGainPreviewVal(u8 val)
+{
+	if(!cSettingGetEnabled(CSETTING_GAIN, val)) { return; }
+
+	// Change the gain setting and immediately apply it to the CMV Input and HDMI modules.
+	cSettingGain.val = val;
+	cmvApplyCameraState();
 	hdmiApplyCameraState();
 }
 

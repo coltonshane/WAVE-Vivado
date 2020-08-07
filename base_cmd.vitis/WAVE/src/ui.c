@@ -102,6 +102,7 @@ int16_t uiEncScrolled = 0;
 
 int topMenuActive = -1;
 int topMenuSelectedSetting = -1;
+int topMenuScrollPosition = 0;
 
 int popMenuActive = -1;
 u8 popMenuVal[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
@@ -244,7 +245,7 @@ void uiService(void)
 					popMenuActive = topMenuSelectedSetting;
 					popMenuSelectedVal = cState.cSetting[popMenuActive]->val;
 					uiBuildPopMenu();
-					uiShow(UI_ID_POP, 192 + (1 + 8 * popMenuActive) * 2 * CHAR_W, 105);
+					uiShow(UI_ID_POP, 192 + (1 + 8 * (popMenuActive - topMenuScrollPosition)) * 2 * CHAR_W, 105);
 				}
 			}
 			else if(uiEncScrolled > 0)
@@ -257,6 +258,11 @@ void uiService(void)
 				}
 				else
 				{
+					// Move the scroll window the right if needed.
+					if(topMenuSelectedSetting > topMenuScrollPosition + 6)
+					{
+						topMenuScrollPosition++;
+					}
 					uiBuildTopMenu();
 				}
 			}
@@ -270,6 +276,13 @@ void uiService(void)
 				}
 				else
 				{
+					// Move the scroll window to the left if needed.
+					if ((topMenuSelectedSetting > -1)
+					 && (topMenuScrollPosition > 0)
+				     && (topMenuSelectedSetting < topMenuScrollPosition))
+					{
+						topMenuScrollPosition--;
+					}
 					uiBuildTopMenu();
 				}
 			}
@@ -399,9 +412,9 @@ void uiBuildTopMenu(void)
 	char strVal[8];
 
 	uiDrawStringColRow(UI_ID_TOP, "X", 0, 0);
-	for(u8 i = 0; i < CSTATE_NUM_SETTINGS; i++)
+	for(u8 i = topMenuScrollPosition; i < (topMenuScrollPosition + 7); i++)
 	{
-		col = 1 + 8 * i;
+		col = 1 + 8 * (i - topMenuScrollPosition);
 		switch(cState.cSetting[i]->uiDisplayType)
 		{
 		case CSETTING_UI_DISPLAY_TYPE_VAL_ARRAY:
@@ -418,7 +431,7 @@ void uiBuildTopMenu(void)
 	}
 	if(topMenuSelectedSetting > -1)
 	{
-		col = 1 + 8 * topMenuSelectedSetting;
+		col = 1 + 8 * (topMenuSelectedSetting - topMenuScrollPosition);
 		uiInvertRectColRow(UI_ID_TOP, col, 0, 8, 1);
 	}
 	else

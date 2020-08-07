@@ -253,13 +253,35 @@ void cmvApplyCameraState(void)
 	iExp_kp1 = iExpLines * 144 / 1000;
 	iExp_kp2 = iExpLines * 21 / 1000;
 
+	switch(cState.cSetting[CSETTING_GAIN]->val)
+	{
+	case CSETTING_GAIN_LINEAR:
+	case CSETTING_GAIN_CAL1:
+		CMV_Settings_W.Number_slopes = 1;
+		break;
+	case CSETTING_GAIN_HDR:
+		CMV_Settings_W.Number_slopes = 3;
+		break;
+	case CSETTING_GAIN_CAL2:
+		// HDR Kneepoint 1 Calibration
+		CMV_Settings_W.Number_slopes = 2;
+		iExp_kp1 = 0;
+		iExp_kp2 = 0;
+		break;
+	case CSETTING_GAIN_CAL3:
+		// HDR Kneepoint 2 Calibration
+		CMV_Settings_W.Number_slopes = 3;
+		iExp_kp1 = iExpLines;
+		iExp_kp2 = 0;
+		break;
+	}
+
 	CMV_Settings_W.Exp_time_L = (iExpLines & 0xFFFF);
 	CMV_Settings_W.Exp_time_H = (iExpLines >> 16) & 0xFF;
 	CMV_Settings_W.Exp_kp1_L = (iExp_kp1 & 0xFFFF);
 	CMV_Settings_W.Exp_kp1_H = (iExp_kp1 >> 16) & 0xFF;
 	CMV_Settings_W.Exp_kp2_L = (iExp_kp2 & 0xFFFF);
 	CMV_Settings_W.Exp_kp2_H = (iExp_kp2 >> 16) & 0xFF;
-	CMV_Settings_W.Number_slopes = 1;
 
 	// Set the frame interval.
 	CMV_Input->frame_interval = tFrame * 60E6;

@@ -35,7 +35,7 @@ THE SOFTWARE.
 
 // Public Pre-Processor Definitions ------------------------------------------------------------------------------------
 
-#define CSTATE_NUM_SETTINGS 7
+#define CSTATE_NUM_SETTINGS 8
 
 #define CSETTING_MODE 0
 #define CSETTING_MODE_STANDBY 0
@@ -56,7 +56,14 @@ THE SOFTWARE.
 
 #define CSETTING_COLOR 5
 
-#define CSETTING_FORMAT 6
+#define CSETTING_GAIN 6
+#define CSETTING_GAIN_LINEAR 0
+#define CSETTING_GAIN_HDR 1
+#define CSETTING_GAIN_CAL1 2
+#define CSETTING_GAIN_CAL2 3
+#define CSETTING_GAIN_CAL3 4
+
+#define CSETTING_FORMAT 7
 #define CSETTING_FORMAT_CANCEL 0
 #define CSETTING_FORMAT_CONFIRM 1
 
