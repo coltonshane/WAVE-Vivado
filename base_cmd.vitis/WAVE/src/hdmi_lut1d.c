@@ -64,12 +64,21 @@ typedef struct
 	u8 reserved[32768];
 } LUT1DPack_s; // [256KiB]
 
+typedef enum
+{
+	HDR_DISABLED,
+	HDR_ENABLED
+} hdrStateType;
+
 // Private Function Prototypes -----------------------------------------------------------------------------------------
 
-void buildRGBMixerFromMatrix(LUT1DMatrix_s);
+void buildRGBMixerFromMatrix(LUT1DMatrix_s m, hdrStateType hdrState);
 void buildRGBCurveFromGamma(float gamma);
+void buildRGBCurveHDR();
 
 LUT1DMatrix_s interpolateMatrix(LUT1DMatrix_s m0, LUT1DMatrix_s m1, float x);
+float HDRtoLinear(float x);
+float LineartoHDR(float x);
 
 // Public Global Variables ---------------------------------------------------------------------------------------------
 
@@ -104,13 +113,23 @@ void hdmiLUT1DCreate(float colorTemp, float gamma)
 	float x = (colorTemp - 3200.0f) / 2400.0f;
 	LUT1DMatrix_s mColorTemp = interpolateMatrix(m3200K, m5600K, x);
 
-	buildRGBMixerFromMatrix(mColorTemp);
-	buildRGBCurveFromGamma(gamma);
+	if(gamma == 0.0f)
+	{
+		// Use HDR curves.
+		buildRGBMixerFromMatrix(mColorTemp, HDR_ENABLED);
+		buildRGBCurveHDR();
+	}
+	else
+	{
+		// Use linear matrix + gamma.
+		buildRGBMixerFromMatrix(mColorTemp, HDR_DISABLED);
+		buildRGBCurveFromGamma(gamma);
+	}
 }
 
 void hdmiLUT1DIdentity(void)
 {
-	buildRGBMixerFromMatrix(mIdentity);
+	buildRGBMixerFromMatrix(mIdentity, HDR_DISABLED);
 	buildRGBCurveFromGamma(1.0f);
 }
 
@@ -130,7 +149,7 @@ void hdmiLUT1DApply(void)
 
 // Private Function Definitions ----------------------------------------------------------------------------------------
 
-void buildRGBMixerFromMatrix(LUT1DMatrix_s m)
+void buildRGBMixerFromMatrix(LUT1DMatrix_s m, hdrStateType hdrState)
 {
 	float fIn, fOut;
 	LUT1DColor_s cOut;
@@ -143,6 +162,9 @@ void buildRGBMixerFromMatrix(LUT1DMatrix_s m)
 		{ fIn = 1.0f; }						// Clip High
 		else
 		{ fIn = 0.0f; }						// Clip Low
+
+		if(hdrState == HDR_ENABLED)
+		{ fIn = HDRtoLinear(fIn); }
 
 		// G1/G2 to R
 		fOut = (m.GtoR / 2.0f) * fIn * 16384.0f;
@@ -224,6 +246,23 @@ void buildRGBCurveFromGamma(float gamma)
 	}
 }
 
+void buildRGBCurveHDR(void)
+{
+	float fIn, fOut;
+
+	for(int cIn = 0; cIn < 16384; cIn++)
+	{
+		fIn = cIn / 16384.0f;
+		fOut = LineartoHDR(fIn) * 16384.0f;
+		if(fOut > 16383.0f) { fOut = 16383.0f; }
+		else if(fOut < 0.0f) { fOut = 0.0f; }
+
+		lut1dActive.lut1D_R[cIn] = (s16)fOut;
+		lut1dActive.lut1D_G[cIn] = (s16)fOut;
+		lut1dActive.lut1D_B[cIn] = (s16)fOut;
+	}
+}
+
 LUT1DMatrix_s interpolateMatrix(LUT1DMatrix_s m0, LUT1DMatrix_s m1, float x)
 {
 	LUT1DMatrix_s mOut;
@@ -237,4 +276,40 @@ LUT1DMatrix_s interpolateMatrix(LUT1DMatrix_s m0, LUT1DMatrix_s m1, float x)
 	}
 
 	return mOut;
+}
+
+float HDRtoLinear(float x)
+{
+	float x_kp1 = 0.4f;
+	float y_kp1 = 0.03125f;
+	float x_kp2 = 0.8f;
+	float y_kp2 = 0.25f;
+	float y;
+
+	if(x < x_kp1)
+	{ y = (x - 0.0f) / (x_kp1 - 0.0f) * (y_kp1 - 0.0f) + 0.0f; }
+	else if(x < x_kp2)
+	{ y = (x - x_kp1) / (x_kp2 - x_kp1) * (y_kp2 - y_kp1) + y_kp1; }
+	else
+	{ y = (x - x_kp2) / (1.0f - x_kp2) * (1.0f - y_kp2) + y_kp2; }
+
+	return y;
+}
+
+float LineartoHDR(float x)
+{
+	float x_kp1 = 0.03125f;
+	float y_kp1 = 0.4f;
+	float x_kp2 = 0.25f;
+	float y_kp2 = 0.8f;
+	float y;
+
+	if(x < x_kp1)
+	{ y = (x - 0.0f) / (x_kp1 - 0.0f) * (y_kp1 - 0.0f) + 0.0f; }
+	else if(x < x_kp2)
+	{ y = (x - x_kp1) / (x_kp2 - x_kp1) * (y_kp2 - y_kp1) + y_kp1; }
+	else
+	{ y = (x - x_kp2) / (1.0f - x_kp2) * (1.0f - y_kp2) + y_kp2; }
+
+	return y;
 }

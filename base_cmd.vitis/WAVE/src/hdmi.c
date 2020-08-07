@@ -113,7 +113,7 @@ typedef struct
 
 void hdmiApplyCameraStateSync(void);
 void hdmiI2CWriteMasked(u8 addr, u8 data, u8 mask);
-void hdmiBuildLUTs(void);
+void hdmiBuildLUT3D(void);
 void hdmiWriteTestPattern4K(void);
 void hdmiWriteTestPattern2K(void);
 void hdmiResetTestPatternState(u32 wrAddr);
@@ -142,6 +142,13 @@ s32 hdmiFrame = -1;
 
 HDMI_s hdmiSync;
 u32 hdmiApplyCameraStateSyncFlag = 0;
+
+// 3D LUT Curves
+s16 linFull[] = {0, 1024, 2048, 3072, 4096, 5120, 6144, 7168, 8192, 9216, 10240, 11264, 12288, 13312, 14336, 15360};
+s16 dlinFull[] = {1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024};
+
+s16 lin709[] = {1024, 1920, 2816, 3712, 4608, 5504, 6400, 7296, 8192, 9088, 9984, 10880, 11776, 12672, 13568, 14464};
+s16 dlin709[] = {896, 896, 896, 896, 896, 896, 896, 896, 896, 896, 896, 896, 896, 896, 896, 896};
 
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 void isrVSYNC(void * CallbackRef)
@@ -200,8 +207,7 @@ void hdmiInit(void)
 {
 	// hdmiWriteTestPattern4K();
 	// hdmiWriteTestPattern2K();
-	hdmiDarkFrameApply(448, 2176);
-	hdmiBuildLUTs();
+	hdmiBuildLUT3D();
 
 	// Load HDMI peripheral registers with initial values.
 	hdmi->q_mult_inv_HL2_LH2 = 1024;
@@ -237,20 +243,13 @@ void hdmiInit(void)
 }
 
 u32 skip = 30;
-u32 debugRebuildLUTs = 0;
-u32 debugDarkFrame = 0;
+u32 debugDarkFrame = 1;
 void hdmiService(void)
 {
 	if(skip > 0)
 	{
 		skip--;
 		return;
-	}
-
-	if(debugRebuildLUTs)
-	{
-		hdmiBuildLUTs();
-		debugRebuildLUTs = 0;
 	}
 
 	if(debugDarkFrame)
@@ -395,7 +394,8 @@ void hdmiApplyCameraState(void)
 
 	// Set the LUT1D Pack based on the color temperature setting.
 	float colorTemp = cState.cSetting[CSETTING_COLOR]->valArray[cState.cSetting[CSETTING_COLOR]->val].fVal;
-	hdmiLUT1DCreate(colorTemp, 1.4f);
+	hdmiLUT1DCreate(colorTemp, 0.0f);
+	// hdmiLUT1DIdentity();
 	hdmiLUT1DApply();
 
 	// Wait for the next VSYNC to apply camera settings.
@@ -440,12 +440,9 @@ void hdmiI2CWriteMasked(u8 addr, u8 data, u8 mask)
 	while (XIicPs_BusIsBusy(&hdmiIic));
 }
 
-void hdmiBuildLUTs(void)
+void hdmiBuildLUT3D(void)
 {
 	u32 idx32L, idx32H;
-
-	hdmiLUT1DIdentity();
-	hdmiLUT1DApply();
 
 	// Build 3DLUT:
 	s16 c0_10b, c1_10b, c2_10b, c3_10b, c4_10b, c5_10b, c6_10b, c7_10b;
@@ -460,9 +457,9 @@ void hdmiBuildLUTs(void)
 				idx32H = (b << 9) + (g << 5) + (r << 1) + 1;
 
 				// Red Output
-				c0_10b = r << 10;
+				c0_10b = lin709[r];
 				c1_10b = 0;
-				c2_10b = 1024;
+				c2_10b = dlin709[r];
 				c3_10b = 0;
 				c4_10b = 0;
 				c5_10b = 0;
@@ -474,10 +471,10 @@ void hdmiBuildLUTs(void)
 				lut3dC74R[idx32H] = (c7_10b << 16) | c6_10b;
 
 				// Green Output
-				c0_10b = g << 10;
+				c0_10b = lin709[g];
 				c1_10b = 0;
 				c2_10b = 0;
-				c3_10b = 1024;
+				c3_10b = dlin709[g];
 				c4_10b = 0;
 				c5_10b = 0;
 				c6_10b = 0;
@@ -488,8 +485,8 @@ void hdmiBuildLUTs(void)
 				lut3dC74G[idx32H] = (c7_10b << 16) | c6_10b;
 
 				// Blue Output
-				c0_10b = b << 10;
-				c1_10b = 1024;
+				c0_10b = lin709[b];
+				c1_10b = dlin709[b];
 				c2_10b = 0;
 				c3_10b = 0;
 				c4_10b = 0;

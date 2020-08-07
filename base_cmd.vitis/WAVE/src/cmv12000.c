@@ -249,9 +249,9 @@ void cmvApplyCameraState(void)
 	if(iExpLines < 0) { iExpLines = 0; }
 	else if(iExpLines > 0xFFFFFF) { iExpLines = 0xFFFFFF; }
 
-	// Set the multi-slope exposure times to 10% and 1%.
-	iExp_kp1 = iExpLines * 155 / 1000;
-	iExp_kp2 = iExpLines * 24 / 1000;
+	// Set the multi-slope exposure times.
+	iExp_kp1 = iExpLines * 144 / 1000;
+	iExp_kp2 = iExpLines * 21 / 1000;
 
 	CMV_Settings_W.Exp_time_L = (iExpLines & 0xFFFF);
 	CMV_Settings_W.Exp_time_H = (iExpLines >> 16) & 0xFF;
@@ -264,7 +264,7 @@ void cmvApplyCameraState(void)
 	// Set the frame interval.
 	CMV_Input->frame_interval = tFrame * 60E6;
 
-	CMV_Settings_W.Vtfl = 94 * 128 + 107;
+	CMV_Settings_W.Vtfl = 90 * 128 + 104;
 
 	CMV_Settings_W.PGA_gain = CMV_REG_VAL_PGA_GAIN_X1;
 	CMV_Settings_W.DIG_gain = 4;
