@@ -48,6 +48,7 @@ int nClip = -1;
 
 FATFS fs;
 FIL fil;
+FIL filClipInfo;
 
 int nFile = 0;
 u32 fsFreeGB = 0;
@@ -136,16 +137,24 @@ void fsCreateClip(void)
 	res = f_mkdir(strWorking);
 	if(res) { xil_printf("Warning: New clip creation failed.\r\n"); }
 	else { xil_printf("Created new clip.\r\n"); }
+
+	// Create and open the clip info file.
+	sprintf(strWorking, "/c%04d/c%04d.kwi", nClip, nClip);
+	res = f_open(&filClipInfo, strWorking, FA_CREATE_NEW | FA_WRITE);
 }
 
-void fsCloseClip(void)
+void fsWriteClipInfo(u64 srcAddress, u32 size)
 {
-	// Truncate and close any open files first.
-	f_truncate(&fil);
-	f_close(&fil);
+	FRESULT res;
+	UINT bw;
 
-	nClip = fsGetNextClip();
-	nFile = 0;
+	res = f_write(&filClipInfo, (u8 *) srcAddress, size, &bw);
+	(void) res;
+}
+
+void fsCloseClipInfo(void)
+{
+	f_close(&filClipInfo);
 }
 
 void fsCreateFile(void)
@@ -176,6 +185,16 @@ void fsWriteFile(u64 srcAddress, u32 size)
 
 	res = f_write(&fil, (u8 *) srcAddress, size, &bw);
 	(void) res;
+}
+
+void fsCloseClip(void)
+{
+	// Truncate and close any open files first.
+	f_truncate(&fil);
+	f_close(&fil);
+
+	nClip = fsGetNextClip();
+	nFile = 0;
 }
 
 void fsDeinit(void)

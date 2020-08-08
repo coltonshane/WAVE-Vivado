@@ -29,7 +29,29 @@ THE SOFTWARE.
 
 // Public Pre-Processor Definitions ------------------------------------------------------------------------------------
 
+#define DARK_FRAME_W 4096
+#define DARK_FRAME_H 3072
+
 // Public Type Definitions ---------------------------------------------------------------------------------------------
+
+typedef struct
+{
+	s16 G1;
+	s16 R1;
+	s16 B1;
+	s16 G2;
+} DarkFrameColor_s; // [64B]
+
+typedef struct
+{
+	DarkFrameColor_s row[DARK_FRAME_H];
+	DarkFrameColor_s col[DARK_FRAME_W];
+	u16 offsetBot;
+	u16 offsetTop;
+	u8 reserved[8188];
+} DarkFrame_s; // [64KiB]
+
+// Public Function Prototypes ------------------------------------------------------------------------------------------
 
 // Load a dark frame from flash into the active dark frame in RAM.
 void hdmiDarkFrameLoad(u8 index);
@@ -46,8 +68,8 @@ void hdmiDarkFrameTest(void);
 // Apply the active dark frame in RAM to the HDMI peripheral dark frame URAMs.
 void hdmiDarkFrameApply(u16 yStart, u16 height);
 
-// Public Function Prototypes ------------------------------------------------------------------------------------------
-
 // Externed Public Global Variables ------------------------------------------------------------------------------------
+
+extern DarkFrame_s dfActive;
 
 #endif

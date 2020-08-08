@@ -32,6 +32,7 @@ THE SOFTWARE.
 #include "fs.h"
 #include "nvme.h"
 #include "camera_state.h"
+#include "hdmi_dark_frame.h"
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
@@ -192,6 +193,8 @@ void frameCreateClip(void)
 {
 	XGpioPs_WritePin(&Gpio, REC_LED_PIN, 1);
 	fsCreateClip();
+	fsWriteClipInfo((u64)(&dfActive), sizeof(DarkFrame_s));
+	fsCloseClipInfo();
 
 	// Start recording at the current frame.
 	nFramesOutStart = nFramesIn;

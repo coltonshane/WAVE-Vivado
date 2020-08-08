@@ -39,9 +39,11 @@ void fsInit(void);
 void fsFormat(void);
 u32 fsGetNextClip(void);
 void fsCreateClip(void);
-void fsCloseClip(void);
+void fsWriteClipInfo(u64 srcAddress, u32 size);
+void fsCloseClipInfo(void);
 void fsCreateFile(void);
 void fsWriteFile(u64 srcAddress, u32 size);
+void fsCloseClip(void);
 void fsDeinit(void);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------

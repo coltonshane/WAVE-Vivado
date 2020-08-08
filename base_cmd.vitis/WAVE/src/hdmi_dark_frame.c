@@ -31,30 +31,10 @@ THE SOFTWARE.
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
-#define DARK_FRAME_W 4096
-#define DARK_FRAME_H 3072
-
 #define DARK_FRAME_USER_FLAG  0x80	//   index[7]: Factory, 1: User
 #define DARK_FRAME_INDEX_MASK 0x0F  // index[3:0]: Dark Frame Index (0 to 15)
 
 // Private Type Definitions --------------------------------------------------------------------------------------------
-
-typedef struct
-{
-	s16 G1;
-	s16 R1;
-	s16 B1;
-	s16 G2;
-} DarkFrameColor_s; // [64B]
-
-typedef struct
-{
-	DarkFrameColor_s row[DARK_FRAME_H];
-	DarkFrameColor_s col[DARK_FRAME_W];
-	u16 offsetBot;
-	u16 offsetTop;
-	u8 reserved[8188];
-} DarkFrame_s; // [64KiB]
 
 // Private Function Prototypes -----------------------------------------------------------------------------------------
 
@@ -72,7 +52,7 @@ const DarkFrameColor_s dfColorTest = {64, 64, 64, 64};
 DarkFrame_s * const dfFactory = (DarkFrame_s * const) 0xC0900000;
 DarkFrame_s * const dfUser =    (DarkFrame_s * const) 0xC1100000;
 
-// Active dark frame in RAM, which can be modified by user calibration.
+// Active dark frame in RAM.
 DarkFrame_s dfActive;
 // DarkFrame_s dfError;
 
