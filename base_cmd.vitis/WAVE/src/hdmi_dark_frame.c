@@ -27,6 +27,7 @@ THE SOFTWARE.
 #include "main.h"
 #include "hdmi_dark_frame.h"
 #include "frame.h"
+#include "cmv12000.h"
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
@@ -50,7 +51,9 @@ typedef struct
 {
 	DarkFrameColor_s row[DARK_FRAME_H];
 	DarkFrameColor_s col[DARK_FRAME_W];
-	u8 reserved[8192];
+	u16 offsetBot;
+	u16 offsetTop;
+	u8 reserved[8188];
 } DarkFrame_s; // [64KiB]
 
 // Private Function Prototypes -----------------------------------------------------------------------------------------
@@ -95,6 +98,10 @@ void hdmiDarkFrameLoad(u8 index)
 
 void hdmiDarkFrameZero(void)
 {
+	// Default sensor offset with plenty of black margin.
+	dfActive.offsetBot = 512;
+	dfActive.offsetTop = 512;
+
 	// Rows
 	for(u16 r = 0; r < DARK_FRAME_H; r++)
 	{ dfActive.row[r] = dfColorZero; }
@@ -215,6 +222,8 @@ void hdmiDarkFrameAdapt(s32 frame, u32 nSamples, s16 targetBlack)
 
 void hdmiDarkFrameApply(u16 yStart, u16 height)
 {
+	cmvSetOffsets(dfActive.offsetBot, dfActive.offsetTop);
+
 	// Dark row copy of vertical region-of-interest.
 	memcpy(hdmiDarkRows, &dfActive.row[yStart], sizeof(DarkFrameColor_s) * height);
 

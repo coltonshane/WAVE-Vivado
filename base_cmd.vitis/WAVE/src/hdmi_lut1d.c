@@ -25,6 +25,7 @@ THE SOFTWARE.
 // Include Headers -----------------------------------------------------------------------------------------------------
 
 #include "main.h"
+#include "hdmi_lut1d.h"
 #include <math.h>
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
@@ -73,7 +74,7 @@ typedef enum
 // Private Function Prototypes -----------------------------------------------------------------------------------------
 
 void buildRGBMixerFromMatrix(LUT1DMatrix_s m, hdrStateType hdrState);
-void buildRGBCurveFromGamma(float gamma);
+void buildRGBCurveFromGamma(float gamma, float x0, float m, float A);
 void buildRGBCurveHDR();
 
 LUT1DMatrix_s interpolateMatrix(LUT1DMatrix_s m0, LUT1DMatrix_s m1, float x);
@@ -108,29 +109,36 @@ LUT1DPack_s lut1dActive;
 
 // Public Function Definitions -----------------------------------------------------------------------------------------
 
-void hdmiLUT1DCreate(float colorTemp, float gamma)
+void hdmiLUT1DCreate(float colorTemp, hdmiLUT1DOETF_Type oetf)
 {
 	float x = (colorTemp - 3200.0f) / 2400.0f;
 	LUT1DMatrix_s mColorTemp = interpolateMatrix(m3200K, m5600K, x);
 
-	if(gamma == 0.0f)
+	switch(oetf)
 	{
-		// Use HDR curves.
+	case HDMI_LUT1D_OETF_LINEAR:
+		buildRGBMixerFromMatrix(mColorTemp, HDR_DISABLED);
+		buildRGBCurveFromGamma(1.0f, 0.0f, 1.0f, 1.0f);
+		break;
+	case HDMI_LUT1D_OETF_REC709:
+		buildRGBMixerFromMatrix(mColorTemp, HDR_DISABLED);
+		buildRGBCurveFromGamma(1.0f / 0.45f, 0.018f, 4.5f, 1.099f);
+		break;
+	case HDMI_LUT1D_OETF_G18M3:
+		buildRGBMixerFromMatrix(mColorTemp, HDR_DISABLED);
+		buildRGBCurveFromGamma(1.8f, 0.025746f, 3.0f, 1.061793f);
+		break;
+	case HDMI_LUT1D_OETF_CMVHDR:
 		buildRGBMixerFromMatrix(mColorTemp, HDR_ENABLED);
 		buildRGBCurveHDR();
-	}
-	else
-	{
-		// Use linear matrix + gamma.
-		buildRGBMixerFromMatrix(mColorTemp, HDR_DISABLED);
-		buildRGBCurveFromGamma(gamma);
+		break;
 	}
 }
 
 void hdmiLUT1DIdentity(void)
 {
 	buildRGBMixerFromMatrix(mIdentity, HDR_DISABLED);
-	buildRGBCurveFromGamma(1.0f);
+	buildRGBCurveFromGamma(1.0f, 0.0f, 1.0f, 1.0f);
 }
 
 void hdmiLUT1DApply(void)
@@ -229,14 +237,24 @@ void buildRGBMixerFromMatrix(LUT1DMatrix_s m, hdrStateType hdrState)
 	}
 }
 
-void buildRGBCurveFromGamma(float gamma)
+void buildRGBCurveFromGamma(float gamma, float x0, float m, float A)
 {
 	float fIn, fOut;
 
 	for(int cIn = 0; cIn < 16384; cIn++)
 	{
 		fIn = cIn / 16384.0f;
-		fOut = powf(fIn, 1.0f / gamma) * 16384.0f;
+		if(fIn < x0)
+		{
+			// Linear range below x0.
+			fOut = m * fIn;
+		}
+		else
+		{
+			// Gamma range above x0.
+			fOut = A * powf(fIn, 1.0f / gamma) - (A - 1.0f);
+		}
+		fOut *= 16384.0f;
 		if(fOut > 16383.0f) { fOut = 16383.0f; }
 		else if(fOut < 0.0f) { fOut = 0.0f; }
 

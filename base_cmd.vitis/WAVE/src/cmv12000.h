@@ -111,6 +111,7 @@ typedef struct __attribute__((packed))
 void cmvInit(void);
 void cmvService(void);
 void cmvApplyCameraState(void);
+void cmvSetOffsets(u16 offsetBot, u16 offsetTop);
 float cmvGetTemp(void);
 u32 cmvGetExposure(void);
 

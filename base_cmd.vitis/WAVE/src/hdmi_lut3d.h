@@ -1,5 +1,5 @@
 /*
-HDMI 1D LUT Include
+HDMI 3D LUT Include
 
 Copyright (C) 2020 by Shane W. Colton
 
@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef __HDMI_LUT1D_INCLUDE__
-#define __HDMI_LUT1D_INCLUDE__
+#ifndef __HDMI_LUT3D_INCLUDE__
+#define __HDMI_LUT3D_INCLUDE__
 
 // Include Headers -----------------------------------------------------------------------------------------------------
 
@@ -33,22 +33,17 @@ THE SOFTWARE.
 
 typedef enum
 {
-	HDMI_LUT1D_OETF_LINEAR,
-	HDMI_LUT1D_OETF_REC709,
-	HDMI_LUT1D_OETF_G18M3,
-	HDMI_LUT1D_OETF_CMVHDR,
-} hdmiLUT1DOETF_Type;
+	HDMI_LUT3D_RANGE_FULL,
+	HDMI_LUT3D_RANGE_REC709
+} hdmiLUT3DRangeType;
 
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
-// Build a LUT1D Pack in RAM from parameters.
-void hdmiLUT1DCreate(float colorTemp, hdmiLUT1DOETF_Type oetf);
-
 // Build an identity LUT1D Pack in RAM.
-void hdmiLUT1DIdentity(void);
+void hdmiLUT3DIdentity(hdmiLUT3DRangeType range);
 
 // Apply the active LUT1D Pack in RAM to the HDMI peripheral LUT1D URAMs.
-void hdmiLUT1DApply(void);
+void hdmiLUT3DApply(void);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
 
