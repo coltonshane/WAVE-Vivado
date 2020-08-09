@@ -233,7 +233,8 @@ CameraSettingValue_s cSettingGainValArray[] = {{" LINEAR ", 0.0f},
 											   {" HDR    ", 1.0f},
 											   {" CAL1   ", 2.0f},
 											   {" CAL2   ", 3.0f},
-											   {" CAL3   ", 4.0f}};
+											   {" CAL3   ", 4.0f},
+											   {" CAL4   ", 5.0f}};
 
 char * cSettingFormatName = " FORMAT ";
 char * cSettingFormatValFormat = " %6d ";
@@ -356,8 +357,8 @@ void cStateInit(void)
 
 	cSettingGain.id = 6;
 	cSettingGain.val = 0;
-	cSettingGain.count = 5;
-	cSettingGain.enable[0] = 0x000000000000001F;
+	cSettingGain.count = 6;
+	cSettingGain.enable[0] = 0x000000000000003F;
 	cSettingGain.enable[1] = 0x0000000000000000;
 	cSettingGain.enable[2] = 0x0000000000000000;
 	cSettingGain.enable[3] = 0x0000000000000000;

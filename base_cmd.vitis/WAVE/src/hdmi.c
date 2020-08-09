@@ -393,6 +393,12 @@ void hdmiApplyCameraState(void)
 		hdmiLUT1DIdentity();
 		hdmiLUT3DIdentity(HDMI_LUT3D_RANGE_REC709);
 		break;
+	case CSETTING_GAIN_CAL4:
+		// Color Matrix Calibration
+		hdmiDarkFrameLoad(0);
+		hdmiLUT1DIdentity();
+		hdmiLUT3DIdentity(HDMI_LUT3D_RANGE_REC709);
+		break;
 	}
 	hdmiDarkFrameApply(448, 2176);
 	hdmiLUT1DApply();

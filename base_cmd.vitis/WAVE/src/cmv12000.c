@@ -277,6 +277,10 @@ void cmvApplyCameraState(void)
 		iExp_kp1 = iExpLines;
 		iExp_kp2 = 0;
 		break;
+	case CSETTING_GAIN_CAL4:
+		// Color Matrix Calibration
+		CMV_Settings_W.Number_slopes = 1;
+		break;
 	}
 
 	CMV_Settings_W.Exp_time_L = (iExpLines & 0xFFFF);
@@ -289,7 +293,7 @@ void cmvApplyCameraState(void)
 	// Set the frame interval.
 	CMV_Input->frame_interval = tFrame * 60E6;
 
-	CMV_Settings_W.Vtfl = 90 * 128 + 104;
+	CMV_Settings_W.Vtfl = 96 * 128 + 107;
 
 	CMV_Settings_W.PGA_gain = CMV_REG_VAL_PGA_GAIN_X1;
 	CMV_Settings_W.DIG_gain = 4;

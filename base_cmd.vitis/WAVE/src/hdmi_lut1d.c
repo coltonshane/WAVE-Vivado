@@ -92,14 +92,15 @@ u32 * const lutG =       (u32 * const) 0xA0140000;
 u32 * const lutB =       (u32 * const) 0xA0148000;
 
 const LUT1DMatrix_s mIdentity = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+const LUT1DMatrix_s mDummyTest = {1.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.5f};
 
-// SC Calibration 8-5-2020
-const LUT1DMatrix_s m5600K = { 1.2971304f, -0.2416602f, -0.3075616f,
-		  	  	  	  	  	  -0.2490946f,   1.000000f, -0.4437257f,
-							  -0.0102325f, -0.4739279f,  1.2122482f };
-const LUT1DMatrix_s m3200K = { 0.9225751f, -0.1705697f, -0.3796657f,
-		  	  	  	  	  	  -0.2360655f,  1.0000000f, -0.4591683f,
-							  -0.0410180f, -0.4957053f,  1.4800359f };
+// SC Calibration 8-9-2020
+const LUT1DMatrix_s m5600K = { 1.79766f, -0.378569f, -0.134178f,
+		  	  	  	  	  	  -0.261755f,   1.25f, -0.134178f,
+							  -0.148242f, -0.721982f,  1.92007f };
+const LUT1DMatrix_s m3200K = { 1.24495f, -0.288141f, -0.241375f,
+		  	  	  	  	  	  -0.250881f,  1.25f, -0.491039f,
+							  -0.0946473f, -0.814871f,  2.69544f };
 
 LUT1DPack_s lut1dActive;
 
