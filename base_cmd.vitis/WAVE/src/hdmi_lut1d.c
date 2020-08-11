@@ -78,8 +78,8 @@ void buildRGBCurveFromGamma(float gamma, float x0, float m, float A);
 void buildRGBCurveHDR();
 
 LUT1DMatrix_s interpolateMatrix(LUT1DMatrix_s m0, LUT1DMatrix_s m1, float x);
-float HDRtoLinear(float x);
-float LineartoHDR(float x);
+float HDRtoLinear(double x);
+float LineartoHDR(double y);
 
 // Public Global Variables ---------------------------------------------------------------------------------------------
 
@@ -173,7 +173,7 @@ void buildRGBMixerFromMatrix(LUT1DMatrix_s m, hdrStateType hdrState)
 		{ fIn = 0.0f; }						// Clip Low
 
 		if(hdrState == HDR_ENABLED)
-		{ fIn = HDRtoLinear(fIn); }
+		{ fIn = HDRtoLinear((double)fIn); }
 
 		// G1/G2 to R
 		fOut = (m.GtoR / 2.0f) * fIn * 16384.0f;
@@ -272,7 +272,7 @@ void buildRGBCurveHDR(void)
 	for(int cIn = 0; cIn < 16384; cIn++)
 	{
 		fIn = cIn / 16384.0f;
-		fOut = LineartoHDR(fIn) * 16384.0f;
+		fOut = LineartoHDR((double)fIn) * 16384.0f;
 		if(fOut > 16383.0f) { fOut = 16383.0f; }
 		else if(fOut < 0.0f) { fOut = 0.0f; }
 
@@ -297,38 +297,98 @@ LUT1DMatrix_s interpolateMatrix(LUT1DMatrix_s m0, LUT1DMatrix_s m1, float x)
 	return mOut;
 }
 
-float HDRtoLinear(float x)
+double debug_x_kp1 = 0.63;
+double debug_x_win = 0.10;
+
+float HDRtoLinear(double x)
 {
-	float x_kp1 = 0.4f;
-	float y_kp1 = 0.03125f;
-	float x_kp2 = 0.8f;
-	float y_kp2 = 0.25f;
-	float y;
+	double y;
 
-	if(x < x_kp1)
-	{ y = (x - 0.0f) / (x_kp1 - 0.0f) * (y_kp1 - 0.0f) + 0.0f; }
-	else if(x < x_kp2)
-	{ y = (x - x_kp1) / (x_kp2 - x_kp1) * (y_kp2 - y_kp1) + y_kp1; }
+	double m0 = 0.0625;
+	double x_kp1 = debug_x_kp1;
+	double y_kp1 = m0 * x_kp1;
+	double x_kp2 = 1.0;
+	double y_kp2 = 0.5;
+
+	double m1 = (y_kp2 - y_kp1) / (x_kp2 - x_kp1);
+
+	double x_win = debug_x_win;
+	double x0 = x_kp1 - x_win;
+	double x1 = x_kp1 + x_win;
+	double y0 = y_kp1 - m0 * x_win;
+	double y1 = y_kp1 + m1 * x_win;
+
+	double a, b, c;
+	double den = (x0-x1)*(x0-x1)*(x0-x1);
+	a = (-m0*(x0-x1)*(x0+2.0*x1)+m1*(-2.0*x0*x0+x1*x0+x1*x1)+3.0*(x0+x1)*(y0-y1))/den;
+	b = (m1*x0*(x0-x1)*(x0+2.0*x1)-x1*(m0*(-2.0*x0*x0+x1*x0+x1*x1)+6.0*x0*(y0-y1)))/den;
+	c = ((x0-3.0*x1)*y1*x0*x0+x1*(x0*(x1-x0)*(m1*x0+m0*x1)-x1*(x1-3.0*x0)*y0))/den;
+
+	if(x < x0)
+	{
+		y = m0 * x;
+	}
+	else if(x < x1)
+	{
+		y = a * x * x + b * x + c;
+	}
+	else if(x < 1.0)
+	{
+		y = m1 * (x - x_kp1) + y_kp1;
+	}
 	else
-	{ y = (x - x_kp2) / (1.0f - x_kp2) * (1.0f - y_kp2) + y_kp2; }
+	{
+		y = 0.5;
+	}
 
-	return y;
+	return (float) y;
 }
 
-float LineartoHDR(float x)
+float LineartoHDR(double y)
 {
-	float x_kp1 = 0.03125f;
-	float y_kp1 = 0.4f;
-	float x_kp2 = 0.25f;
-	float y_kp2 = 0.8f;
-	float y;
+	double x;
 
-	if(x < x_kp1)
-	{ y = (x - 0.0f) / (x_kp1 - 0.0f) * (y_kp1 - 0.0f) + 0.0f; }
-	else if(x < x_kp2)
-	{ y = (x - x_kp1) / (x_kp2 - x_kp1) * (y_kp2 - y_kp1) + y_kp1; }
+	double m0 = 0.0625;
+	double x_kp1 = debug_x_kp1;
+	double y_kp1 = m0 * x_kp1;
+	double x_kp2 = 1.0;
+	double y_kp2 = 0.5;
+
+	double m1 = (y_kp2 - y_kp1) / (x_kp2 - x_kp1);
+
+	double x_win = debug_x_win;
+	double x0 = x_kp1 - x_win;
+	double x1= x_kp1 + x_win;
+	double y0 = y_kp1 - m0 * x_win;
+	double y1 = y_kp1 + m1 * x_win;
+
+	double a, b, c;
+	double den = (x0-x1)*(x0-x1)*(x0-x1);
+	a = (-m0*(x0-x1)*(x0+2.0*x1)+m1*(-2.0*x0*x0+x1*x0+x1*x1)+3.0*(x0+x1)*(y0-y1))/den;
+	b = (m1*x0*(x0-x1)*(x0+2.0*x1)-x1*(m0*(-2.0*x0*x0+x1*x0+x1*x1)+6.0*x0*(y0-y1)))/den;
+	c = ((x0-3.0*x1)*y1*x0*x0+x1*(x0*(x1-x0)*(m1*x0+m0*x1)-x1*(x1-3.0*x0)*y0))/den;
+
+	double sqrt_operand = 0.0f;
+
+	if(y < y0)
+	{
+		x = (1.0 / m0) * y;
+	}
+	else if(y < y1)
+	{
+		c = c - y;
+		sqrt_operand = b*b-4.0*a*c;
+		if(sqrt_operand < 0.0) { sqrt_operand = 0.0; }
+		x = (-b+sqrt(sqrt_operand))/(2.0*a);
+	}
+	else if(y < 0.5)
+	{
+		x = (1.0 / m1) * (y - y_kp1) + x_kp1;
+	}
 	else
-	{ y = (x - x_kp2) / (1.0f - x_kp2) * (1.0f - y_kp2) + y_kp2; }
+	{
+		x = 1.0;
+	}
 
-	return y;
+	return (float) x;
 }

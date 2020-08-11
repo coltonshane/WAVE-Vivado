@@ -250,7 +250,7 @@ void cmvApplyCameraState(void)
 	else if(iExpLines > 0xFFFFFF) { iExpLines = 0xFFFFFF; }
 
 	// Set the multi-slope exposure times.
-	iExp_kp1 = iExpLines * 144 / 1000;
+	iExp_kp1 = iExpLines * 50 / 1000;
 	iExp_kp2 = iExpLines * 21 / 1000;
 
 	switch(cState.cSetting[CSETTING_GAIN]->val)
@@ -259,7 +259,7 @@ void cmvApplyCameraState(void)
 		CMV_Settings_W.Number_slopes = 1;
 		break;
 	case CSETTING_GAIN_HDR:
-		CMV_Settings_W.Number_slopes = 3;
+		CMV_Settings_W.Number_slopes = 2;
 		break;
 	case CSETTING_GAIN_CAL1:
 		// Dark Frame Calibration
@@ -293,7 +293,7 @@ void cmvApplyCameraState(void)
 	// Set the frame interval.
 	CMV_Input->frame_interval = tFrame * 60E6;
 
-	CMV_Settings_W.Vtfl = 96 * 128 + 107;
+	CMV_Settings_W.Vtfl = 90 * 128 + 96;
 
 	CMV_Settings_W.PGA_gain = CMV_REG_VAL_PGA_GAIN_X1;
 	CMV_Settings_W.DIG_gain = 4;
