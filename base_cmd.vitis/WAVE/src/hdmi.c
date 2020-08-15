@@ -33,6 +33,7 @@ THE SOFTWARE.
 #include "frame.h"
 #include "xiicps.h"
 #include "camera_state.h"
+#include "cmv12000.h"
 #include <math.h>
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
@@ -366,12 +367,12 @@ void hdmiApplyCameraState(void)
 	switch(cState.cSetting[CSETTING_GAIN]->val)
 	{
 	case CSETTING_GAIN_LINEAR:
-		hdmiDarkFrameLoad(0);
+		hdmiDarkFrameCreate((u16)wFrame, cmvGetTemp());
 		hdmiLUT1DCreate(colorTemp, debugOETF);
 		hdmiLUT3DIdentity(HDMI_LUT3D_RANGE_REC709);
 		break;
 	case CSETTING_GAIN_HDR:
-		hdmiDarkFrameLoad(0);
+		hdmiDarkFrameCreate((u16)wFrame, cmvGetTemp());
 		hdmiLUT1DCreate(colorTemp, HDMI_LUT1D_OETF_CMVHDR);
 		hdmiLUT3DIdentity(HDMI_LUT3D_RANGE_REC709);
 		break;
@@ -383,24 +384,24 @@ void hdmiApplyCameraState(void)
 		break;
 	case CSETTING_GAIN_CAL2:
 		// HDR Kneepoint 1 Calibration
-		hdmiDarkFrameLoad(0);
+		hdmiDarkFrameCreate((u16)wFrame, cmvGetTemp());
 		hdmiLUT1DIdentity();
 		hdmiLUT3DIdentity(HDMI_LUT3D_RANGE_REC709);
 		break;
 	case CSETTING_GAIN_CAL3:
 		// HDR Kneepoint 2 Calibration
-		hdmiDarkFrameLoad(0);
+		hdmiDarkFrameCreate((u16)wFrame, cmvGetTemp());
 		hdmiLUT1DIdentity();
 		hdmiLUT3DIdentity(HDMI_LUT3D_RANGE_REC709);
 		break;
 	case CSETTING_GAIN_CAL4:
 		// Color Matrix Calibration
-		hdmiDarkFrameLoad(0);
+		hdmiDarkFrameCreate((u16)wFrame, cmvGetTemp());
 		hdmiLUT1DIdentity();
 		hdmiLUT3DIdentity(HDMI_LUT3D_RANGE_REC709);
 		break;
 	}
-	hdmiDarkFrameApply(448, 2176);
+	hdmiDarkFrameApply((u16)wFrame, (u16)hFrame);
 	hdmiLUT1DApply();
 	hdmiLUT3DApply();
 

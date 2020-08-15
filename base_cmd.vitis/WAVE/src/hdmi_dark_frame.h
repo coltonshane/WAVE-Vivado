@@ -34,7 +34,7 @@ THE SOFTWARE.
 
 // Public Type Definitions ---------------------------------------------------------------------------------------------
 
-typedef struct
+typedef struct __attribute__((packed))
 {
 	s16 G1;
 	s16 R1;
@@ -42,19 +42,20 @@ typedef struct
 	s16 G2;
 } DarkFrameColor_s; // [64B]
 
-typedef struct
+typedef struct __attribute__((packed))
 {
 	DarkFrameColor_s row[DARK_FRAME_H];
 	DarkFrameColor_s col[DARK_FRAME_W];
 	u16 offsetBot;
 	u16 offsetTop;
-	u8 reserved[8188];
+	s8 temp;
+	u8 reserved[8187];
 } DarkFrame_s; // [64KiB]
 
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
 // Load a dark frame from flash into the active dark frame in RAM.
-void hdmiDarkFrameLoad(u8 index);
+void hdmiDarkFrameCreate(u16 wFrame, float temp);
 
 // Zero the dark frame in RAM.
 void hdmiDarkFrameZero(void);
@@ -66,7 +67,7 @@ void hdmiDarkFrameTest(void);
 // void hdmiDarkFrameAdapt(s32 frame, u32 nSamples, s16 targetBlack);
 
 // Apply the active dark frame in RAM to the HDMI peripheral dark frame URAMs.
-void hdmiDarkFrameApply(u16 yStart, u16 height);
+void hdmiDarkFrameApply(u16 wFrame, u16 hFrame);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
 

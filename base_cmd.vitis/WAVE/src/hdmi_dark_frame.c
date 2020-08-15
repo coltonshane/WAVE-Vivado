@@ -49,8 +49,10 @@ const DarkFrameColor_s dfColorZero = {0, 0, 0, 0};
 const DarkFrameColor_s dfColorTest = {64, 64, 64, 64};
 
 // Flash addresses of dark frames.
-DarkFrame_s * const dfFactory = (DarkFrame_s * const) 0xC0900000;
-DarkFrame_s * const dfUser =    (DarkFrame_s * const) 0xC1100000;
+DarkFrame_s * const dfCold4K = (DarkFrame_s * const) 0xC0900000;
+DarkFrame_s * const dfWarm4K = (DarkFrame_s * const) 0xC0910000;
+DarkFrame_s * const dfCold2K = (DarkFrame_s * const) 0xC0920000;
+DarkFrame_s * const dfWarm2K = (DarkFrame_s * const) 0xC0930000;
 
 // Active dark frame in RAM.
 DarkFrame_s dfActive;
@@ -64,16 +66,75 @@ u32 * const hdmiDarkCols =   (u32 * const) 0xA0110000;
 
 // Public Function Definitions -----------------------------------------------------------------------------------------
 
-void hdmiDarkFrameLoad(u8 index)
+void hdmiDarkFrameCreate(u16 wFrame, float temp)
 {
-	DarkFrame_s * dfLoad;
+	DarkFrame_s * dfCold;
+	DarkFrame_s * dfWarm;
+	float dTemp, wTemp;
+	float fVal;
 
-	if(index & DARK_FRAME_USER_FLAG)
-	{ dfLoad = &dfUser[index & DARK_FRAME_INDEX_MASK]; }
+	if(wFrame == 4096)
+	{
+		dfCold = dfCold4K;
+		dfWarm = dfWarm4K;
+	}
 	else
-	{ dfLoad = &dfFactory[index & DARK_FRAME_INDEX_MASK]; }
+	{
+		dfCold = dfCold2K;
+		dfWarm = dfWarm2K;
+	}
 
-	memcpy((void *)&dfActive, (void *)dfLoad, sizeof(DarkFrame_s));
+	dTemp = (float)(dfWarm->temp - dfCold->temp);
+	if(dTemp == 0.0f)
+	{
+		// Both dark frames have the same temperature, just use the first one.
+		wTemp = 0.0f;
+	}
+	else
+	{
+		// Get an interpolation factor from the temperature passed in.
+		if(temp < 0.0f) { temp = 0.0f; }			// Lower limit for extrapolation.
+		else if(temp > 70.0f) { temp = 70.0f; }		// Upper limit for extrapolation.
+		wTemp = (temp - (float)(dfCold->temp)) / dTemp;
+	}
+
+	// Interpolate the dark rows and dark columns.
+	// Not testing for saturation since these should be small relative to s16 range.
+	for(u16 r = 0; r < DARK_FRAME_H; r++)
+	{
+
+		fVal = (float) dfCold->row[r].G1 + wTemp * (float) (dfWarm->row[r].G1 - dfCold->row[r].G1);
+		dfActive.row[r].G1 = (s16) fVal;
+		fVal = (float) dfCold->row[r].R1 + wTemp * (float) (dfWarm->row[r].R1 - dfCold->row[r].R1);
+		dfActive.row[r].R1 = (s16) fVal;
+		fVal = (float) dfCold->row[r].B1 + wTemp * (float) (dfWarm->row[r].B1 - dfCold->row[r].B1);
+		dfActive.row[r].B1 = (s16) fVal;
+		fVal = (float) dfCold->row[r].G2 + wTemp * (float) (dfWarm->row[r].G2 - dfCold->row[r].G2);
+		dfActive.row[r].G2 = (s16) fVal;
+
+	}
+	for(u16 c = 0; c < DARK_FRAME_H; c++)
+	{
+		fVal = (float) dfCold->col[c].G1 + wTemp * (float) (dfWarm->col[c].G1 - dfCold->col[c].G1);
+		dfActive.col[c].G1 = (s16) fVal;
+		fVal = (float) dfCold->col[c].R1 + wTemp * (float) (dfWarm->col[c].R1 - dfCold->col[c].R1);
+		dfActive.col[c].R1 = (s16) fVal;
+		fVal = (float) dfCold->col[c].B1 + wTemp * (float) (dfWarm->col[c].B1 - dfCold->col[c].B1);
+		dfActive.col[c].B1 = (s16) fVal;
+		fVal = (float) dfCold->col[c].G2 + wTemp * (float) (dfWarm->col[c].G2 - dfCold->col[c].G2);
+		dfActive.col[c].G2 = (s16) fVal;
+	}
+
+	// Interpolate the offsets.
+	fVal = (float) dfCold->offsetBot + wTemp * (float) (dfWarm->offsetBot - dfCold->offsetBot);
+	if(fVal < 0.0f) { fVal = 0.0f; }
+	dfActive.offsetBot = (u16) fVal;
+
+	fVal = (float) dfCold->offsetTop + wTemp * (float) (dfWarm->offsetTop - dfCold->offsetTop);
+	if(fVal < 0.0f) { fVal = 0.0f; }
+	dfActive.offsetTop = (u16) fVal;
+
+	dfActive.temp = temp;
 }
 
 void hdmiDarkFrameZero(void)
@@ -200,12 +261,23 @@ void hdmiDarkFrameAdapt(s32 frame, u32 nSamples, s16 targetBlack)
 }
 */
 
-void hdmiDarkFrameApply(u16 yStart, u16 height)
+void hdmiDarkFrameApply(u16 wFrame, u16 hFrame)
 {
+	u16 yStart, yHeight;
+
 	cmvSetOffsets(dfActive.offsetBot, dfActive.offsetTop);
 
+	// Dark frames are always 4K, so scale hFrame by 2x in 2K mode.
+	if(wFrame == 4096)
+	{ yHeight = hFrame; }
+	else
+	{ yHeight = 2 * hFrame; }
+
+	// Assume the frame is centered in the sensor.
+	yStart = (4096 - yHeight) / 2;
+
 	// Dark row copy of vertical region-of-interest.
-	memcpy(hdmiDarkRows, &dfActive.row[yStart], sizeof(DarkFrameColor_s) * height);
+	memcpy(hdmiDarkRows, &dfActive.row[yStart], sizeof(DarkFrameColor_s) * yHeight);
 
 	// Dark column copy of fill width.
 	memcpy(hdmiDarkCols, &dfActive.col[0], sizeof(DarkFrameColor_s) * DARK_FRAME_W);
