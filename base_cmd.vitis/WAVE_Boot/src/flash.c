@@ -31,7 +31,7 @@ THE SOFTWARE.
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
-#define FLASH_WRITE_PROTECT_TOP 0x1000000
+#define FLASH_WRITE_PROTECT_TOP 0x0800000
 
 // Unmodified from xqspipsu_generic_flash_polled_example.c.
 // ================================================================================================

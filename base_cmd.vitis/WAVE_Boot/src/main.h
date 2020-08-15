@@ -40,6 +40,9 @@ THE SOFTWARE.
 
 #define US_PER_COUNT 1000 / (COUNTS_PER_SECOND / 1000)
 
+#define CALIBRATION_VALID 0x1
+#define FIRMWARE_VALID    0x2
+
 // Public Type Definitions ---------------------------------------------------------------------------------------------
 
 // Public Function Prototypes ------------------------------------------------------------------------------------------

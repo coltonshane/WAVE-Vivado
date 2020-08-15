@@ -36,6 +36,9 @@ THE SOFTWARE.
 
 // Public Global Variables ---------------------------------------------------------------------------------------------
 
+u8 calBinary[MAX_CAL_SIZE];
+u32 calSize = 0;
+
 u8 fwBinary[MAX_FW_SIZE];
 u32 fwSize = 0;
 
@@ -82,6 +85,7 @@ void fsCreateDir(void)
 {
 	FIL fil;
 	f_mkdir("fw");
+	f_mkdir("wcal");
 
 	f_open(&fil, "FIRMWARE_UPDATE_INSTRUCTIONS.txt", FA_CREATE_ALWAYS | FA_WRITE);
 	f_puts("To upload new firmware:\r\n", &fil);
@@ -112,40 +116,90 @@ void fsCreateDir(void)
 u32 fsValidateFiles(void)
 {
 	FIL filLog;
+	FIL filCalibration;
 	FIL filFirmware;
 	u32 headerSig = 0x00000000;
+	char strDelimiter[12];
 	u32 nBytesRead = 0;
+	u32 validFiles = 0;
 
 	f_open(&filLog, "FIRMWARE_UPDATE_LOG.txt", FA_CREATE_ALWAYS | FA_WRITE);
 
-	// 1. Does the firmware file exist?
-	if(f_open(&filFirmware, "fw/WAVE.bin", FA_READ) != FR_OK)
+	// 1. Does a calibration file exist?
+	if(f_open(&filCalibration, "wcal/CAL.BIN", FA_READ) == FR_OK)
 	{
-		xil_printf("Error: No firmware file found.\r\n");
-		f_puts("Error: No firmware file found.\r\n", &filLog);
-		f_close(&filLog);
-		return 0;
+		xil_printf("Calibration file found.\r\n");
+		f_puts("Calibration file found.\r\n", &filLog);
+
+		validFiles |= CALIBRATION_VALID;
+
+		// 2. Does it have the string delimitier "WAVE HELLO!" at offset 0x0?
+		f_read(&filCalibration, &strDelimiter, 12, &nBytesRead);
+		if(strcmp(strDelimiter, "WAVE HELLO!\n"))
+		{
+			xil_printf("Error: Invalid header signature in calibration file.\r\n");
+			f_puts("Error: Invalid header signature in calibration file.\r\n", &filLog);
+			validFiles &= ~CALIBRATION_VALID;
+		}
+
+		// N. Copy the calibration binary into RAM and note its size.
+		if(validFiles & CALIBRATION_VALID)
+		{
+			f_lseek(&filCalibration, 0x0);
+			f_read(&filCalibration, &calBinary[0], MAX_CAL_SIZE, &calSize);
+			xil_printf("Copied %d bytes of calibration into RAM.\r\n", calSize);
+			f_printf(&filLog, "Copied %d bytes of calibration into RAM.\r\n", calSize);
+		}
+		else
+		{
+			xil_printf("Skipped calibration copy into RAM.\r\n", calSize);
+			f_puts("Skipped calibration copy into RAM.\r\n", &filLog);
+		}
+		f_close(&filCalibration);
 	}
 
-	// 2. Does it have the Header Signature 0x584C4E58 at offset 0x24?
-	f_lseek(&filFirmware, 0x24);
-	f_read(&filFirmware, &headerSig, 4, &nBytesRead);
-	if(headerSig != 0x584C4E58)
+	// 1. Does a firmware file exist?
+	if(f_open(&filFirmware, "fw/WAVE.BIN", FA_READ) == FR_OK)
 	{
-		xil_printf("Error: Invalid header signature in firmware file.\r\n");
-		f_puts("Error: Invalid header signature in firmware file.\r\n", &filLog);
-		f_close(&filLog);
-		return 0;
+		xil_printf("Firmware file found.\r\n");
+		f_puts("Firmware file found.\r\n", &filLog);
+
+		validFiles |= FIRMWARE_VALID;
+
+		// 2. Does it have the Header Signature 0x584C4E58 at offset 0x24?
+		f_lseek(&filFirmware, 0x24);
+		f_read(&filFirmware, &headerSig, 4, &nBytesRead);
+		if(headerSig != 0x584C4E58)
+		{
+			xil_printf("Error: Invalid header signature in firmware file.\r\n");
+			f_puts("Error: Invalid header signature in firmware file.\r\n", &filLog);
+			validFiles &= ~FIRMWARE_VALID;
+		}
+
+		// N. Copy the firmware binary into RAM and note its size.
+		if(validFiles & FIRMWARE_VALID)
+		{
+			f_lseek(&filFirmware, 0x0);
+			f_read(&filFirmware, &fwBinary[0], MAX_FW_SIZE, &fwSize);
+			f_close(&filFirmware);
+			xil_printf("Copied %d bytes of firmware into RAM.\r\n", fwSize);
+			f_printf(&filLog, "Copied %d bytes of firmware into RAM.\r\n", fwSize);
+		}
+		else
+		{
+			xil_printf("Skipped firmware copy into RAM.\r\n", calSize);
+			f_puts("Skipped firmware copy into RAM.\r\n", &filLog);
+		}
 	}
 
-	// N. Copy the firmware binary into RAM and note its size.
-	f_lseek(&filFirmware, 0x0);
-	f_read(&filFirmware, &fwBinary, MAX_FW_SIZE, &fwSize);
-	f_close(&filFirmware);
-	xil_printf("Copied %d bytes of firmware into RAM.\r\n", fwSize);
+	if(!validFiles)
+	{
+		xil_printf("Error: No files found.\r\n");
+		f_puts("Error: No files found.\r\n", &filLog);
+	}
 
 	f_close(&filLog);
-	return 1;
+	return validFiles;
 }
 
 // Private Function Definitions ----------------------------------------------------------------------------------------

@@ -29,7 +29,8 @@ THE SOFTWARE.
 
 // Public Pre-Processor Definitions ------------------------------------------------------------------------------------
 
-#define MAX_FW_SIZE 0x2800000 // 40MiB
+#define MAX_CAL_SIZE 0x0800000 //  8MiB
+#define MAX_FW_SIZE  0x2800000 // 40MiB
 
 // Public Type Definitions ---------------------------------------------------------------------------------------------
 
@@ -42,6 +43,9 @@ u32 fsValidateFiles(void);
 void fsDeinit(void);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
+
+extern u8 calBinary[MAX_CAL_SIZE];
+extern u32 calSize;
 
 extern u8 fwBinary[MAX_FW_SIZE];
 extern u32 fwSize;

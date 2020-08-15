@@ -33,7 +33,8 @@ THE SOFTWARE.
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
-#define APPLICATION_FLASH_OFFSET 0x1800000
+#define CALIBRATION_FLASH_OFFSET 0x0800000
+#define FIRMWARE_FLASH_OFFSET    0x1800000
 
 // Private Type Definitions --------------------------------------------------------------------------------------------
 
@@ -59,6 +60,7 @@ u32 * const CSU_MULTI_BOOT = (u32 * const) 0xFFCA0010;
 u32 * const RESET_CTRL = (u32 * const) 0xFF5E0218;
 
 BootloaderStateType blState = BL_STATE_INIT;
+u32 validFiles = 0;
 
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 
@@ -115,7 +117,8 @@ int main()
 			if(!gpioEncSwDown())
 			{
 				usbStop();
-				if(fsValidateFiles())
+				validFiles = fsValidateFiles();
+				if(validFiles)
 				{ blState = BL_STATE_FLASHING; }
 				else
 				{ blState = BL_STATE_ERROR; }
@@ -130,7 +133,14 @@ int main()
 			}
 			break;
 		case BL_STATE_FLASHING:
-			flashWrite(APPLICATION_FLASH_OFFSET, fwBinary, fwSize);
+			if(validFiles & CALIBRATION_VALID)
+			{
+				flashWrite(CALIBRATION_FLASH_OFFSET, calBinary, calSize);
+			}
+			if(validFiles & FIRMWARE_VALID)
+			{
+				flashWrite(FIRMWARE_FLASH_OFFSET, fwBinary, fwSize);
+			}
 			goto bl_exit;
 			break;
 		}
@@ -155,7 +165,7 @@ bl_exit:
 void resetToApplication(void)
 {
 	// Set multi-boot register to application offset. Offset unit is [32KiB].
-	*CSU_MULTI_BOOT = APPLICATION_FLASH_OFFSET >> 15;
+	*CSU_MULTI_BOOT = FIRMWARE_FLASH_OFFSET >> 15;
 
 	// Trigger a soft reset.
 	*RESET_CTRL |= 0x10;
