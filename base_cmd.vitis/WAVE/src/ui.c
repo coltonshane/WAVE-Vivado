@@ -39,7 +39,7 @@ THE SOFTWARE.
 #define UI_ID_BOT 1
 #define UI_ID_POP 2
 
-#define FONT_BASE_ADDR 0xC0800000
+#define FONT_BASE_ADDR 0xC0810000
 
 #define UI_BG 0x20
 
