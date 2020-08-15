@@ -113,7 +113,7 @@ void hdmiDarkFrameCreate(u16 wFrame, float temp)
 		dfActive.row[r].G2 = (s16) fVal;
 
 	}
-	for(u16 c = 0; c < DARK_FRAME_H; c++)
+	for(u16 c = 0; c < DARK_FRAME_W; c++)
 	{
 		fVal = (float) dfCold->col[c].G1 + wTemp * (float) (dfWarm->col[c].G1 - dfCold->col[c].G1);
 		dfActive.col[c].G1 = (s16) fVal;
@@ -274,7 +274,7 @@ void hdmiDarkFrameApply(u16 wFrame, u16 hFrame)
 	{ yHeight = 2 * hFrame; }
 
 	// Assume the frame is centered in the sensor.
-	yStart = (4096 - yHeight) / 2;
+	yStart = (3072 - yHeight) / 2;
 
 	// Dark row copy of vertical region-of-interest.
 	memcpy(hdmiDarkRows, &dfActive.row[yStart], sizeof(DarkFrameColor_s) * yHeight);
