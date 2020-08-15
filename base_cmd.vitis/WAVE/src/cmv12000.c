@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "supervisor.h"
 #include "gpio.h"
 #include "camera_state.h"
+#include "cal.h"
 
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
@@ -309,10 +310,9 @@ void cmvSetOffsets(u16 offsetBot, u16 offsetTop)
 
 float cmvGetTemp(void)
 {
-	// TO-DO: Move to calibration.
-	static float cmvDN0 = 1556.0f;
-	static float cmvT0 = 30.0f;
-	static float cmvTSlope = 0.143f;
+	float cmvDN0 = factoryHeader->cmvTempDN0;
+	float cmvT0 = factoryHeader->cmvTempT0;
+	float cmvTSlope = 0.143f;
 
 	static float cmvTf = -100.0f;
 

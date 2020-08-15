@@ -379,8 +379,13 @@ uiServiceComplete:
 	sprintf(strWorking, "%4d/%-4d GB", fsFreeGB, fsSizeGB);
 	uiDrawStringColRow(UI_ID_BOT, strWorking, 20, 0);
 
-	sprintf(strWorking, "%3.0f*C", psplGetTemp(psTemp));
-	uiDrawStringColRow(UI_ID_BOT, strWorking, 48, 0);
+	if((uiServiceCounter % 384) < 128)
+	{ sprintf(strWorking, "CPU:%3.0f*C", psplGetTemp(psTemp)); }
+	else if((uiServiceCounter % 384) < 256)
+	{ sprintf(strWorking, "SSD:%3.0f*C", nvmeGetTemp()); }
+	else
+	{ sprintf(strWorking, " IS:%3.0f*C", cmvGetTemp()); }
+	uiDrawStringColRow(UI_ID_BOT, strWorking, 42, 0);
 
 	sprintf(strWorking, "%2d.%1dV", supervisorVBatt / 10, supervisorVBatt % 10);
 	if((supervisorVBatt < 100) && ((uiServiceCounter % 32) < 16))

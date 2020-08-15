@@ -70,10 +70,10 @@ u32 nFramesPerFileSync = 481;
 u32 nSubframesPerFrameSync = 1;
 u32 frameApplyCameraStateSyncFlag = 0;
 
-u8 frameTempPS = 0x00;
-u8 frameTempPL = 0x00;
-u8 frameTempCMV = 0x00;
-u8 frameTempSSD = 0x00;
+s8 frameTempPS = 0x00;
+s8 frameTempPL = 0x00;
+s8 frameTempCMV = 0x00;
+s8 frameTempSSD = 0x00;
 
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 
@@ -326,9 +326,26 @@ void frameUpdateCompression(const u32 * csSizeBuffer)
 
 void frameUpdateTemps(void)
 {
-	frameTempPS = (u8)(psplGetTemp(psTemp) + 100.0f);
-	frameTempPL = (u8)(psplGetTemp(plTemp) + 100.0f);
-	frameTempCMV = (u8)(cmvGetTemp() + 100.0f);
-	frameTempSSD = (u8)(nvmeGetTemp() + 100.0f);
+	float fTemp;
+
+	fTemp = psplGetTemp(psTemp);
+	if(fTemp < -128.0f) { fTemp = -128.0f; }
+	else if(fTemp > 127.0f) { fTemp = 127.0f; }
+	frameTempPS = (s8) fTemp;
+
+	fTemp = psplGetTemp(plTemp);
+	if(fTemp < -128.0f) { fTemp = -128.0f; }
+	else if(fTemp > 127.0f) { fTemp = 127.0f; }
+	frameTempPL = (s8) fTemp;
+
+	fTemp =cmvGetTemp();
+	if(fTemp < -128.0f) { fTemp = -128.0f; }
+	else if(fTemp > 127.0f) { fTemp = 127.0f; }
+	frameTempCMV = (s8) fTemp;
+
+	fTemp = nvmeGetTemp();
+	if(fTemp < -128.0f) { fTemp = -128.0f; }
+	else if(fTemp > 127.0f) { fTemp = 127.0f; }
+	frameTempSSD = (s8) fTemp;
 }
 

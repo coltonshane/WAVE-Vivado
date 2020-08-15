@@ -67,10 +67,10 @@ typedef struct __attribute__((packed))
 	u16 csFIFOState[16];
 
 	// Temperature Sensors [4B]
-	u8 tempPS;
-	u8 tempPL;
-	u8 tempCMV;
-	u8 tempSSD;
+	s8 tempPS;
+	s8 tempPL;
+	s8 tempCMV;
+	s8 tempSSD;
 
 	// Color Temperature Hint [2B]
 	u16 colorTemp;
