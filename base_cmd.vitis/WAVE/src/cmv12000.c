@@ -302,6 +302,16 @@ void cmvApplyCameraState(void)
 	CMV_Settings_W.Temp_sensor = 0;
 }
 
+u32 cmvGetOffsets(void)
+{
+	u32 offsets;
+
+	offsets = ((u32)CMV_Settings_W.Offset_top << 16);
+	offsets |= CMV_Settings_W.Offset_bot;
+
+	return offsets;
+}
+
 void cmvSetOffsets(u16 offsetBot, u16 offsetTop)
 {
 	CMV_Settings_W.Offset_bot = offsetBot;

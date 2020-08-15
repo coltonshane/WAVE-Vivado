@@ -163,4 +163,16 @@ void supervisorService(void)
 	supervisorVBatt = XUartPs_RecvByte(uart1Config->BaseAddress);
 }
 
+u8 terminalGetKeypress(void)
+{
+	u8 keypress = 0x00;
+
+	if(XUartPs_IsReceiveData(uart0Config->BaseAddress))
+	{
+		keypress = XUartPs_RecvByte(uart0Config->BaseAddress);
+	}
+
+	return keypress;
+}
+
 // Private Function Definitions ----------------------------------------------------------------------------------------

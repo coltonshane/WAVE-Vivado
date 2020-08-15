@@ -185,6 +185,33 @@ void uiService(void)
 {
 	char strWorking[32];
 
+	// Temporary terminal service. To be replaced with QX protocol?
+	// ---------------------------------------------------------------------------------------------
+	switch(terminalGetKeypress())
+	{
+	case 'w':
+	{
+		// Increase the CMV12000 offsets.
+		u32 offsetBot = cmvGetOffsets() & 0xFFFF;
+		offsetBot++;
+		cmvSetOffsets(offsetBot, offsetBot);
+		xil_printf("CMV offsets set to %d.\r\n", offsetBot);
+		break;
+	}
+	case 's':
+	{
+		// Decrease the CMV12000 offsets.
+		u32 offsetBot = cmvGetOffsets() & 0xFFFF;
+		offsetBot--;
+		cmvSetOffsets(offsetBot, offsetBot);
+		xil_printf("CMV offsets set to %d.\r\n", offsetBot);
+		break;
+	}
+	default:
+		break;
+	}
+	// ---------------------------------------------------------------------------------------------
+
 	// Menu state machine.
 	// ---------------------------------------------------------------------------------------------
 

@@ -48,6 +48,8 @@ int supervisorEnableSSDPower(void);
 void supervisorSetFan(u8 fanSpeed);
 void supervisorService(void);
 
+u8 terminalGetKeypress(void);
+
 // Externed Public Global Variables ------------------------------------------------------------------------------------
 
 extern u8 supervisorVBatt;
