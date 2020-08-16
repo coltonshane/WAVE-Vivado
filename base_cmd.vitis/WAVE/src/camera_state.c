@@ -35,7 +35,7 @@ THE SOFTWARE.
 // Private Pre-Processor Definitions -----------------------------------------------------------------------------------
 
 #define CSETTING_HEIGHT_ENABLE_4K 0x000000000FFFFFFF
-#define CSETTING_HEIGHT_ENABLE_2K 0x000000000FFFFFC0
+#define CSETTING_HEIGHT_ENABLE_2K 0x000000000FFFFF80
 
 // Private Type Definitions --------------------------------------------------------------------------------------------
 

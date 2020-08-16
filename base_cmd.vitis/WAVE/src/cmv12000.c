@@ -99,7 +99,7 @@ u16 cmvRegValInit[] =
 	1,
 	0,
 	1,
-	32853,
+	85, 	// To enable black columns: 32853
 	34956,
 	8302,
 	11614,
