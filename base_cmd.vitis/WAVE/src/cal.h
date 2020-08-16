@@ -44,12 +44,16 @@ typedef struct __attribute__((packed))
 	Version_s version;
 	float cmvTempDN0;
 	float cmvTempT0;
+	u16 cmvVtfl4K;
+	u16 cmvVtfl2K;
 } FactoryHeader_s;
 
 // Public Function Prototypes ------------------------------------------------------------------------------------------
 
+void calInit(void);
+
 // Externed Public Global Variables ------------------------------------------------------------------------------------
 
-extern FactoryHeader_s * const factoryHeader;
+extern FactoryHeader_s fhActive;
 
 #endif

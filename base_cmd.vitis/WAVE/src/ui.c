@@ -187,26 +187,90 @@ void uiService(void)
 
 	// Temporary terminal service. To be replaced with QX protocol?
 	// ---------------------------------------------------------------------------------------------
-	switch(terminalGetKeypress())
+	switch(cState.cSetting[CSETTING_GAIN]->val)
 	{
-	case 'w':
-	{
-		// Increase the CMV12000 offsets.
-		u32 offsetBot = cmvGetOffsets() & 0xFFFF;
-		offsetBot++;
-		cmvSetOffsets(offsetBot, offsetBot);
-		xil_printf("CMV offsets set to %d.\r\n", offsetBot);
+	case CSETTING_GAIN_CAL1:
+		// Dark Frame and Offset Calibration
+		switch(terminalGetKeypress())
+		{
+		case 'w':
+		{
+			// Increase the CMV12000 offsets.
+			u32 offsetBot = cmvGetOffsets() & 0xFFFF;
+			offsetBot++;
+			cmvSetOffsets(offsetBot, offsetBot);
+			xil_printf("CMV offsets set to %d.\r\n", offsetBot);
+			break;
+		}
+		case 's':
+		{
+			// Decrease the CMV12000 offsets.
+			u32 offsetBot = cmvGetOffsets() & 0xFFFF;
+			offsetBot--;
+			cmvSetOffsets(offsetBot, offsetBot);
+			xil_printf("CMV offsets set to %d.\r\n", offsetBot);
+			break;
+		}
+		default:
+			break;
+		}
 		break;
-	}
-	case 's':
-	{
-		// Decrease the CMV12000 offsets.
-		u32 offsetBot = cmvGetOffsets() & 0xFFFF;
-		offsetBot--;
-		cmvSetOffsets(offsetBot, offsetBot);
-		xil_printf("CMV offsets set to %d.\r\n", offsetBot);
+	case CSETTING_GAIN_CAL2:
+		// HDR Kneepoint 1 Calibration
+		switch(terminalGetKeypress())
+		{
+		case 'w':
+		{
+			// Increase CMV12000 Vtfl2.
+			u8 Vtfl2 = cmvGetVtfl() & 0x7F;
+			u8 Vtfl3 = (cmvGetVtfl() >> 7) & 0x7F;
+			Vtfl2++;
+			cmvSetVtfl(Vtfl2, Vtfl3);
+			xil_printf("CMV HDR kneepoints set to %d (Vtfl2) and %d (Vtfl3).\r\n", Vtfl2, Vtfl3);
+			break;
+		}
+		case 's':
+		{
+			// Decrease CMV12000 Vtfl2.
+			u8 Vtfl2 = cmvGetVtfl() & 0x7F;
+			u8 Vtfl3 = (cmvGetVtfl() >> 7) & 0x7F;
+			Vtfl2--;
+			cmvSetVtfl(Vtfl2, Vtfl3);
+			xil_printf("CMV HDR kneepoints set to %d (Vtfl2) and %d (Vtfl3).\r\n", Vtfl2, Vtfl3);
+			break;
+		}
+		default:
+			break;
+		}
 		break;
-	}
+	case CSETTING_GAIN_CAL3:
+		// HDR Kneepoint 2 Calibration
+		switch(terminalGetKeypress())
+		{
+		case 'w':
+		{
+			// Increase CMV12000 Vtfl3.
+			u8 Vtfl2 = cmvGetVtfl() & 0x7F;
+			u8 Vtfl3 = (cmvGetVtfl() >> 7) & 0x7F;
+			Vtfl3++;
+			cmvSetVtfl(Vtfl2, Vtfl3);
+			xil_printf("CMV HDR kneepoints set to %d (Vtfl2) and %d (Vtfl3).\r\n", Vtfl2, Vtfl3);
+			break;
+		}
+		case 's':
+		{
+			// Decrease CMV12000 Vtfl3.
+			u8 Vtfl2 = cmvGetVtfl() & 0x7F;
+			u8 Vtfl3 = (cmvGetVtfl() >> 7) & 0x7F;
+			Vtfl3--;
+			cmvSetVtfl(Vtfl2, Vtfl3);
+			xil_printf("CMV HDR kneepoints set to %d (Vtfl2) and %d (Vtfl3).\r\n", Vtfl2, Vtfl3);
+			break;
+		}
+		default:
+			break;
+		}
+		break;
 	default:
 		break;
 	}

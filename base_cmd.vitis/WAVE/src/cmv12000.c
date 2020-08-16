@@ -209,6 +209,7 @@ void cmvApplyCameraState(void)
 		CMV_Settings_W.Setting_5 = 128;
 		// CMV_Settings_W.Offset_bot = 512;		// Set by dark frame.
 		// CMV_Settings_W.Offset_top = 512;		// Set by dark frame.
+		CMV_Settings_W.Vtfl = fhActive.cmvVtfl4K;
 		CMV_Settings_W.Reg_98 = 44812;
 		CMV_Settings_W.Setting_6 = 789;
 		CMV_Settings_W.Setting_7 = 84;
@@ -227,6 +228,7 @@ void cmvApplyCameraState(void)
 		CMV_Settings_W.Setting_5 = 71;
 		// CMV_Settings_W.Offset_bot = 512;		// Set by dark frame.
 		// CMV_Settings_W.Offset_top = 512;		// Set by dark frame.
+		CMV_Settings_W.Vtfl = fhActive.cmvVtfl2K;
 		CMV_Settings_W.Reg_98 = 44815;
 		CMV_Settings_W.Setting_6 = 798;
 		CMV_Settings_W.Setting_7 = 90;
@@ -294,8 +296,6 @@ void cmvApplyCameraState(void)
 	// Set the frame interval.
 	CMV_Input->frame_interval = tFrame * 60E6;
 
-	CMV_Settings_W.Vtfl = 90 * 128 + 96;
-
 	CMV_Settings_W.PGA_gain = CMV_REG_VAL_PGA_GAIN_X1;
 	CMV_Settings_W.DIG_gain = 4;
 	CMV_Settings_W.Test_pattern = 32;
@@ -318,10 +318,20 @@ void cmvSetOffsets(u16 offsetBot, u16 offsetTop)
 	CMV_Settings_W.Offset_top = offsetTop;
 }
 
+u16 cmvGetVtfl(void)
+{
+	return CMV_Settings_W.Vtfl;
+}
+
+void cmvSetVtfl(u8 Vtfl2, u8 Vtfl3)
+{
+	CMV_Settings_W.Vtfl = ((u16)(Vtfl3 & 0x7F) << 7) | (u16)(Vtfl2 & 0x7F);
+}
+
 float cmvGetTemp(void)
 {
-	float cmvDN0 = factoryHeader->cmvTempDN0;
-	float cmvT0 = factoryHeader->cmvTempT0;
+	float cmvDN0 = fhActive.cmvTempDN0;
+	float cmvT0 = fhActive.cmvTempT0;
 	float cmvTSlope = 0.143f;
 
 	static float cmvTf = -100.0f;

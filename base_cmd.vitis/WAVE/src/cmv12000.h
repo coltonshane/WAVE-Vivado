@@ -113,6 +113,8 @@ void cmvService(void);
 void cmvApplyCameraState(void);
 u32 cmvGetOffsets(void);
 void cmvSetOffsets(u16 offsetBot, u16 offsetTop);
+u16 cmvGetVtfl(void);
+void cmvSetVtfl(u8 Vtfl2, u8 Vtfl3);
 float cmvGetTemp(void);
 u32 cmvGetExposure(void);
 

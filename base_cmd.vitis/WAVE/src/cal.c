@@ -37,12 +37,34 @@ THE SOFTWARE.
 
 // Public Global Variables ---------------------------------------------------------------------------------------------
 
-FactoryHeader_s * const factoryHeader = (FactoryHeader_s * const)(FACTORY_FLASH_BASE_ADDR);
+FactoryHeader_s fhActive;
 
 // Private Global Variables --------------------------------------------------------------------------------------------
+
+FactoryHeader_s * const fhFlash = (FactoryHeader_s * const)(FACTORY_FLASH_BASE_ADDR);
+FactoryHeader_s fhDefault = { .strDelimiter = "WAVE HELLO\n",
+							  .version = {0, 0, 0},				// v0.0.0 indicates default cal
+							  .cmvTempDN0 = 1861.0f,			// CMV12000 Datasheet Figure 3
+							  .cmvTempT0 = 30.0f,				// CMV12000 Datasheet Figure 3
+							  .cmvVtfl4K = (80 << 7) | 96,		// ~50% and ~75%
+							  .cmvVtfl2K = (80 << 7) | 96 };	// ~50% and ~75%
 
 // Interrupt Handlers --------------------------------------------------------------------------------------------------
 
 // Public Function Definitions -----------------------------------------------------------------------------------------
+
+void calInit(void)
+{
+	if(strcmp(fhFlash->strDelimiter, "WAVE HELLO!\n") == 0)
+	{
+		// Factory header in flash is valid.
+		memcpy(&fhActive, fhFlash, sizeof(FactoryHeader_s));
+	}
+	else
+	{
+		// Factory header in flash is invalid, use default cal.
+		memcpy(&fhActive, &fhDefault, sizeof(FactoryHeader_s));
+	}
+}
 
 // Private Function Definitions ----------------------------------------------------------------------------------------
