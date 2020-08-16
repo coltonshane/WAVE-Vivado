@@ -45,6 +45,7 @@
 #include "fs.h"
 #include "frame.h"
 #include "camera_state.h"
+#include "cal.h"
 
 #include "xscugic.h"
 #include "xil_cache.h"
@@ -99,6 +100,7 @@ int main()
     gpioInit();
     supervisorInit();
     xil_printf("WAVE HELLO!\r\n");
+    calInit();
     cStateInit();
     waveletInit();
     encoderInit();
