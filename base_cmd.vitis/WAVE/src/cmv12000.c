@@ -1,7 +1,7 @@
 /*
 CMV12000 Driver
 
-Copyright (C) 2019 by Shane W. Colton
+Copyright (C) 2020 by Shane W. Colton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -69,6 +69,7 @@ void cmvRegWrite(XSpiPs * spiDevice, u8 addr, u16 val);
 // Public Global Variables ---------------------------------------------------------------------------------------------
 
 CMV_Input_s * CMV_Input = (CMV_Input_s *) 0xA0000000;
+CMV_Settings_s CMV_Settings_W;
 
 // Private Global Variables --------------------------------------------------------------------------------------------
 
@@ -111,8 +112,7 @@ u16 cmvRegValInit[] =
 	15
 };
 
-// Registers that are accessible via the UI.
-CMV_Settings_s CMV_Settings_W, CMV_Settings_R;
+CMV_Settings_s CMV_Settings_R;
 u8 cmvRegAddrSettings[] = {1,2,66,67,68,71,72,75,76,77,78,79,82,83,84,85,86,87,88,98,106,113,114,115,117,122,127};
 
 // Interrupt Handlers --------------------------------------------------------------------------------------------------

@@ -31,6 +31,19 @@ THE SOFTWARE.
 
 // Public Type Definitions ---------------------------------------------------------------------------------------------
 
+typedef struct __attribute__((packed))
+{
+	float RtoR;
+	float GtoR;
+	float BtoR;
+	float RtoG;
+	float GtoG;
+	float BtoG;
+	float RtoB;
+	float GtoB;
+	float BtoB;
+} LUT1DMatrix_s;
+
 typedef enum
 {
 	HDMI_LUT1D_OETF_LINEAR,
@@ -51,5 +64,8 @@ void hdmiLUT1DIdentity(void);
 void hdmiLUT1DApply(void);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
+
+extern const LUT1DMatrix_s m5600K;
+extern const LUT1DMatrix_s m3200K;
 
 #endif

@@ -121,6 +121,7 @@ u32 cmvGetExposure(void);
 // Externed Public Global Variables ------------------------------------------------------------------------------------
 
 extern CMV_Input_s * CMV_Input;
+extern CMV_Settings_s CMV_Settings_W;
 
 #endif
 

@@ -129,7 +129,7 @@ u32 fsGetNextClip(void)
 void fsCreateClip(void)
 {
 	FRESULT res;
-	char strWorking[16];
+	char strWorking[32];
 
 	if((nClip < 0) || (nClip > 9999)) { return; }
 

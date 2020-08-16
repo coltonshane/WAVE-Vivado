@@ -43,6 +43,11 @@ u32 bitOffsetInLL2(u16 x, u16 y, u8 color, u16 wLL2);
 
 // Public Global Variables ---------------------------------------------------------------------------------------------
 
+// Active dark frame.
+DarkFrame_s * dfCold;
+DarkFrame_s * dfWarm;
+DarkFrame_s dfActive;
+
 // Private Global Variables --------------------------------------------------------------------------------------------
 
 const DarkFrameColor_s dfColorZero = {0, 0, 0, 0};
@@ -54,8 +59,6 @@ DarkFrame_s * const dfWarm4K = (DarkFrame_s * const) 0xC0910000;
 DarkFrame_s * const dfCold2K = (DarkFrame_s * const) 0xC0920000;
 DarkFrame_s * const dfWarm2K = (DarkFrame_s * const) 0xC0930000;
 
-// Active dark frame in RAM.
-DarkFrame_s dfActive;
 // DarkFrame_s dfError;
 
 // HDMI peripheral addresses of dark row and dark column URAMs.
@@ -68,8 +71,6 @@ u32 * const hdmiDarkCols =   (u32 * const) 0xA0110000;
 
 void hdmiDarkFrameCreate(u16 wFrame, float temp)
 {
-	DarkFrame_s * dfCold;
-	DarkFrame_s * dfWarm;
 	float dTemp, wTemp;
 	float fVal;
 

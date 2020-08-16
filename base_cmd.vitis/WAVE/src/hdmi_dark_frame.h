@@ -71,6 +71,8 @@ void hdmiDarkFrameApply(u16 wFrame, u16 hFrame);
 
 // Externed Public Global Variables ------------------------------------------------------------------------------------
 
+extern DarkFrame_s * dfCold;
+extern DarkFrame_s * dfWarm;
 extern DarkFrame_s dfActive;
 
 #endif

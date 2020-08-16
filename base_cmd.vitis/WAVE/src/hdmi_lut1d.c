@@ -32,7 +32,7 @@ THE SOFTWARE.
 
 // Private Type Definitions --------------------------------------------------------------------------------------------
 
-typedef struct
+typedef struct __attribute__((packed))
 {
 	s16 R;
 	s16 G;
@@ -40,20 +40,7 @@ typedef struct
 	s16 reserved;
 } LUT1DColor_s; // [64B]
 
-typedef struct
-{
-	float RtoR;
-	float GtoR;
-	float BtoR;
-	float RtoG;
-	float GtoG;
-	float BtoG;
-	float RtoB;
-	float GtoB;
-	float BtoB;
-} LUT1DMatrix_s;
-
-typedef struct
+typedef struct __attribute__((packed))
 {
 	LUT1DColor_s lut1D_G1[4096];	// G1 10-bit input to 14-bit color mixer.
 	LUT1DColor_s lut1D_R1[4096];	// R1 10-bit input to 14-bit color mixer.

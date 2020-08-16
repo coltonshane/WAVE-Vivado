@@ -129,10 +129,9 @@ void isrFOT(void * CallbackRef)
 	fhBuffer[iFrameIn].nFrame = nFramesIn;
 
 	// Frame delimeter and quick info for the upcoming frame.
-	memcpy(fhBuffer[iFrameIn].delimeter, "WAVE HELLO!\n",12);
+	memcpy(fhBuffer[iFrameIn].strDelimiter, "WAVE HELLO!\n",12);
 	fhBuffer[iFrameIn].wFrame = (u16)(cState.cSetting[CSETTING_WIDTH]->valArray[cState.cSetting[CSETTING_WIDTH]->val].fVal);
 	fhBuffer[iFrameIn].hFrame = (u16)(cState.cSetting[CSETTING_HEIGHT]->valArray[cState.cSetting[CSETTING_HEIGHT]->val].fVal);;
-	fhBuffer[iFrameIn].tExp = cmvGetExposure();
 
 	// Quantizer settings for the upcoming frame.
 	// TO-DO: Right here is where the quantizer settings should be modified to hit bit rate target!
@@ -191,9 +190,36 @@ void frameApplyCameraState(void)
 
 void frameCreateClip(void)
 {
+	ClipHeader_s clipHeader;
+
 	XGpioPs_WritePin(&Gpio, REC_LED_PIN, 1);
 	fsCreateClip();
-	fsWriteClipInfo((u64)(&dfActive), sizeof(DarkFrame_s));
+
+	// Build the clip header.
+	memcpy(clipHeader.strDelimiter, "WAVE HELLO!\n",12);
+	clipHeader.version.major = 0;									// TO-DO: Pull from firmware version?
+	clipHeader.version.minor = 0;
+	clipHeader.version.build = 0;
+	clipHeader.wFrame = (u16)(cState.cSetting[CSETTING_WIDTH]->valArray[cState.cSetting[CSETTING_WIDTH]->val].fVal);
+	clipHeader.hFrame = (u16)(cState.cSetting[CSETTING_HEIGHT]->valArray[cState.cSetting[CSETTING_HEIGHT]->val].fVal);
+	clipHeader.fps = cState.cSetting[CSETTING_FPS]->valArray[cState.cSetting[CSETTING_FPS]->val].fVal;
+	clipHeader.shutterAngle = cState.cSetting[CSETTING_SHUTTER]->valArray[cState.cSetting[CSETTING_SHUTTER]->val].fVal;
+	clipHeader.colorTemp = cState.cSetting[CSETTING_COLOR]->valArray[cState.cSetting[CSETTING_COLOR]->val].fVal;
+	clipHeader.gain = (u8)(cState.cSetting[CSETTING_GAIN]->valArray[cState.cSetting[CSETTING_GAIN]->val].fVal);
+	memcpy(&clipHeader.m5600K, &m5600K, sizeof(LUT1DMatrix_s));
+	memcpy(&clipHeader.m3200K, &m3200K, sizeof(LUT1DMatrix_s));
+	clipHeader.hdrTExp1 = 0.050f;									// TO-DO: Drive these from somewhere.
+	clipHeader.hdrKp1 = 0.063f;
+	clipHeader.hdrKp1Window = 0.010f;
+	clipHeader.hdrTExp1 = 0.021f;
+	clipHeader.hdrKp1 = 0.080f;
+	clipHeader.hdrKp1Window = 0.005f;
+	memcpy(&clipHeader.cmvSettings, &CMV_Settings_W, sizeof(CMV_Settings_s));
+
+	// Write the clip header and dark frames to the clip info file.
+	fsWriteClipInfo((u64)(&clipHeader), sizeof(ClipHeader_s));
+	fsWriteClipInfo((u64)dfCold, sizeof(DarkFrame_s));
+	fsWriteClipInfo((u64)dfWarm, sizeof(DarkFrame_s));
 	fsCloseClipInfo();
 
 	// Start recording at the current frame.
@@ -253,9 +279,6 @@ void frameRecord(void)
 	fhBuffer[iFrameOut].tempPL = frameTempPL;
 	fhBuffer[iFrameOut].tempCMV = frameTempCMV;
 	fhBuffer[iFrameOut].tempSSD = frameTempSSD;
-
-	// Fill in color temperature hint from settings.
-	fhBuffer[iFrameOut].colorTemp = (u16)cState.cSetting[CSETTING_COLOR]->valArray[cState.cSetting[CSETTING_COLOR]->val].fVal;
 
 	// Copy the codestream addresses and sizes once to minimize DDR access.
 	memcpy(csAddrBuffer, fhBuffer[iFrameOut].csAddr, 16 * sizeof(u32));

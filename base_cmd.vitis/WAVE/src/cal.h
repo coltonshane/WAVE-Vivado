@@ -27,16 +27,11 @@ THE SOFTWARE.
 
 // Include Headers -----------------------------------------------------------------------------------------------------
 
+#include "main.h"
+
 // Public Pre-Processor Definitions ------------------------------------------------------------------------------------
 
 // Public Type Definitions ---------------------------------------------------------------------------------------------
-
-typedef struct __attribute__((packed))
-{
-	u16 build;
-	u8 minor;
-	u8 major;
-} Version_s;
 
 typedef struct __attribute__((packed))
 {

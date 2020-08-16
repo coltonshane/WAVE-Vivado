@@ -44,7 +44,7 @@ FactoryHeader_s fhActive;
 FactoryHeader_s * const fhFlash = (FactoryHeader_s * const)(FACTORY_FLASH_BASE_ADDR);
 FactoryHeader_s fhDefault = { .strDelimiter = "WAVE HELLO\n",
 							  .version = {0, 0, 0},				// v0.0.0 indicates default cal
-							  .cmvTempDN0 = 1861.0f,			// CMV12000 Datasheet Figure 3
+							  .cmvTempDN0 = 1860.0f,			// CMV12000 Datasheet Figure 3
 							  .cmvTempT0 = 30.0f,				// CMV12000 Datasheet Figure 3
 							  .cmvVtfl4K = (80 << 7) | 96,		// ~50% and ~75%
 							  .cmvVtfl2K = (80 << 7) | 96 };	// ~50% and ~75%
