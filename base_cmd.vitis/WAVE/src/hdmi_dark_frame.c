@@ -100,29 +100,39 @@ void hdmiDarkFrameCreate(u16 wFrame, float temp)
 	}
 
 	// Interpolate the dark rows and dark columns.
-	// Not testing for saturation since these should be small relative to s16 range.
+	// TO-DO: The interpolated output is restricted to be positive because of a timing issue that
+	// causes some color channels to use bit-mixed dark frame LUT data from two addresses. The
+	// symptom is milder if the two data points are both positive.
 	for(u16 r = 0; r < DARK_FRAME_H; r++)
 	{
 
 		fVal = (float) dfCold->row[r].G1 + wTemp * (float) (dfWarm->row[r].G1 - dfCold->row[r].G1);
+		if(fVal < 0.0f) { fVal = 0.0f; }
 		dfActive.row[r].G1 = (s16) fVal;
 		fVal = (float) dfCold->row[r].R1 + wTemp * (float) (dfWarm->row[r].R1 - dfCold->row[r].R1);
+		if(fVal < 0.0f) { fVal = 0.0f; }
 		dfActive.row[r].R1 = (s16) fVal;
 		fVal = (float) dfCold->row[r].B1 + wTemp * (float) (dfWarm->row[r].B1 - dfCold->row[r].B1);
+		if(fVal < 0.0f) { fVal = 0.0f; }
 		dfActive.row[r].B1 = (s16) fVal;
 		fVal = (float) dfCold->row[r].G2 + wTemp * (float) (dfWarm->row[r].G2 - dfCold->row[r].G2);
+		if(fVal < 0.0f) { fVal = 0.0f; }
 		dfActive.row[r].G2 = (s16) fVal;
 
 	}
 	for(u16 c = 0; c < DARK_FRAME_W; c++)
 	{
 		fVal = (float) dfCold->col[c].G1 + wTemp * (float) (dfWarm->col[c].G1 - dfCold->col[c].G1);
+		if(fVal < 0.0f) { fVal = 0.0f; }
 		dfActive.col[c].G1 = (s16) fVal;
 		fVal = (float) dfCold->col[c].R1 + wTemp * (float) (dfWarm->col[c].R1 - dfCold->col[c].R1);
+		if(fVal < 0.0f) { fVal = 0.0f; }
 		dfActive.col[c].R1 = (s16) fVal;
 		fVal = (float) dfCold->col[c].B1 + wTemp * (float) (dfWarm->col[c].B1 - dfCold->col[c].B1);
+		if(fVal < 0.0f) { fVal = 0.0f; }
 		dfActive.col[c].B1 = (s16) fVal;
 		fVal = (float) dfCold->col[c].G2 + wTemp * (float) (dfWarm->col[c].G2 - dfCold->col[c].G2);
+		if(fVal < 0.0f) { fVal = 0.0f; }
 		dfActive.col[c].G2 = (s16) fVal;
 	}
 
