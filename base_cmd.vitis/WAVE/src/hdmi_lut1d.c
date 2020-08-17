@@ -284,7 +284,7 @@ LUT1DMatrix_s interpolateMatrix(LUT1DMatrix_s m0, LUT1DMatrix_s m1, float x)
 	return mOut;
 }
 
-double debug_x_kp1 = 0.63;
+double debug_x_kp1 = 0.66;
 double debug_x_win = 0.10;
 
 float HDRtoLinear(double x)
