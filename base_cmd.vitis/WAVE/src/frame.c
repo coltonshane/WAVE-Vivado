@@ -209,7 +209,7 @@ void frameCreateClip(void)
 	memcpy(&clipHeader.m5600K, &m5600K, sizeof(LUT1DMatrix_s));
 	memcpy(&clipHeader.m3200K, &m3200K, sizeof(LUT1DMatrix_s));
 	clipHeader.hdrTExp1 = 0.050f;									// TO-DO: Drive these from somewhere.
-	clipHeader.hdrKp1 = 0.066f;
+	clipHeader.hdrKp1 = 0.068f;
 	clipHeader.hdrKp1Window = 0.010f;
 	clipHeader.hdrTExp1 = 0.021f;
 	clipHeader.hdrKp1 = 0.080f;

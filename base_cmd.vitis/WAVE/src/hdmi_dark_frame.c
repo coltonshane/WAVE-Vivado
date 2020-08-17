@@ -105,7 +105,6 @@ void hdmiDarkFrameCreate(u16 wFrame, float temp)
 	// symptom is milder if the two data points are both positive.
 	for(u16 r = 0; r < DARK_FRAME_H; r++)
 	{
-
 		fVal = (float) dfCold->row[r].G1 + wTemp * (float) (dfWarm->row[r].G1 - dfCold->row[r].G1);
 		if(fVal < 0.0f) { fVal = 0.0f; }
 		dfActive.row[r].G1 = (s16) fVal;
