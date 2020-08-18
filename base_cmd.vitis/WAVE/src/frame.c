@@ -211,9 +211,9 @@ void frameCreateClip(void)
 	clipHeader.hdrTExp1 = 0.050f;									// TO-DO: Drive these from somewhere.
 	clipHeader.hdrKp1 = 0.068f;
 	clipHeader.hdrKp1Window = 0.010f;
-	clipHeader.hdrTExp1 = 0.021f;
-	clipHeader.hdrKp1 = 0.080f;
-	clipHeader.hdrKp1Window = 0.005f;
+	clipHeader.hdrTExp2 = 0.021f;
+	clipHeader.hdrKp2 = 0.080f;
+	clipHeader.hdrKp2Window = 0.005f;
 	memcpy(&clipHeader.cmvSettings, &CMV_Settings_W, sizeof(CMV_Settings_s));
 
 	// Write the clip header and dark frames to the clip info file.
